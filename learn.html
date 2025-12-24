@@ -1,0 +1,2196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learn ASDF | The Optimistic Burn Protocol</title>
+    <meta name="description" content="Interactive guide to understand the ASDF ecosystem. From basics to advanced concepts. Earn badges and track your progress.">
+
+    <!-- Open Graph for Social Sharing -->
+    <meta property="og:title" content="Learn ASDF - Interactive Crypto Tutorial">
+    <meta property="og:description" content="Master the Optimistic Burn Protocol in 5 levels. Earn badges. Join the movement.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://alonisthe.dev/asdf-learn-og.png">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <!-- Security -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ============================================
+           PROGRESSIVE LEARNING - ASDF ECOSYSTEM
+           V2: With Gamification, FAQ, Glossary, Calculator
+           ============================================ */
+
+        :root {
+            /* Fire Palette */
+            --bg-void: #0a0a0f;
+            --bg-dark: #0c0c0c;
+            --bg-charred: #2a1005;
+            --bg-burnt: #451a03;
+            --border-rust: #7c2d12;
+            --border-orange: #9a3412;
+            --accent-fire: #ea580c;
+            --accent-bright: #fb923c;
+            --accent-ember: #f97316;
+            --text-cream: #ffedd5;
+            --text-muted: #a8a29e;
+            --green: #22c55e;
+            --green-light: #4ade80;
+            --purple: #a855f7;
+            --blue: #3b82f6;
+            --red: #ef4444;
+            --gold: #fbbf24;
+            --silver: #9ca3af;
+            --bronze: #d97706;
+
+            /* Level Colors */
+            --level-1: #f97316;
+            --level-2: #eab308;
+            --level-3: #22c55e;
+            --level-4: #3b82f6;
+            --level-5: #a855f7;
+
+            /* Typography */
+            --font-display: 'Comic Neue', cursive;
+            --font-mono: 'JetBrains Mono', monospace;
+
+            /* Spacing */
+            --container-max: 900px;
+            --radius: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-mono);
+            background: var(--bg-void);
+            color: var(--text-cream);
+            line-height: 1.7;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-charred); }
+        ::-webkit-scrollbar-thumb { background: var(--border-rust); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-fire); }
+
+        /* ============================================
+           NAVIGATION BAR
+           ============================================ */
+
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 12px 24px;
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 2px solid var(--border-rust);
+        }
+
+        .nav-content {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--text-cream);
+        }
+
+        .nav-logo-text {
+            font-family: var(--font-display);
+            font-size: 18px;
+            font-weight: 700;
+            text-shadow: 2px 2px 0 var(--accent-fire);
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-charred);
+            padding: 4px;
+            border-radius: 8px;
+            border: 1px solid var(--border-rust);
+        }
+
+        .nav-tab {
+            padding: 8px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .nav-tab:hover { color: var(--text-cream); }
+        .nav-tab.active {
+            background: var(--accent-fire);
+            color: #fff;
+        }
+
+        .nav-progress {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-level {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid var(--border-rust);
+            background: var(--bg-charred);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-level.completed { background: var(--green); border-color: var(--green-light); color: #000; }
+        .nav-level.current { border-color: var(--accent-fire); color: var(--accent-fire); animation: pulse-border 2s infinite; }
+        .nav-level.locked { opacity: 0.4; cursor: not-allowed; }
+        .nav-level:hover:not(.locked) { transform: scale(1.15); }
+
+        @keyframes pulse-border {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(234, 88, 12, 0.4); }
+            50% { box-shadow: 0 0 0 6px rgba(234, 88, 12, 0); }
+        }
+
+        .nav-connector { width: 16px; height: 2px; background: var(--border-rust); }
+        .nav-connector.active { background: var(--green); }
+
+        .nav-stats {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 11px;
+        }
+
+        .nav-xp {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: var(--bg-burnt);
+            border: 1px solid var(--gold);
+            border-radius: 100px;
+            color: var(--gold);
+            font-weight: 700;
+        }
+
+        /* ============================================
+           MAIN CONTAINER
+           ============================================ */
+
+        .main {
+            max-width: var(--container-max);
+            margin: 0 auto;
+            padding: 90px 24px 60px;
+        }
+
+        /* ============================================
+           VIEW SECTIONS (Levels, FAQ, Glossary, etc.)
+           ============================================ */
+
+        .view-section {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .view-section.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ============================================
+           LEVEL SECTIONS
+           ============================================ */
+
+        .level-section { display: none; animation: fadeIn 0.5s ease; }
+        .level-section.active { display: block; }
+
+        .level-header { text-align: center; margin-bottom: 40px; }
+
+        .level-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 12px;
+        }
+
+        .level-1 .level-badge { background: rgba(249, 115, 22, 0.2); border: 1px solid var(--level-1); color: var(--level-1); }
+        .level-2 .level-badge { background: rgba(234, 179, 8, 0.2); border: 1px solid var(--level-2); color: var(--level-2); }
+        .level-3 .level-badge { background: rgba(34, 197, 94, 0.2); border: 1px solid var(--level-3); color: var(--level-3); }
+        .level-4 .level-badge { background: rgba(59, 130, 246, 0.2); border: 1px solid var(--level-4); color: var(--level-4); }
+        .level-5 .level-badge { background: rgba(168, 85, 247, 0.2); border: 1px solid var(--level-5); color: var(--level-5); }
+
+        .level-title {
+            font-family: var(--font-display);
+            font-size: clamp(32px, 7vw, 48px);
+            font-weight: 700;
+            margin-bottom: 12px;
+            text-shadow: 3px 3px 0 var(--accent-fire);
+        }
+
+        .level-subtitle {
+            font-size: 14px;
+            color: var(--text-muted);
+            max-width: 450px;
+            margin: 0 auto;
+        }
+
+        .level-xp {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 12px;
+            padding: 4px 12px;
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid var(--gold);
+            border-radius: 100px;
+            font-size: 11px;
+            color: var(--gold);
+        }
+
+        /* ============================================
+           CONTENT CARDS
+           ============================================ */
+
+        .content-card {
+            background: var(--bg-charred);
+            border: 2px solid var(--border-rust);
+            border-radius: var(--radius);
+            padding: 28px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .content-card:hover { border-color: var(--accent-fire); }
+
+        .content-card h3 {
+            font-family: var(--font-display);
+            font-size: 22px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .content-card p {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-bottom: 14px;
+        }
+
+        .content-card p:last-child { margin-bottom: 0; }
+
+        .highlight-box {
+            background: var(--bg-burnt);
+            border: 1px dashed var(--accent-fire);
+            border-radius: 8px;
+            padding: 14px;
+            margin: 14px 0;
+            font-size: 13px;
+        }
+
+        .highlight-box strong { color: var(--accent-bright); }
+
+        /* ============================================
+           INTERACTIVE ELEMENTS
+           ============================================ */
+
+        .reveal-box {
+            background: var(--bg-burnt);
+            border: 2px solid var(--border-rust);
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .reveal-trigger {
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .reveal-trigger:hover { background: rgba(234, 88, 12, 0.1); }
+
+        .reveal-trigger h4 {
+            font-family: var(--font-display);
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .reveal-arrow { transition: transform 0.3s ease; }
+        .reveal-box.open .reveal-arrow { transform: rotate(180deg); }
+
+        .reveal-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+            background: var(--bg-charred);
+        }
+
+        .reveal-box.open .reveal-content { max-height: 1000px; }
+
+        .reveal-content-inner {
+            padding: 20px;
+            border-top: 1px solid var(--border-rust);
+            font-size: 13px;
+        }
+
+        /* ============================================
+           VISUAL FLOW DIAGRAM
+           ============================================ */
+
+        .visual-flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding: 28px;
+            background: var(--bg-burnt);
+            border-radius: var(--radius);
+            margin: 20px 0;
+        }
+
+        .flow-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 14px;
+            background: var(--bg-charred);
+            border: 2px solid var(--border-rust);
+            border-radius: var(--radius);
+            min-width: 90px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .flow-step:hover { border-color: var(--accent-fire); transform: translateY(-4px); }
+        .flow-step .icon { font-size: 24px; }
+        .flow-step .label { font-size: 11px; font-weight: 600; color: var(--text-cream); }
+        .flow-step .sublabel { font-size: 9px; color: var(--text-muted); }
+        .flow-arrow { font-size: 20px; color: var(--accent-fire); }
+
+        /* ============================================
+           QUIZ SYSTEM
+           ============================================ */
+
+        .quiz-container {
+            background: var(--bg-charred);
+            border: 2px solid var(--accent-fire);
+            border-radius: var(--radius);
+            padding: 28px;
+            margin: 28px 0;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .quiz-xp {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid var(--gold);
+            border-radius: 100px;
+            font-size: 10px;
+            color: var(--gold);
+        }
+
+        .quiz-question {
+            font-family: var(--font-display);
+            font-size: 18px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .quiz-options { display: grid; gap: 10px; }
+
+        .quiz-option {
+            padding: 14px 18px;
+            background: var(--bg-burnt);
+            border: 2px solid var(--border-rust);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 13px;
+        }
+
+        .quiz-option:hover { border-color: var(--accent-fire); background: rgba(234, 88, 12, 0.1); }
+        .quiz-option.correct { border-color: var(--green); background: rgba(34, 197, 94, 0.2); }
+        .quiz-option.wrong { border-color: var(--red); background: rgba(239, 68, 68, 0.2); }
+
+        .quiz-feedback {
+            text-align: center;
+            margin-top: 20px;
+            padding: 14px;
+            border-radius: 8px;
+            display: none;
+            font-size: 13px;
+        }
+
+        .quiz-feedback.show { display: block; animation: fadeIn 0.3s ease; }
+        .quiz-feedback.success { background: rgba(34, 197, 94, 0.2); border: 1px solid var(--green); color: var(--green-light); }
+        .quiz-feedback.error { background: rgba(239, 68, 68, 0.2); border: 1px solid var(--red); color: #fca5a5; }
+
+        /* ============================================
+           BADGES & ACHIEVEMENTS
+           ============================================ */
+
+        .badges-panel {
+            background: var(--bg-charred);
+            border: 2px solid var(--border-rust);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .badges-title {
+            font-family: var(--font-display);
+            font-size: 20px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .badges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 12px;
+        }
+
+        .badge-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 8px;
+            background: var(--bg-burnt);
+            border: 2px solid var(--border-rust);
+            border-radius: var(--radius);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .badge-item.locked { opacity: 0.4; filter: grayscale(1); }
+        .badge-item.earned { border-color: var(--gold); box-shadow: 0 0 20px rgba(251, 191, 36, 0.2); }
+
+        .badge-icon { font-size: 32px; }
+        .badge-name { font-size: 10px; font-weight: 700; color: var(--text-cream); }
+        .badge-desc { font-size: 9px; color: var(--text-muted); }
+
+        /* ============================================
+           ACHIEVEMENTS POPUP
+           ============================================ */
+
+        .achievement-popup {
+            position: fixed;
+            top: 100px;
+            right: 24px;
+            width: 300px;
+            background: linear-gradient(135deg, var(--bg-burnt), var(--bg-charred));
+            border: 2px solid var(--gold);
+            border-radius: var(--radius);
+            padding: 20px;
+            z-index: 200;
+            transform: translateX(400px);
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .achievement-popup.show { transform: translateX(0); }
+
+        .achievement-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .achievement-icon { font-size: 40px; }
+
+        .achievement-title {
+            font-family: var(--font-display);
+            font-size: 16px;
+            color: var(--gold);
+        }
+
+        .achievement-subtitle { font-size: 11px; color: var(--text-muted); }
+
+        .achievement-xp {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: rgba(251, 191, 36, 0.2);
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--gold);
+        }
+
+        /* ============================================
+           LEADERBOARD
+           ============================================ */
+
+        .leaderboard-section {
+            background: var(--bg-charred);
+            border: 2px solid var(--border-rust);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin: 24px 0;
+        }
+
+        .leaderboard-title {
+            font-family: var(--font-display);
+            font-size: 20px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .leaderboard-list { display: flex; flex-direction: column; gap: 8px; }
+
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--bg-burnt);
+            border: 1px solid var(--border-rust);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .leaderboard-item:hover { border-color: var(--accent-fire); }
+        .leaderboard-item.you { border-color: var(--accent-fire); background: rgba(234, 88, 12, 0.1); }
+
+        .leaderboard-rank {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .leaderboard-rank.gold { background: var(--gold); color: #000; }
+        .leaderboard-rank.silver { background: var(--silver); color: #000; }
+        .leaderboard-rank.bronze { background: var(--bronze); color: #000; }
+        .leaderboard-rank.normal { background: var(--bg-charred); color: var(--text-muted); border: 1px solid var(--border-rust); }
+
+        .leaderboard-name { flex: 1; font-size: 13px; font-weight: 600; }
+        .leaderboard-xp { font-size: 12px; color: var(--gold); font-weight: 700; }
+
+        /* ============================================
+           FAQ SECTION
+           ============================================ */
+
+        .faq-section { padding-top: 20px; }
+
+        .faq-item {
+            background: var(--bg-charred);
+            border: 2px solid var(--border-rust);
+            border-radius: var(--radius);
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        .faq-question {
+            padding: 18px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.2s ease;
+        }
+
+        .faq-question:hover { background: rgba(234, 88, 12, 0.1); }
+
+        .faq-arrow { transition: transform 0.3s ease; color: var(--accent-fire); }
+        .faq-item.open .faq-arrow { transform: rotate(180deg); }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+
+        .faq-item.open .faq-answer { max-height: 500px; }
+
+        .faq-answer-inner {
+            padding: 0 20px 20px;
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.8;
+        }
+
+        .faq-answer-inner a { color: var(--accent-fire); }
+
+        /* ============================================
+           GLOSSARY SECTION
+           ============================================ */
+
+        .glossary-section { padding-top: 20px; }
+
+        .glossary-search {
+            width: 100%;
+            padding: 14px 20px;
+            background: var(--bg-burnt);
+            border: 2px solid var(--border-rust);
+            border-radius: var(--radius);
+            color: var(--text-cream);
+            font-family: var(--font-mono);
+            font-size: 14px;
+            margin-bottom: 20px;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .glossary-search:focus { border-color: var(--accent-fire); }
+        .glossary-search::placeholder { color: var(--text-muted); }
+
+        .glossary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .glossary-item {
+            background: var(--bg-charred);
+            border: 2px solid var(--border-rust);
+            border-radius: var(--radius);
+            padding: 20px;
+            transition: all 0.2s ease;
+        }
+
+        .glossary-item:hover { border-color: var(--accent-fire); }
+
+        .glossary-term {
+            font-family: var(--font-display);
+            font-size: 18px;
+            color: var(--accent-bright);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .glossary-def { font-size: 12px; color: var(--text-muted); line-height: 1.7; }
+
+        /* ============================================
+           CALCULATOR SECTION
+           ============================================ */
+
+        .calculator-section { padding-top: 20px; }
+
+        .calculator-box {
+            background: var(--bg-charred);
+            border: 2px solid var(--border-rust);
+            border-radius: var(--radius);
+            padding: 28px;
+        }
+
+        .calc-title {
+            font-family: var(--font-display);
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .calc-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .calc-input-group { display: flex; flex-direction: column; gap: 6px; }
+
+        .calc-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .calc-input {
+            padding: 12px 14px;
+            background: var(--bg-burnt);
+            border: 2px solid var(--border-rust);
+            border-radius: 8px;
+            color: var(--text-cream);
+            font-family: var(--font-mono);
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .calc-input:focus { border-color: var(--accent-fire); }
+
+        .calc-results {
+            background: var(--bg-burnt);
+            border: 2px solid var(--accent-fire);
+            border-radius: var(--radius);
+            padding: 20px;
+        }
+
+        .calc-result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-rust);
+        }
+
+        .calc-result-row:last-child { border-bottom: none; }
+
+        .calc-result-label { font-size: 13px; color: var(--text-muted); }
+        .calc-result-value { font-size: 16px; font-weight: 700; color: var(--accent-bright); }
+        .calc-result-value.highlight { font-size: 20px; color: var(--green); }
+
+        .calc-disclaimer {
+            margin-top: 16px;
+            padding: 12px;
+            background: rgba(234, 88, 12, 0.1);
+            border: 1px solid var(--accent-fire);
+            border-radius: 8px;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        /* ============================================
+           ARCHITECTURE DIAGRAM
+           ============================================ */
+
+        .architecture-box {
+            background: var(--bg-burnt);
+            border: 2px solid var(--border-rust);
+            border-radius: var(--radius);
+            padding: 28px;
+            margin: 20px 0;
+        }
+
+        .arch-title {
+            font-family: var(--font-display);
+            font-size: 18px;
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--accent-bright);
+        }
+
+        .arch-layers { display: flex; flex-direction: column; gap: 12px; }
+
+        .arch-layer {
+            background: var(--bg-charred);
+            border: 2px solid var(--border-rust);
+            border-radius: 8px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+        }
+
+        .arch-layer:hover { border-color: var(--accent-fire); }
+        .arch-layer .layer-name { font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+        .arch-layer .layer-tech { font-size: 11px; color: var(--text-muted); background: var(--bg-burnt); padding: 4px 10px; border-radius: 4px; }
+
+        /* ============================================
+           ECOSYSTEM CARDS
+           ============================================ */
+
+        .ecosystem-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin: 24px 0;
+        }
+
+        .eco-card {
+            background: var(--bg-charred);
+            border: 2px solid var(--border-rust);
+            border-radius: var(--radius);
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .eco-card:hover { border-color: var(--accent-fire); transform: translateY(-4px); }
+        .eco-card .icon { font-size: 36px; margin-bottom: 10px; }
+        .eco-card h4 { font-family: var(--font-display); font-size: 18px; margin-bottom: 6px; }
+        .eco-card p { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+
+        .eco-card .status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 100px;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .status-live { background: rgba(34, 197, 94, 0.2); border: 1px solid var(--green); color: var(--green); }
+        .status-beta { background: rgba(234, 179, 8, 0.2); border: 1px solid var(--level-2); color: var(--level-2); }
+        .status-soon { background: rgba(168, 85, 247, 0.2); border: 1px solid var(--purple); color: var(--purple); }
+
+        /* ============================================
+           BUTTONS
+           ============================================ */
+
+        .level-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 28px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            border: 2px solid var(--border-rust);
+            border-radius: var(--radius);
+            background: var(--bg-burnt);
+            color: var(--text-cream);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 4px 4px 0 var(--border-rust);
+        }
+
+        .btn:hover {
+            background: var(--accent-fire);
+            border-color: var(--accent-fire);
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0 var(--border-rust);
+        }
+
+        .btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0 var(--border-rust);
+        }
+
+        .btn-primary { background: var(--accent-fire); border-color: var(--accent-bright); }
+        .btn-success { background: var(--green); border-color: var(--green-light); color: #000; }
+        .btn-share { background: #1DA1F2; border-color: #1DA1F2; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: 4px 4px 0 var(--border-rust); }
+        .btn-small { padding: 10px 18px; font-size: 12px; }
+
+        /* ============================================
+           COMPLETION BANNER
+           ============================================ */
+
+        .completion-banner {
+            text-align: center;
+            padding: 40px 28px;
+            background: linear-gradient(135deg, var(--bg-burnt), var(--bg-charred));
+            border: 2px solid var(--accent-fire);
+            border-radius: var(--radius);
+            margin: 28px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .completion-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(234, 88, 12, 0.1) 0%, transparent 70%);
+            animation: rotate-glow 10s linear infinite;
+        }
+
+        @keyframes rotate-glow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .completion-banner h2 {
+            font-family: var(--font-display);
+            font-size: 32px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .completion-banner p {
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .completion-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            position: relative;
+        }
+
+        /* ============================================
+           SECTION HEADERS
+           ============================================ */
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .section-subtitle {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        /* ============================================
+           FOOTER
+           ============================================ */
+
+        .footer {
+            text-align: center;
+            padding: 32px 24px;
+            border-top: 1px solid var(--border-rust);
+            margin-top: 48px;
+        }
+
+        .footer p { font-size: 11px; color: var(--text-muted); }
+        .footer a { color: var(--accent-fire); text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+
+        @media (max-width: 768px) {
+            .nav-content { flex-wrap: wrap; justify-content: center; }
+            .nav-tabs { order: 3; width: 100%; justify-content: center; margin-top: 8px; }
+            .nav-stats { display: none; }
+            .visual-flow { flex-direction: column; }
+            .flow-arrow { transform: rotate(90deg); }
+            .level-actions { flex-direction: column; }
+            .btn { width: 100%; }
+            .badges-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Achievement Popup -->
+    <div class="achievement-popup" id="achievement-popup">
+        <div class="achievement-header">
+            <span class="achievement-icon" id="achievement-icon">🏆</span>
+            <div>
+                <div class="achievement-title" id="achievement-title">Achievement Unlocked!</div>
+                <div class="achievement-subtitle" id="achievement-subtitle">You earned a new badge</div>
+            </div>
+        </div>
+        <div class="achievement-xp" id="achievement-xp">+50 XP</div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-content">
+            <a href="index.html" class="nav-logo">
+                <span style="font-size: 20px;">🔥</span>
+                <span class="nav-logo-text">Learn ASDF</span>
+            </a>
+
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="switchView('learn')">Learn</button>
+                <button class="nav-tab" onclick="switchView('faq')">FAQ</button>
+                <button class="nav-tab" onclick="switchView('glossary')">Glossary</button>
+                <button class="nav-tab" onclick="switchView('calculator')">Calculator</button>
+            </div>
+
+            <div class="nav-progress" id="nav-progress">
+                <div class="nav-level current" data-level="1" onclick="goToLevel(1)">1</div>
+                <div class="nav-connector"></div>
+                <div class="nav-level locked" data-level="2" onclick="goToLevel(2)">2</div>
+                <div class="nav-connector"></div>
+                <div class="nav-level locked" data-level="3" onclick="goToLevel(3)">3</div>
+                <div class="nav-connector"></div>
+                <div class="nav-level locked" data-level="4" onclick="goToLevel(4)">4</div>
+                <div class="nav-connector"></div>
+                <div class="nav-level locked" data-level="5" onclick="goToLevel(5)">5</div>
+            </div>
+
+            <div class="nav-stats">
+                <div class="nav-xp">
+                    <span>⭐</span>
+                    <span id="total-xp">0 XP</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main">
+
+        <!-- ============================================
+             LEARN VIEW (Contains all levels)
+             ============================================ -->
+        <div class="view-section active" id="view-learn">
+
+            <!-- Badges Panel -->
+            <div class="badges-panel">
+                <div class="badges-title">🏆 Your Badges</div>
+                <div class="badges-grid" id="badges-grid">
+                    <div class="badge-item locked" id="badge-spark">
+                        <div class="badge-icon">🔥</div>
+                        <div class="badge-name">The Spark</div>
+                        <div class="badge-desc">Complete Level 1</div>
+                    </div>
+                    <div class="badge-item locked" id="badge-flames">
+                        <div class="badge-icon">🌋</div>
+                        <div class="badge-name">The Flames</div>
+                        <div class="badge-desc">Complete Level 2</div>
+                    </div>
+                    <div class="badge-item locked" id="badge-engine">
+                        <div class="badge-icon">⚙️</div>
+                        <div class="badge-name">The Engine</div>
+                        <div class="badge-desc">Complete Level 3</div>
+                    </div>
+                    <div class="badge-item locked" id="badge-forge">
+                        <div class="badge-icon">🛠️</div>
+                        <div class="badge-name">The Forge</div>
+                        <div class="badge-desc">Complete Level 4</div>
+                    </div>
+                    <div class="badge-item locked" id="badge-core">
+                        <div class="badge-icon">💎</div>
+                        <div class="badge-name">The Core</div>
+                        <div class="badge-desc">Complete Level 5</div>
+                    </div>
+                    <div class="badge-item locked" id="badge-speed">
+                        <div class="badge-icon">⚡</div>
+                        <div class="badge-name">Speed Runner</div>
+                        <div class="badge-desc">Finish in &lt;10 min</div>
+                    </div>
+                    <div class="badge-item locked" id="badge-perfect">
+                        <div class="badge-icon">🎯</div>
+                        <div class="badge-name">Perfect Score</div>
+                        <div class="badge-desc">No wrong answers</div>
+                    </div>
+                    <div class="badge-item locked" id="badge-master">
+                        <div class="badge-icon">👑</div>
+                        <div class="badge-name">ASDF Master</div>
+                        <div class="badge-desc">Earn all badges</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LEVEL 1: THE SPARK -->
+            <section class="level-section level-1 active" id="level-1">
+                <div class="level-header">
+                    <div class="level-badge">Level 1</div>
+                    <h1 class="level-title">The Spark</h1>
+                    <p class="level-subtitle">What is ASDF and why should you care?</p>
+                    <div class="level-xp">⭐ +100 XP</div>
+                </div>
+
+                <div class="content-card">
+                    <h3>🐕 THIS IS FINE</h3>
+                    <p>You know the meme. The dog sitting in a burning room, coffee in hand, saying "This is fine." That's not just our mascot - it's our philosophy.</p>
+                    <p>In the chaos of crypto, most tokens launch, pump, and die. Creator fees go straight to the dev's pocket. Holders get nothing. The room keeps burning.</p>
+                    <div class="highlight-box">
+                        <strong>ASDF is different.</strong> Creator fees don't disappear - they fuel an automated buyback and burn mechanism. The room is still on fire, but now the fire is working for you.
+                    </div>
+                </div>
+
+                <div class="content-card">
+                    <h3>🔥 The One-Sentence Pitch</h3>
+                    <p style="font-size: 16px; color: var(--text-cream); text-align: center; padding: 12px 0;">
+                        "Trading fees buy tokens. Bought tokens get burned. Supply goes down. THIS IS FINE."
+                    </p>
+                </div>
+
+                <div class="reveal-box" onclick="toggleReveal(this)">
+                    <div class="reveal-trigger">
+                        <h4>📊 What does "burn" actually mean?</h4>
+                        <span class="reveal-arrow">▼</span>
+                    </div>
+                    <div class="reveal-content">
+                        <div class="reveal-content-inner">
+                            <p>In crypto, "burning" means sending tokens to an address with no private key. Once there, they're gone forever. No one can access them.</p>
+                            <p>Think of it like throwing money into a volcano. When supply decreases while demand stays the same, basic economics suggests each remaining token becomes more valuable.</p>
+                            <p style="color: var(--accent-bright);">All burns are on-chain and publicly verifiable on Solscan.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quiz-container">
+                    <div class="quiz-header">
+                        <span style="font-size: 18px;">🧠</span>
+                        <div class="quiz-xp">+25 XP</div>
+                    </div>
+                    <div class="quiz-question">Quick Check: What happens to ASDF trading fees?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" onclick="checkAnswer(this, 1, false)">They go to the development team</div>
+                        <div class="quiz-option" onclick="checkAnswer(this, 1, true)">They buy back and burn ASDF tokens</div>
+                        <div class="quiz-option" onclick="checkAnswer(this, 1, false)">They're distributed to holders as dividends</div>
+                        <div class="quiz-option" onclick="checkAnswer(this, 1, false)">They fund marketing campaigns</div>
+                    </div>
+                    <div class="quiz-feedback" id="quiz-feedback-1"></div>
+                </div>
+
+                <div class="level-actions">
+                    <button class="btn btn-primary" id="unlock-level-2" onclick="unlockLevel(2)" disabled>Continue to Level 2 →</button>
+                </div>
+            </section>
+
+            <!-- LEVEL 2: THE FLAMES -->
+            <section class="level-section level-2" id="level-2">
+                <div class="level-header">
+                    <div class="level-badge">Level 2</div>
+                    <h1 class="level-title">The Flames</h1>
+                    <p class="level-subtitle">Understanding the mechanics: where fees come from and go.</p>
+                    <div class="level-xp">⭐ +150 XP</div>
+                </div>
+
+                <div class="content-card">
+                    <h3>💸 The Fee Source: Pump.fun</h3>
+                    <p>Pump.fun is Solana's biggest memecoin launchpad. When you create a token there, you receive a small percentage of every trade as "creator fees."</p>
+                    <p>Most creators pocket these fees. But ASDF's creator fees flow into a treasury wallet controlled by automated contracts - not humans.</p>
+                </div>
+
+                <div class="visual-flow">
+                    <div class="flow-step">
+                        <div class="icon">🔄</div>
+                        <div class="label">Trading</div>
+                        <div class="sublabel">Pump.fun</div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div class="icon">💰</div>
+                        <div class="label">Fees</div>
+                        <div class="sublabel">Creator %</div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div class="icon">🏦</div>
+                        <div class="label">Treasury</div>
+                        <div class="sublabel">Collected</div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div class="icon">🛒</div>
+                        <div class="label">Buyback</div>
+                        <div class="sublabel">Market Buy</div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div class="icon">🔥</div>
+                        <div class="label">Burn</div>
+                        <div class="sublabel">Forever</div>
+                    </div>
+                </div>
+
+                <div class="content-card">
+                    <h3>🔁 The Flywheel Effect</h3>
+                    <div class="highlight-box">
+                        <strong>More Trading</strong> → More Fees → <strong>More Buybacks</strong> → More Burns → <strong>Less Supply</strong> → More Value → <strong>More Trading</strong>... repeat.
+                    </div>
+                    <p>Every trade, buy or sell, contributes to the burn. Sellers aren't enemies - they're fuel. That's why "THIS IS FINE" even when the chart dips.</p>
+                </div>
+
+                <div class="reveal-box" onclick="toggleReveal(this)">
+                    <div class="reveal-trigger">
+                        <h4>🧮 The 44.8% Routing</h4>
+                        <span class="reveal-arrow">▼</span>
+                    </div>
+                    <div class="reveal-content">
+                        <div class="reveal-content-inner">
+                            <p>The ecosystem supports multiple tokens. <strong>44.8%</strong> of all processed fees route to the $ASDF buyback - the "root token" at the center.</p>
+                            <p>This creates a reinforcing loop: the more the ecosystem grows, the more $ASDF gets burned.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quiz-container">
+                    <div class="quiz-header">
+                        <span style="font-size: 18px;">🧠</span>
+                        <div class="quiz-xp">+25 XP</div>
+                    </div>
+                    <div class="quiz-question">What happens when someone sells ASDF?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" onclick="checkAnswer(this, 2, false)">The burn mechanism stops</div>
+                        <div class="quiz-option" onclick="checkAnswer(this, 2, false)">Holders lose money and nothing else</div>
+                        <div class="quiz-option" onclick="checkAnswer(this, 2, true)">Fees are still collected for future burns</div>
+                        <div class="quiz-option" onclick="checkAnswer(this, 2, false)">The token becomes worthless</div>
+                    </div>
+                    <div class="quiz-feedback" id="quiz-feedback-2"></div>
+                </div>
+
+                <div class="level-actions">
+                    <button class="btn" onclick="goToLevel(1)">← Back</button>
+                    <button class="btn btn-primary" id="unlock-level-3" onclick="unlockLevel(3)" disabled>Continue to Level 3 →</button>
+                </div>
+            </section>
+
+            <!-- LEVEL 3: THE ENGINE -->
+            <section class="level-section level-3" id="level-3">
+                <div class="level-header">
+                    <div class="level-badge">Level 3</div>
+                    <h1 class="level-title">The Engine</h1>
+                    <p class="level-subtitle">Meet the Daemon: the automated system behind burns.</p>
+                    <div class="level-xp">⭐ +200 XP</div>
+                </div>
+
+                <div class="content-card">
+                    <h3>🤖 What is the Daemon?</h3>
+                    <p>The "Daemon" is an automated program running 24/7, monitoring the blockchain for creator fees. It's not a person - it's deterministic code.</p>
+                    <p>When fees accumulate past a threshold, the daemon:</p>
+                    <ol style="margin-left: 20px; color: var(--text-muted); font-size: 13px;">
+                        <li style="margin: 6px 0;">Detects accumulated fees in the treasury</li>
+                        <li style="margin: 6px 0;">Collects and consolidates them</li>
+                        <li style="margin: 6px 0;">Executes a market buy for $ASDF</li>
+                        <li style="margin: 6px 0;">Sends purchased tokens to the burn address</li>
+                        <li style="margin: 6px 0;">Logs everything on-chain</li>
+                    </ol>
+                </div>
+
+                <div class="architecture-box">
+                    <div class="arch-title">Daemon Architecture</div>
+                    <div class="arch-layers">
+                        <div class="arch-layer">
+                            <div class="layer-name">🔍 Fee Detector</div>
+                            <div class="layer-tech">Solana RPC</div>
+                        </div>
+                        <div class="arch-layer">
+                            <div class="layer-name">📊 Validator</div>
+                            <div class="layer-tech">PoH Tracking</div>
+                        </div>
+                        <div class="arch-layer">
+                            <div class="layer-name">💱 Swap Engine</div>
+                            <div class="layer-tech">Jupiter</div>
+                        </div>
+                        <div class="arch-layer">
+                            <div class="layer-name">🔥 Burn Executor</div>
+                            <div class="layer-tech">SPL Token</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="reveal-box" onclick="toggleReveal(this)">
+                    <div class="reveal-trigger">
+                        <h4>🛡️ What if the daemon fails?</h4>
+                        <span class="reveal-arrow">▼</span>
+                    </div>
+                    <div class="reveal-content">
+                        <div class="reveal-content-inner">
+                            <p>The daemon has failure tolerance:</p>
+                            <ul style="margin-left: 20px; color: var(--text-muted);">
+                                <li style="margin: 6px 0;"><strong>Retry Logic:</strong> Exponential backoff on failures</li>
+                                <li style="margin: 6px 0;"><strong>Deferred Tokens:</strong> Failed swaps retry next cycle</li>
+                                <li style="margin: 6px 0;"><strong>Health Monitoring:</strong> /health endpoint for status</li>
+                            </ul>
+                            <p>Fees don't disappear if the daemon is down - they accumulate until it's restored.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quiz-container">
+                    <div class="quiz-header">
+                        <span style="font-size: 18px;">🧠</span>
+                        <div class="quiz-xp">+25 XP</div>
+                    </div>
+                    <div class="quiz-question">The daemon is best described as:</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" onclick="checkAnswer(this, 3, false)">A person manually executing trades</div>
+                        <div class="quiz-option" onclick="checkAnswer(this, 3, true)">An automated program running 24/7</div>
+                        <div class="quiz-option" onclick="checkAnswer(this, 3, false)">A smart contract on Ethereum</div>
+                        <div class="quiz-option" onclick="checkAnswer(this, 3, false)">A Discord bot</div>
+                    </div>
+                    <div class="quiz-feedback" id="quiz-feedback-3"></div>
+                </div>
+
+                <div class="level-actions">
+                    <button class="btn" onclick="goToLevel(2)">← Back</button>
+                    <button class="btn btn-primary" id="unlock-level-4" onclick="unlockLevel(4)" disabled>Continue to Level 4 →</button>
+                </div>
+            </section>
+
+            <!-- LEVEL 4: THE FORGE -->
+            <section class="level-section level-4" id="level-4">
+                <div class="level-header">
+                    <div class="level-badge">Level 4</div>
+                    <h1 class="level-title">The Forge</h1>
+                    <p class="level-subtitle">The ecosystem: apps that fuel the burn.</p>
+                    <div class="level-xp">⭐ +250 XP</div>
+                </div>
+
+                <div class="content-card">
+                    <h3>🌐 More Than a Token</h3>
+                    <p>ASDF is the center of an ecosystem. Multiple apps contribute fees to the burn. The more usage, the more burns happen.</p>
+                </div>
+
+                <div class="ecosystem-grid">
+                    <div class="eco-card" onclick="window.open('https://www.alonisthe.dev/holdex', '_blank')">
+                        <div class="icon">📈</div>
+                        <h4>HolDEX</h4>
+                        <p>Open-source DexScreener alternative</p>
+                        <span class="status status-live">LIVE</span>
+                    </div>
+                    <div class="eco-card">
+                        <div class="icon">🎯</div>
+                        <h4>ASDForecast</h4>
+                        <p>Prediction market for Solana</p>
+                        <span class="status status-beta">BETA</span>
+                    </div>
+                    <div class="eco-card">
+                        <div class="icon">🚀</div>
+                        <h4>Ignition</h4>
+                        <p>Token launch with holder airdrops</p>
+                        <span class="status status-soon">SOON</span>
+                    </div>
+                    <div class="eco-card">
+                        <div class="icon">⚙️</div>
+                        <h4>Control</h4>
+                        <p>Admin dashboard for creators</p>
+                        <span class="status status-soon">SOON</span>
+                    </div>
+                </div>
+
+                <div class="content-card">
+                    <h3>🔗 How Apps Feed the Burn</h3>
+                    <div class="highlight-box">
+                        <strong>HolDEX:</strong> Token update fees → ASDF Burn<br>
+                        <strong>ASDForecast:</strong> Betting fees → ASDF Burn<br>
+                        <strong>Ignition:</strong> 5% of launched token fees → ASDF Burn
+                    </div>
+                </div>
+
+                <div class="quiz-container">
+                    <div class="quiz-header">
+                        <span style="font-size: 18px;">🧠</span>
+                        <div class="quiz-xp">+25 XP</div>
+                    </div>
+                    <div class="quiz-question">What makes ASDF different from a typical memecoin?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" onclick="checkAnswer(this, 4, false)">It has a cute mascot</div>
+                        <div class="quiz-option" onclick="checkAnswer(this, 4, false)">It's on Solana instead of Ethereum</div>
+                        <div class="quiz-option" onclick="checkAnswer(this, 4, true)">An ecosystem of apps contributing to burns</div>
+                        <div class="quiz-option" onclick="checkAnswer(this, 4, false)">It promises 1000x returns</div>
+                    </div>
+                    <div class="quiz-feedback" id="quiz-feedback-4"></div>
+                </div>
+
+                <div class="level-actions">
+                    <button class="btn" onclick="goToLevel(3)">← Back</button>
+                    <button class="btn btn-primary" id="unlock-level-5" onclick="unlockLevel(5)" disabled>Continue to Level 5 →</button>
+                </div>
+            </section>
+
+            <!-- LEVEL 5: THE CORE -->
+            <section class="level-section level-5" id="level-5">
+                <div class="level-header">
+                    <div class="level-badge">Level 5</div>
+                    <h1 class="level-title">The Core</h1>
+                    <p class="level-subtitle">Verification, transparency, and the philosophy.</p>
+                    <div class="level-xp">⭐ +300 XP</div>
+                </div>
+
+                <div class="content-card">
+                    <h3>🔍 "Assume Nothing. Verify Everything."</h3>
+                    <p>The core philosophy. In crypto, trust is a liability. ASDF is built around verifiability:</p>
+                    <ul style="margin-left: 20px; color: var(--text-muted); font-size: 13px;">
+                        <li style="margin: 6px 0;">Every burn is on-chain, verifiable on Solscan</li>
+                        <li style="margin: 6px 0;">Daemon exposes public APIs (/stats, /health)</li>
+                        <li style="margin: 6px 0;">All code is open-source on GitHub</li>
+                        <li style="margin: 6px 0;">No promises about price - only verifiable mechanism</li>
+                    </ul>
+                </div>
+
+                <div class="content-card">
+                    <h3>📊 How to Verify</h3>
+                    <div class="highlight-box">
+                        <strong>1.</strong> Check burns at <a href="https://alonisthe.dev/burns" target="_blank" style="color: var(--accent-fire);">alonisthe.dev/burns</a><br>
+                        <strong>2.</strong> Read code on GitHub<br>
+                        <strong>3.</strong> Query the /stats API<br>
+                        <strong>4.</strong> Verify transactions on Solscan
+                    </div>
+                </div>
+
+                <div class="reveal-box" onclick="toggleReveal(this)">
+                    <div class="reveal-trigger">
+                        <h4>⚠️ What This Is NOT</h4>
+                        <span class="reveal-arrow">▼</span>
+                    </div>
+                    <div class="reveal-content">
+                        <div class="reveal-content-inner">
+                            <ul style="margin-left: 20px; color: var(--text-muted);">
+                                <li style="margin: 6px 0;"><strong>Not financial advice.</strong> Experimental memecoin.</li>
+                                <li style="margin: 6px 0;"><strong>Not a guaranteed return.</strong> Price depends on demand.</li>
+                                <li style="margin: 6px 0;"><strong>Not risk-free.</strong> Smart contracts can have bugs.</li>
+                            </ul>
+                            <p style="color: var(--accent-bright); margin-top: 12px;">DYOR. This is crypto. The room is on fire. THIS IS FINE.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quiz-container">
+                    <div class="quiz-header">
+                        <span style="font-size: 18px;">🧠</span>
+                        <div class="quiz-xp">+25 XP</div>
+                    </div>
+                    <div class="quiz-question">Final Question: What's the core philosophy of ASDF?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" onclick="checkAnswer(this, 5, false)">Trust the team blindly</div>
+                        <div class="quiz-option" onclick="checkAnswer(this, 5, false)">Buy and hold forever</div>
+                        <div class="quiz-option" onclick="checkAnswer(this, 5, true)">Assume nothing, verify everything</div>
+                        <div class="quiz-option" onclick="checkAnswer(this, 5, false)">Marketing is everything</div>
+                    </div>
+                    <div class="quiz-feedback" id="quiz-feedback-5"></div>
+                </div>
+
+                <div class="completion-banner" id="completion-banner" style="display: none;">
+                    <h2>🎉 Congratulations!</h2>
+                    <p>You've completed the ASDF Learning Path and earned all level badges!</p>
+                    <div class="completion-buttons">
+                        <button class="btn btn-share" onclick="shareCompletion()">Share on 𝕏 →</button>
+                        <a href="https://www.alonisthe.dev/holdex" class="btn btn-primary">Launch HolDEX →</a>
+                        <button class="btn" onclick="resetProgress()">🔄 Reset Progress</button>
+                    </div>
+                </div>
+
+                <div class="level-actions" id="level-5-actions">
+                    <button class="btn" onclick="goToLevel(4)">← Back</button>
+                    <button class="btn btn-success" id="complete-course" onclick="completeCourse()" disabled>Complete Course 🎓</button>
+                </div>
+            </section>
+
+            <!-- Leaderboard -->
+            <div class="leaderboard-section">
+                <div class="leaderboard-title">🏅 Community Leaderboard</div>
+                <div class="leaderboard-list" id="leaderboard-list">
+                    <!-- Populated by JS -->
+                </div>
+                <p style="text-align: center; font-size: 11px; color: var(--text-muted); margin-top: 12px;">
+                    Complete the course to appear on the leaderboard!
+                </p>
+            </div>
+
+        </div>
+
+        <!-- ============================================
+             FAQ VIEW
+             ============================================ -->
+        <div class="view-section" id="view-faq">
+            <div class="section-header">
+                <h1 class="section-title">FAQ</h1>
+                <p class="section-subtitle">Frequently asked questions about ASDF</p>
+            </div>
+
+            <div class="faq-section">
+                <div class="faq-item" onclick="toggleFaq(this)">
+                    <div class="faq-question">
+                        What is the burn address? Is it really inaccessible?
+                        <span class="faq-arrow">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            The burn address is a Solana address with no known private key. Once tokens are sent there, they cannot be recovered by anyone - ever. You can verify this on Solscan by checking that the address has never signed any transactions (only received).
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" onclick="toggleFaq(this)">
+                    <div class="faq-question">
+                        How often do burns happen?
+                        <span class="faq-arrow">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            Burns happen in "cycles" when accumulated fees reach a threshold. The frequency depends on trading volume. During high activity, burns can happen multiple times per day. During low activity, it might take longer. You can monitor cycles via the /stats API.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" onclick="toggleFaq(this)">
+                    <div class="faq-question">
+                        Can the team "rug" or stop the burns?
+                        <span class="faq-arrow">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            The daemon is automated code running independently. While maintainers can pause/resume it for maintenance, they cannot access the treasury funds directly. All transactions are transparent and on-chain. The code is open-source - anyone can audit it.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" onclick="toggleFaq(this)">
+                    <div class="faq-question">
+                        What's the total supply and how much has been burned?
+                        <span class="faq-arrow">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            The initial supply was 1 billion tokens. Current burn statistics are available in real-time at <a href="https://alonisthe.dev/burns" target="_blank">alonisthe.dev/burns</a>. Approximately 5% has been burned to date, but this number increases constantly.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" onclick="toggleFaq(this)">
+                    <div class="faq-question">
+                        How is ASDF different from other deflationary tokens?
+                        <span class="faq-arrow">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            Most deflationary tokens take a % from each transfer. ASDF burns are funded by creator fees from Pump.fun trading - an external revenue source. This means burns happen regardless of ASDF-specific trading activity. Plus, the ecosystem apps contribute additional revenue.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" onclick="toggleFaq(this)">
+                    <div class="faq-question">
+                        Is this a good investment?
+                        <span class="faq-arrow">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            We don't give financial advice. ASDF is a memecoin with experimental tokenomics. Burns reduce supply, but price depends on market demand. Do your own research, understand the risks, and never invest more than you can afford to lose.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" onclick="toggleFaq(this)">
+                    <div class="faq-question">
+                        How can I contribute to the ecosystem?
+                        <span class="faq-arrow">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            All code is open-source! You can contribute on GitHub, build apps that integrate with the burn mechanism, or simply spread the word. The community grows through genuine participation, not paid promotions.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================
+             GLOSSARY VIEW
+             ============================================ -->
+        <div class="view-section" id="view-glossary">
+            <div class="section-header">
+                <h1 class="section-title">Glossary</h1>
+                <p class="section-subtitle">Crypto terms explained simply</p>
+            </div>
+
+            <div class="glossary-section">
+                <input type="text" class="glossary-search" id="glossary-search" placeholder="Search terms..." oninput="filterGlossary()">
+
+                <div class="glossary-grid" id="glossary-grid">
+                    <div class="glossary-item" data-term="burn">
+                        <div class="glossary-term">🔥 Burn</div>
+                        <div class="glossary-def">Permanently removing tokens from circulation by sending them to an inaccessible address. Reduces total supply.</div>
+                    </div>
+                    <div class="glossary-item" data-term="buyback">
+                        <div class="glossary-term">🛒 Buyback</div>
+                        <div class="glossary-def">Using collected fees to purchase tokens from the open market. The bought tokens are then burned.</div>
+                    </div>
+                    <div class="glossary-item" data-term="daemon">
+                        <div class="glossary-term">🤖 Daemon</div>
+                        <div class="glossary-def">An automated program running 24/7 that monitors and executes the burn mechanism without human intervention.</div>
+                    </div>
+                    <div class="glossary-item" data-term="creator fees">
+                        <div class="glossary-term">💸 Creator Fees</div>
+                        <div class="glossary-def">A percentage of each trade on Pump.fun that goes to the token creator. ASDF routes these to burns.</div>
+                    </div>
+                    <div class="glossary-item" data-term="flywheel">
+                        <div class="glossary-term">🔁 Flywheel</div>
+                        <div class="glossary-def">A self-reinforcing cycle: more trading → more fees → more burns → less supply → more value → more trading.</div>
+                    </div>
+                    <div class="glossary-item" data-term="treasury">
+                        <div class="glossary-term">🏦 Treasury</div>
+                        <div class="glossary-def">The wallet where collected fees accumulate before being used for buybacks.</div>
+                    </div>
+                    <div class="glossary-item" data-term="cycle">
+                        <div class="glossary-term">⏱️ Cycle</div>
+                        <div class="glossary-def">A complete execution of the collect → buyback → burn sequence. Triggered when fees reach a threshold.</div>
+                    </div>
+                    <div class="glossary-item" data-term="deflationary">
+                        <div class="glossary-term">📉 Deflationary</div>
+                        <div class="glossary-def">A tokenomics model where total supply decreases over time, potentially increasing scarcity.</div>
+                    </div>
+                    <div class="glossary-item" data-term="solscan">
+                        <div class="glossary-term">🔍 Solscan</div>
+                        <div class="glossary-def">A blockchain explorer for Solana. Used to verify transactions and burns.</div>
+                    </div>
+                    <div class="glossary-item" data-term="jupiter">
+                        <div class="glossary-term">💱 Jupiter</div>
+                        <div class="glossary-def">Solana's leading DEX aggregator. The daemon uses it to execute buybacks at the best available price.</div>
+                    </div>
+                    <div class="glossary-item" data-term="root token">
+                        <div class="glossary-term">🌳 Root Token</div>
+                        <div class="glossary-def">$ASDF - the central token of the ecosystem. 44.8% of all processed fees route to its buyback.</div>
+                    </div>
+                    <div class="glossary-item" data-term="poh">
+                        <div class="glossary-term">📜 Proof-of-History</div>
+                        <div class="glossary-def">Solana's cryptographic clock that provides verifiable ordering of events. The validator uses it for fee tracking.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================
+             CALCULATOR VIEW
+             ============================================ -->
+        <div class="view-section" id="view-calculator">
+            <div class="section-header">
+                <h1 class="section-title">Burn Calculator</h1>
+                <p class="section-subtitle">Simulate how burns affect your holdings</p>
+            </div>
+
+            <div class="calculator-section">
+                <div class="calculator-box">
+                    <div class="calc-title">🔥 Burn Simulator</div>
+
+                    <div class="calc-inputs">
+                        <div class="calc-input-group">
+                            <label class="calc-label">Your Position ($ASDF)</label>
+                            <input type="number" class="calc-input" id="calc-position" placeholder="1000000" value="1000000" oninput="calculateBurn()">
+                        </div>
+                        <div class="calc-input-group">
+                            <label class="calc-label">Current Supply</label>
+                            <input type="number" class="calc-input" id="calc-supply" placeholder="1000000000" value="1000000000" oninput="calculateBurn()">
+                        </div>
+                        <div class="calc-input-group">
+                            <label class="calc-label">Daily Volume (SOL)</label>
+                            <input type="number" class="calc-input" id="calc-volume" placeholder="100" value="100" oninput="calculateBurn()">
+                        </div>
+                        <div class="calc-input-group">
+                            <label class="calc-label">Time Period (days)</label>
+                            <select class="calc-input" id="calc-period" onchange="calculateBurn()">
+                                <option value="30">30 days</option>
+                                <option value="90" selected>90 days</option>
+                                <option value="180">180 days</option>
+                                <option value="365">1 year</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="calc-results">
+                        <div class="calc-result-row">
+                            <span class="calc-result-label">Your current % of supply</span>
+                            <span class="calc-result-value" id="result-current">0.10%</span>
+                        </div>
+                        <div class="calc-result-row">
+                            <span class="calc-result-label">Estimated tokens burned</span>
+                            <span class="calc-result-value" id="result-burned">~0</span>
+                        </div>
+                        <div class="calc-result-row">
+                            <span class="calc-result-label">New supply</span>
+                            <span class="calc-result-value" id="result-supply">~0</span>
+                        </div>
+                        <div class="calc-result-row">
+                            <span class="calc-result-label">Your new % of supply</span>
+                            <span class="calc-result-value highlight" id="result-new">~0%</span>
+                        </div>
+                        <div class="calc-result-row">
+                            <span class="calc-result-label">% Increase in ownership</span>
+                            <span class="calc-result-value highlight" id="result-increase">+0%</span>
+                        </div>
+                    </div>
+
+                    <div class="calc-disclaimer">
+                        ⚠️ This is a simulation based on estimates. Actual results depend on trading volume, price, and market conditions. Not financial advice.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>
+            Open source. Verifiable. <a href="https://github.com/zeyxx/asdf-burn-engine" target="_blank">GitHub</a> |
+            <a href="https://www.alonisthe.dev/holdex" target="_blank">HolDEX</a> |
+            <a href="index.html">Landing Page</a> |
+            THIS IS FINE.
+        </p>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // ============================================
+        // STATE MANAGEMENT
+        // ============================================
+
+        const STORAGE_KEY = 'asdf_learn_v2';
+
+        const defaultState = {
+            currentLevel: 1,
+            completedLevels: [],
+            totalXP: 0,
+            startTime: null,
+            wrongAnswers: 0,
+            badges: [],
+            courseCompleted: false
+        };
+
+        function getState() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                return saved ? { ...defaultState, ...JSON.parse(saved) } : { ...defaultState };
+            } catch (e) {
+                return { ...defaultState };
+            }
+        }
+
+        function saveState(state) {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            } catch (e) {
+                console.warn('Could not save state');
+            }
+        }
+
+        // ============================================
+        // XP SYSTEM
+        // ============================================
+
+        const XP_VALUES = {
+            level1: 100,
+            level2: 150,
+            level3: 200,
+            level4: 250,
+            level5: 300,
+            quiz: 25,
+            speedBonus: 100,
+            perfectBonus: 150
+        };
+
+        function addXP(amount) {
+            const state = getState();
+            state.totalXP += amount;
+            saveState(state);
+            updateXPDisplay();
+        }
+
+        function updateXPDisplay() {
+            const state = getState();
+            document.getElementById('total-xp').textContent = state.totalXP + ' XP';
+        }
+
+        // ============================================
+        // BADGES SYSTEM
+        // ============================================
+
+        const BADGE_DEFINITIONS = {
+            spark: { id: 'spark', icon: '🔥', name: 'The Spark', condition: 'Complete Level 1' },
+            flames: { id: 'flames', icon: '🌋', name: 'The Flames', condition: 'Complete Level 2' },
+            engine: { id: 'engine', icon: '⚙️', name: 'The Engine', condition: 'Complete Level 3' },
+            forge: { id: 'forge', icon: '🛠️', name: 'The Forge', condition: 'Complete Level 4' },
+            core: { id: 'core', icon: '💎', name: 'The Core', condition: 'Complete Level 5' },
+            speed: { id: 'speed', icon: '⚡', name: 'Speed Runner', condition: 'Finish in <10 min' },
+            perfect: { id: 'perfect', icon: '🎯', name: 'Perfect Score', condition: 'No wrong answers' },
+            master: { id: 'master', icon: '👑', name: 'ASDF Master', condition: 'Earn all badges' }
+        };
+
+        function earnBadge(badgeId) {
+            const state = getState();
+            if (state.badges.includes(badgeId)) return;
+
+            state.badges.push(badgeId);
+            saveState(state);
+
+            // Update UI
+            const badgeEl = document.getElementById('badge-' + badgeId);
+            if (badgeEl) {
+                badgeEl.classList.remove('locked');
+                badgeEl.classList.add('earned');
+            }
+
+            // Show popup
+            showAchievement(BADGE_DEFINITIONS[badgeId]);
+
+            // Check for master badge
+            if (state.badges.length === 7 && !state.badges.includes('master')) {
+                setTimeout(() => earnBadge('master'), 2000);
+            }
+        }
+
+        function showAchievement(badge) {
+            const popup = document.getElementById('achievement-popup');
+            document.getElementById('achievement-icon').textContent = badge.icon;
+            document.getElementById('achievement-title').textContent = badge.name;
+            document.getElementById('achievement-subtitle').textContent = badge.condition;
+            document.getElementById('achievement-xp').textContent = '+50 XP';
+
+            popup.classList.add('show');
+            addXP(50);
+
+            setTimeout(() => {
+                popup.classList.remove('show');
+            }, 3500);
+        }
+
+        function updateBadges() {
+            const state = getState();
+            state.badges.forEach(badgeId => {
+                const badgeEl = document.getElementById('badge-' + badgeId);
+                if (badgeEl) {
+                    badgeEl.classList.remove('locked');
+                    badgeEl.classList.add('earned');
+                }
+            });
+        }
+
+        // ============================================
+        // NAVIGATION
+        // ============================================
+
+        function updateNavigation() {
+            const state = getState();
+            const navLevels = document.querySelectorAll('.nav-level');
+            const connectors = document.querySelectorAll('.nav-connector');
+
+            navLevels.forEach((el, index) => {
+                const level = index + 1;
+                el.classList.remove('completed', 'current', 'locked');
+
+                if (state.completedLevels.includes(level)) {
+                    el.classList.add('completed');
+                } else if (level === state.currentLevel) {
+                    el.classList.add('current');
+                } else if (level > state.currentLevel) {
+                    el.classList.add('locked');
+                }
+            });
+
+            connectors.forEach((el, index) => {
+                el.classList.toggle('active', state.completedLevels.includes(index + 1));
+            });
+        }
+
+        function goToLevel(level) {
+            const state = getState();
+            if (level > state.currentLevel && !state.completedLevels.includes(level)) return;
+
+            document.querySelectorAll('.level-section').forEach(el => el.classList.remove('active'));
+            const targetSection = document.getElementById('level-' + level);
+            if (targetSection) targetSection.classList.add('active');
+
+            state.currentLevel = level;
+            saveState(state);
+            updateNavigation();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function unlockLevel(level) {
+            const state = getState();
+            const prevLevel = level - 1;
+
+            if (!state.completedLevels.includes(prevLevel)) {
+                state.completedLevels.push(prevLevel);
+                addXP(XP_VALUES['level' + prevLevel]);
+
+                // Earn badge
+                const badgeMap = { 1: 'spark', 2: 'flames', 3: 'engine', 4: 'forge', 5: 'core' };
+                if (badgeMap[prevLevel]) {
+                    earnBadge(badgeMap[prevLevel]);
+                }
+            }
+
+            state.currentLevel = level;
+            saveState(state);
+            updateNavigation();
+            goToLevel(level);
+        }
+
+        function completeCourse() {
+            const state = getState();
+
+            if (!state.completedLevels.includes(5)) {
+                state.completedLevels.push(5);
+                addXP(XP_VALUES.level5);
+                earnBadge('core');
+            }
+
+            // Check speed bonus
+            if (state.startTime) {
+                const elapsed = (Date.now() - state.startTime) / 1000 / 60;
+                if (elapsed < 10 && !state.badges.includes('speed')) {
+                    earnBadge('speed');
+                    addXP(XP_VALUES.speedBonus);
+                }
+            }
+
+            // Check perfect score
+            if (state.wrongAnswers === 0 && !state.badges.includes('perfect')) {
+                earnBadge('perfect');
+                addXP(XP_VALUES.perfectBonus);
+            }
+
+            state.courseCompleted = true;
+            saveState(state);
+
+            // Show completion banner
+            document.getElementById('completion-banner').style.display = 'block';
+            document.getElementById('level-5-actions').style.display = 'none';
+
+            updateLeaderboard();
+        }
+
+        function resetProgress() {
+            if (confirm('Reset all progress?')) {
+                localStorage.removeItem(STORAGE_KEY);
+                location.reload();
+            }
+        }
+
+        // ============================================
+        // VIEW SWITCHING
+        // ============================================
+
+        function switchView(view) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+
+            document.getElementById('view-' + view).classList.add('active');
+            event.target.classList.add('active');
+
+            // Show/hide nav progress based on view
+            document.getElementById('nav-progress').style.display = view === 'learn' ? 'flex' : 'none';
+        }
+
+        // ============================================
+        // INTERACTIVE ELEMENTS
+        // ============================================
+
+        function toggleReveal(element) {
+            element.classList.toggle('open');
+        }
+
+        function toggleFaq(element) {
+            element.classList.toggle('open');
+        }
+
+        function checkAnswer(element, level, isCorrect) {
+            const state = getState();
+            const container = element.closest('.quiz-container');
+            const options = container.querySelectorAll('.quiz-option');
+            const feedback = container.querySelector('.quiz-feedback') || document.getElementById('quiz-feedback-' + level);
+
+            options.forEach(opt => opt.style.pointerEvents = 'none');
+
+            if (isCorrect) {
+                element.classList.add('correct');
+                feedback.className = 'quiz-feedback show success';
+                feedback.textContent = '✓ Correct! +25 XP';
+                addXP(XP_VALUES.quiz);
+
+                const nextBtn = document.getElementById('unlock-level-' + (level + 1)) ||
+                               document.getElementById('complete-course');
+                if (nextBtn) nextBtn.disabled = false;
+            } else {
+                element.classList.add('wrong');
+                feedback.className = 'quiz-feedback show error';
+                feedback.textContent = '✗ Try again!';
+                state.wrongAnswers++;
+                saveState(state);
+
+                setTimeout(() => {
+                    options.forEach(opt => {
+                        opt.style.pointerEvents = 'auto';
+                        opt.classList.remove('wrong');
+                    });
+                    feedback.classList.remove('show');
+                }, 1500);
+            }
+        }
+
+        // ============================================
+        // GLOSSARY FILTER
+        // ============================================
+
+        function filterGlossary() {
+            const search = document.getElementById('glossary-search').value.toLowerCase();
+            const items = document.querySelectorAll('.glossary-item');
+
+            items.forEach(item => {
+                const term = item.getAttribute('data-term').toLowerCase();
+                const text = item.textContent.toLowerCase();
+                item.style.display = (term.includes(search) || text.includes(search)) ? 'block' : 'none';
+            });
+        }
+
+        // ============================================
+        // CALCULATOR
+        // ============================================
+
+        function calculateBurn() {
+            const position = parseFloat(document.getElementById('calc-position').value) || 0;
+            const supply = parseFloat(document.getElementById('calc-supply').value) || 1;
+            const dailyVolume = parseFloat(document.getElementById('calc-volume').value) || 0;
+            const days = parseInt(document.getElementById('calc-period').value) || 90;
+
+            const feeRate = 0.01;
+            const burnRate = 0.448;
+            const tokensPerSol = 10000;
+
+            const currentPct = (position / supply) * 100;
+            const totalFees = dailyVolume * days * feeRate;
+            const burnedTokens = totalFees * burnRate * tokensPerSol;
+            const newSupply = Math.max(supply - burnedTokens, position);
+            const newPct = (position / newSupply) * 100;
+            const increase = ((newPct / currentPct) - 1) * 100;
+
+            document.getElementById('result-current').textContent = currentPct.toFixed(4) + '%';
+            document.getElementById('result-burned').textContent = '~' + formatNumber(Math.round(burnedTokens));
+            document.getElementById('result-supply').textContent = '~' + formatNumber(Math.round(newSupply));
+            document.getElementById('result-new').textContent = newPct.toFixed(4) + '%';
+            document.getElementById('result-increase').textContent = '+' + increase.toFixed(2) + '%';
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(2) + 'K';
+            return num.toLocaleString();
+        }
+
+        // ============================================
+        // LEADERBOARD
+        // ============================================
+
+        function updateLeaderboard() {
+            const state = getState();
+            const leaderboardData = [
+                { name: 'diamond_hands.sol', xp: 1250, you: false },
+                { name: 'fire_believer.sol', xp: 1100, you: false },
+                { name: 'burn_master.sol', xp: 950, you: false },
+                { name: 'asdf_fan.sol', xp: 875, you: false },
+                { name: 'You', xp: state.totalXP, you: true }
+            ];
+
+            leaderboardData.sort((a, b) => b.xp - a.xp);
+
+            const container = document.getElementById('leaderboard-list');
+            container.innerHTML = leaderboardData.slice(0, 5).map((entry, index) => {
+                const rankClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : 'normal';
+                return `
+                    <div class="leaderboard-item ${entry.you ? 'you' : ''}">
+                        <div class="leaderboard-rank ${rankClass}">${index + 1}</div>
+                        <div class="leaderboard-name">${entry.you ? '🔥 You' : entry.name}</div>
+                        <div class="leaderboard-xp">${entry.xp} XP</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ============================================
+        // SOCIAL SHARING
+        // ============================================
+
+        function shareCompletion() {
+            const state = getState();
+            const text = `🔥 I just completed the ASDF Learning Path and earned ${state.badges.length} badges with ${state.totalXP} XP!\n\nLearn about the Optimistic Burn Protocol:\n`;
+            const url = window.location.href;
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+        }
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const state = getState();
+
+            // Set start time if not set
+            if (!state.startTime) {
+                state.startTime = Date.now();
+                saveState(state);
+            }
+
+            updateNavigation();
+            updateXPDisplay();
+            updateBadges();
+            updateLeaderboard();
+            calculateBurn();
+
+            // Go to current level
+            goToLevel(state.currentLevel);
+
+            // Re-enable buttons for completed quizzes
+            state.completedLevels.forEach(level => {
+                const nextBtn = document.getElementById('unlock-level-' + (level + 1));
+                if (nextBtn) nextBtn.disabled = false;
+            });
+
+            // Show completion if already done
+            if (state.courseCompleted) {
+                document.getElementById('completion-banner').style.display = 'block';
+                document.getElementById('level-5-actions').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
