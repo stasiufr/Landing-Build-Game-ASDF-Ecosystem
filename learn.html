@@ -33,6 +33,9 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- GitHub avatars -->
+    <link rel="preconnect" href="https://github.com">
+    <link rel="dns-prefetch" href="https://github.com">
     <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
@@ -3094,9 +3097,9 @@
         <!-- ============================================
              BUILD VIEW (Builder Board)
              ============================================ -->
-        <div class="view-section" id="view-build">
+        <div class="view-section" id="view-build" role="region" aria-labelledby="build-title">
             <div class="section-header">
-                <h1 class="section-title">🔨 Build the Ecosystem</h1>
+                <h1 class="section-title" id="build-title">🔨 Build the Ecosystem</h1>
                 <p class="section-subtitle">Join an open-source project or propose your own idea</p>
             </div>
 
@@ -3109,11 +3112,11 @@
             </div>
 
             <!-- Filters -->
-            <div class="build-filters">
-                <button class="filter-btn active" data-status="all" onclick="filterProjects('all')">All</button>
-                <button class="filter-btn" data-status="need_help" onclick="filterProjects('need_help')">🆘 Need Help</button>
-                <button class="filter-btn" data-status="in_progress" onclick="filterProjects('in_progress')">🔄 In Progress</button>
-                <button class="filter-btn" data-status="live" onclick="filterProjects('live')">✅ Live</button>
+            <div class="build-filters" role="group" aria-label="Filter projects by status">
+                <button class="filter-btn active" data-status="all" onclick="filterProjects('all')" aria-pressed="true">All</button>
+                <button class="filter-btn" data-status="need_help" onclick="filterProjects('need_help')" aria-pressed="false">🆘 Need Help</button>
+                <button class="filter-btn" data-status="in_progress" onclick="filterProjects('in_progress')" aria-pressed="false">🔄 In Progress</button>
+                <button class="filter-btn" data-status="live" onclick="filterProjects('live')" aria-pressed="false">✅ Live</button>
             </div>
 
             <!-- Projects Grid -->
@@ -3142,14 +3145,14 @@
                         <span class="skill-tag">Data Viz</span>
                     </div>
                     <div class="builders">
-                        <img src="https://github.com/sollama58.png" alt="sollama58" class="builder-avatar">
+                        <img src="https://github.com/sollama58.png" alt="sollama58" class="builder-avatar" loading="lazy">
                         <span class="builder-name">
-                            <a href="https://github.com/sollama58" target="_blank">sollama58</a>
+                            <a href="https://github.com/sollama58" target="_blank" rel="noopener noreferrer">sollama58</a>
                         </span>
                     </div>
                     <div class="card-actions">
-                        <a href="https://github.com/sollama58/HolDex" class="btn-secondary" target="_blank">View GitHub</a>
-                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:HolDex&body=I%20want%20to%20help%20with%20HolDex!" class="btn-primary" target="_blank">I want to help</a>
+                        <a href="https://github.com/sollama58/HolDex" class="btn-secondary" target="_blank" rel="noopener noreferrer">View GitHub</a>
+                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:HolDex&body=I%20want%20to%20help%20with%20HolDex!" class="btn-primary" target="_blank" rel="noopener noreferrer">I want to help</a>
                     </div>
                 </div>
 
@@ -3176,14 +3179,14 @@
                         <span class="skill-tag">Solana</span>
                     </div>
                     <div class="builders">
-                        <img src="https://github.com/sollama58.png" alt="sollama58" class="builder-avatar">
+                        <img src="https://github.com/sollama58.png" alt="sollama58" class="builder-avatar" loading="lazy">
                         <span class="builder-name">
-                            <a href="https://github.com/sollama58" target="_blank">sollama58</a>
+                            <a href="https://github.com/sollama58" target="_blank" rel="noopener noreferrer">sollama58</a>
                         </span>
                     </div>
                     <div class="card-actions">
-                        <a href="https://github.com/sollama58/ASDForecast" class="btn-secondary" target="_blank">View GitHub</a>
-                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:ASDForecast&body=I%20want%20to%20help%20with%20ASDForecast!" class="btn-primary" target="_blank">I want to help</a>
+                        <a href="https://github.com/sollama58/ASDForecast" class="btn-secondary" target="_blank" rel="noopener noreferrer">View GitHub</a>
+                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:ASDForecast&body=I%20want%20to%20help%20with%20ASDForecast!" class="btn-primary" target="_blank" rel="noopener noreferrer">I want to help</a>
                     </div>
                 </div>
 
@@ -3210,14 +3213,14 @@
                         <span class="skill-tag">Data</span>
                     </div>
                     <div class="builders">
-                        <img src="https://github.com/sollama58.png" alt="sollama58" class="builder-avatar">
+                        <img src="https://github.com/sollama58.png" alt="sollama58" class="builder-avatar" loading="lazy">
                         <span class="builder-name">
-                            <a href="https://github.com/sollama58" target="_blank">sollama58</a>
+                            <a href="https://github.com/sollama58" target="_blank" rel="noopener noreferrer">sollama58</a>
                         </span>
                     </div>
                     <div class="card-actions">
-                        <a href="https://github.com/sollama58/ASDFBurnTracker" class="btn-secondary" target="_blank">View GitHub</a>
-                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:ASDFBurnTracker&body=I%20want%20to%20help%20with%20ASDFBurnTracker!" class="btn-primary" target="_blank">I want to help</a>
+                        <a href="https://github.com/sollama58/ASDFBurnTracker" class="btn-secondary" target="_blank" rel="noopener noreferrer">View GitHub</a>
+                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:ASDFBurnTracker&body=I%20want%20to%20help%20with%20ASDFBurnTracker!" class="btn-primary" target="_blank" rel="noopener noreferrer">I want to help</a>
                     </div>
                 </div>
 
@@ -3244,14 +3247,14 @@
                         <span class="skill-tag">Web3</span>
                     </div>
                     <div class="builders">
-                        <img src="https://github.com/sollama58.png" alt="sollama58" class="builder-avatar">
+                        <img src="https://github.com/sollama58.png" alt="sollama58" class="builder-avatar" loading="lazy">
                         <span class="builder-name">
-                            <a href="https://github.com/sollama58" target="_blank">sollama58</a>
+                            <a href="https://github.com/sollama58" target="_blank" rel="noopener noreferrer">sollama58</a>
                         </span>
                     </div>
                     <div class="card-actions">
-                        <a href="https://github.com/sollama58/ASDev" class="btn-secondary" target="_blank">View GitHub</a>
-                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:ASDev&body=I%20want%20to%20help%20with%20ASDev!" class="btn-primary" target="_blank">I want to help</a>
+                        <a href="https://github.com/sollama58/ASDev" class="btn-secondary" target="_blank" rel="noopener noreferrer">View GitHub</a>
+                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:ASDev&body=I%20want%20to%20help%20with%20ASDev!" class="btn-primary" target="_blank" rel="noopener noreferrer">I want to help</a>
                     </div>
                 </div>
 
@@ -3278,14 +3281,14 @@
                         <span class="skill-tag">Systems</span>
                     </div>
                     <div class="builders">
-                        <img src="https://github.com/sollama58.png" alt="sollama58" class="builder-avatar">
+                        <img src="https://github.com/sollama58.png" alt="sollama58" class="builder-avatar" loading="lazy">
                         <span class="builder-name">
-                            <a href="https://github.com/sollama58" target="_blank">sollama58</a>
+                            <a href="https://github.com/sollama58" target="_blank" rel="noopener noreferrer">sollama58</a>
                         </span>
                     </div>
                     <div class="card-actions">
-                        <a href="https://github.com/sollama58/asdf_grinder" class="btn-secondary" target="_blank">View GitHub</a>
-                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:asdf_grinder&body=I%20want%20to%20help%20with%20asdf_grinder!" class="btn-primary" target="_blank">I want to help</a>
+                        <a href="https://github.com/sollama58/asdf_grinder" class="btn-secondary" target="_blank" rel="noopener noreferrer">View GitHub</a>
+                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:asdf_grinder&body=I%20want%20to%20help%20with%20asdf_grinder!" class="btn-primary" target="_blank" rel="noopener noreferrer">I want to help</a>
                     </div>
                 </div>
 
@@ -3312,14 +3315,14 @@
                         <span class="skill-tag">Data Viz</span>
                     </div>
                     <div class="builders">
-                        <img src="https://github.com/stasiufr.png" alt="stasiufr" class="builder-avatar">
+                        <img src="https://github.com/stasiufr.png" alt="stasiufr" class="builder-avatar" loading="lazy">
                         <span class="builder-name">
-                            <a href="https://github.com/stasiufr" target="_blank">stasiufr</a>
+                            <a href="https://github.com/stasiufr" target="_blank" rel="noopener noreferrer">stasiufr</a>
                         </span>
                     </div>
                     <div class="card-actions">
-                        <a href="https://github.com/stasiufr/ASH.TRACK" class="btn-secondary" target="_blank">View GitHub</a>
-                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:BurnDashboard&body=I%20want%20to%20help%20with%20the%20Burn%20Dashboard!" class="btn-primary" target="_blank">I want to help</a>
+                        <a href="https://github.com/stasiufr/ASH.TRACK" class="btn-secondary" target="_blank" rel="noopener noreferrer">View GitHub</a>
+                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:BurnDashboard&body=I%20want%20to%20help%20with%20the%20Burn%20Dashboard!" class="btn-primary" target="_blank" rel="noopener noreferrer">I want to help</a>
                     </div>
                 </div>
 
@@ -3327,7 +3330,7 @@
 
             <!-- Propose CTA -->
             <div class="propose-cta">
-                <a href="https://github.com/stasiufr/ASDF-Builders/discussions/new?category=ideas" target="_blank">
+                <a href="https://github.com/stasiufr/ASDF-Builders/discussions/new?category=ideas" target="_blank" rel="noopener noreferrer">
                     ✨ Propose a new project idea
                 </a>
                 <p>Have an idea that aligns with ASDF principles? Share it with the community!</p>
@@ -4440,21 +4443,18 @@
         // BUILD VIEW - Project Filters
         // ============================================
         function filterProjects(status) {
-            // Update active filter button
+            // Update active filter button and ARIA states
             document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.status === status) {
-                    btn.classList.add('active');
-                }
+                const isActive = btn.dataset.status === status;
+                btn.classList.toggle('active', isActive);
+                btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
             });
 
             // Filter project cards
             document.querySelectorAll('.project-card').forEach(card => {
-                if (status === 'all' || card.dataset.status === status) {
-                    card.classList.remove('hidden');
-                } else {
-                    card.classList.add('hidden');
-                }
+                const isVisible = status === 'all' || card.dataset.status === status;
+                card.classList.toggle('hidden', !isVisible);
+                card.setAttribute('aria-hidden', !isVisible ? 'true' : 'false');
             });
         }
 
