@@ -113,7 +113,7 @@
         }
 
         .nav-content {
-            max-width: 1100px;
+            max-width: 1200px;
             margin: 0 auto;
             display: flex;
             justify-content: space-between;
@@ -143,11 +143,14 @@
             padding: 4px;
             border-radius: 8px;
             border: 1px solid var(--border-rust);
+            overflow-x: auto;
+            max-width: 100%;
+            flex-shrink: 1;
         }
 
         .nav-tab {
-            padding: 8px 16px;
-            font-size: 12px;
+            padding: 8px 12px;
+            font-size: 11px;
             font-weight: 600;
             color: var(--text-muted);
             background: transparent;
@@ -155,6 +158,8 @@
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.2s ease;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .nav-tab:hover { color: var(--text-cream); }
@@ -1690,6 +1695,29 @@
             animation: pulse-border 2s infinite;
         }
 
+        /* Level Progress Panel (in sidebar) */
+        .level-progress-panel {
+            background: var(--bg-charred);
+            border: 2px solid var(--accent-fire);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .level-progress-title {
+            font-family: var(--font-display);
+            font-size: 14px;
+            margin-bottom: 12px;
+            color: var(--accent-fire);
+        }
+
+        .level-progress-track {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
         /* ============================================
            ACHIEVEMENTS POPUP
            ============================================ */
@@ -2173,6 +2201,291 @@
         }
 
         /* ============================================
+           BUILD VIEW (Builder Board)
+           ============================================ */
+
+        .build-intro {
+            text-align: center;
+            margin-bottom: 32px;
+            padding: 24px;
+            background: linear-gradient(135deg, rgba(234, 88, 12, 0.1), rgba(249, 115, 22, 0.05));
+            border: 1px solid var(--border-rust);
+            border-radius: var(--radius);
+        }
+
+        .build-intro p {
+            font-size: 14px;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .build-filters {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: var(--font-mono);
+            background: rgba(234, 88, 12, 0.1);
+            border: 1px solid var(--border-rust);
+            border-radius: 100px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn:hover {
+            color: var(--text-cream);
+            border-color: var(--accent-fire);
+        }
+
+        .filter-btn.active {
+            background: var(--accent-fire);
+            border-color: var(--accent-fire);
+            color: #fff;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .project-card {
+            background: var(--bg-charred);
+            border: 2px solid var(--border-rust);
+            border-radius: var(--radius);
+            padding: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .project-card:hover {
+            border-color: var(--accent-fire);
+            transform: translateY(-4px);
+        }
+
+        .project-card.hidden {
+            display: none;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .project-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--accent-fire), var(--accent-ember));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .project-title {
+            flex: 1;
+        }
+
+        .project-title h3 {
+            font-family: var(--font-display);
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 100px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .status-need_help {
+            background: rgba(245, 158, 11, 0.2);
+            border: 1px solid #f59e0b;
+            color: #f59e0b;
+        }
+
+        .status-in_progress {
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid #6366f1;
+            color: #6366f1;
+        }
+
+        .status-live {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid var(--green);
+            color: var(--green);
+        }
+
+        .status-idea {
+            background: rgba(168, 85, 247, 0.2);
+            border: 1px solid var(--purple);
+            color: var(--purple);
+        }
+
+        .project-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .tech-tag {
+            font-size: 10px;
+            padding: 4px 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            color: var(--text-cream);
+        }
+
+        .skills-needed {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .skill-tag {
+            font-size: 10px;
+            padding: 4px 8px;
+            background: rgba(234, 88, 12, 0.15);
+            border: 1px solid rgba(234, 88, 12, 0.3);
+            border-radius: 4px;
+            color: var(--accent-bright);
+        }
+
+        .builders {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-rust);
+        }
+
+        .builder-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid var(--accent-fire);
+            object-fit: cover;
+        }
+
+        .builder-name {
+            font-size: 12px;
+            color: var(--text-cream);
+        }
+
+        .builder-name a {
+            color: var(--accent-fire);
+            text-decoration: none;
+        }
+
+        .builder-name a:hover {
+            text-decoration: underline;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .card-actions a {
+            flex: 1;
+            text-align: center;
+            padding: 10px 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border-rust);
+            color: var(--text-cream);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent-fire);
+            color: var(--accent-fire);
+        }
+
+        .btn-primary {
+            background: var(--accent-fire);
+            border: 1px solid var(--accent-fire);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-ember);
+            border-color: var(--accent-ember);
+        }
+
+        .propose-cta {
+            text-align: center;
+            padding: 32px;
+            border: 2px dashed var(--border-rust);
+            border-radius: var(--radius);
+            background: rgba(234, 88, 12, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .propose-cta:hover {
+            border-color: var(--accent-fire);
+            background: rgba(234, 88, 12, 0.1);
+        }
+
+        .propose-cta a {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--accent-fire);
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .propose-cta a:hover {
+            text-decoration: underline;
+        }
+
+        .propose-cta p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        /* ============================================
            FOOTER
            ============================================ */
 
@@ -2191,9 +2504,9 @@
            RESPONSIVE
            ============================================ */
 
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
             .nav-content { flex-wrap: wrap; justify-content: center; }
-            .nav-tabs { order: 3; width: 100%; justify-content: center; margin-top: 8px; }
+            .nav-tabs { flex-wrap: wrap; justify-content: center; width: 100%; margin-top: 8px; }
             .nav-stats { display: none; }
             .visual-flow { flex-direction: column; }
             .flow-arrow { transform: rotate(90deg); }
@@ -2226,22 +2539,11 @@
 
             <div class="nav-tabs">
                 <button class="nav-tab active" onclick="switchView('learn')">Learn</button>
+                <button class="nav-tab" onclick="switchView('build')">Build</button>
                 <button class="nav-tab" onclick="switchView('play')">Play</button>
                 <button class="nav-tab" onclick="switchView('faq')">FAQ</button>
                 <button class="nav-tab" onclick="switchView('glossary')">Glossary</button>
                 <button class="nav-tab" onclick="switchView('calculator')">Calculator</button>
-            </div>
-
-            <div class="nav-progress" id="nav-progress">
-                <div class="nav-level current" data-level="1" onclick="goToLevel(1)">1</div>
-                <div class="nav-connector"></div>
-                <div class="nav-level locked" data-level="2" onclick="goToLevel(2)">2</div>
-                <div class="nav-connector"></div>
-                <div class="nav-level locked" data-level="3" onclick="goToLevel(3)">3</div>
-                <div class="nav-connector"></div>
-                <div class="nav-level locked" data-level="4" onclick="goToLevel(4)">4</div>
-                <div class="nav-connector"></div>
-                <div class="nav-level locked" data-level="5" onclick="goToLevel(5)">5</div>
             </div>
 
             <div class="nav-stats">
@@ -2268,6 +2570,22 @@
                         <div class="streak-day" data-day="5">5</div>
                         <div class="streak-day" data-day="6">6</div>
                         <div class="streak-day today" data-day="7">7</div>
+                    </div>
+                </div>
+
+                <!-- Level Progress -->
+                <div class="level-progress-panel" id="nav-progress">
+                    <div class="level-progress-title">📚 Course Progress</div>
+                    <div class="level-progress-track">
+                        <div class="nav-level current" data-level="1" onclick="goToLevel(1)">1</div>
+                        <div class="nav-connector"></div>
+                        <div class="nav-level locked" data-level="2" onclick="goToLevel(2)">2</div>
+                        <div class="nav-connector"></div>
+                        <div class="nav-level locked" data-level="3" onclick="goToLevel(3)">3</div>
+                        <div class="nav-connector"></div>
+                        <div class="nav-level locked" data-level="4" onclick="goToLevel(4)">4</div>
+                        <div class="nav-connector"></div>
+                        <div class="nav-level locked" data-level="5" onclick="goToLevel(5)">5</div>
                     </div>
                 </div>
 
@@ -2769,6 +3087,250 @@
                 <p style="text-align: center; font-size: 11px; color: var(--text-muted); margin-top: 12px;">
                     Complete the course to appear on the leaderboard!
                 </p>
+            </div>
+
+        </div>
+
+        <!-- ============================================
+             BUILD VIEW (Builder Board)
+             ============================================ -->
+        <div class="view-section" id="view-build">
+            <div class="section-header">
+                <h1 class="section-title">🔨 Build the Ecosystem</h1>
+                <p class="section-subtitle">Join an open-source project or propose your own idea</p>
+            </div>
+
+            <div class="build-intro">
+                <p>
+                    The ASDF ecosystem is built by the community, for the community.
+                    Every project here is open-source, transparent, and aligned with our principles.
+                    Find a project that matches your skills, or start something new.
+                </p>
+            </div>
+
+            <!-- Filters -->
+            <div class="build-filters">
+                <button class="filter-btn active" data-status="all" onclick="filterProjects('all')">All</button>
+                <button class="filter-btn" data-status="need_help" onclick="filterProjects('need_help')">🆘 Need Help</button>
+                <button class="filter-btn" data-status="in_progress" onclick="filterProjects('in_progress')">🔄 In Progress</button>
+                <button class="filter-btn" data-status="live" onclick="filterProjects('live')">✅ Live</button>
+            </div>
+
+            <!-- Projects Grid -->
+            <div class="projects-grid">
+
+                <!-- Project 1: HolDex -->
+                <div class="project-card" data-status="in_progress">
+                    <div class="card-header">
+                        <div class="project-icon">📊</div>
+                        <div class="project-title">
+                            <h3>HolDex</h3>
+                            <span class="status-badge status-in_progress">In Progress</span>
+                        </div>
+                    </div>
+                    <p class="project-desc">
+                        An open-source DexScreener alternative, powered by ASDFASDFA.
+                        Track tokens, view charts, and monitor the ecosystem.
+                    </p>
+                    <div class="tech-stack">
+                        <span class="tech-tag">HTML</span>
+                        <span class="tech-tag">CSS</span>
+                        <span class="tech-tag">JavaScript</span>
+                    </div>
+                    <div class="skills-needed">
+                        <span class="skill-tag">Frontend</span>
+                        <span class="skill-tag">Data Viz</span>
+                    </div>
+                    <div class="builders">
+                        <img src="https://github.com/sollama58.png" alt="sollama58" class="builder-avatar">
+                        <span class="builder-name">
+                            <a href="https://github.com/sollama58" target="_blank">sollama58</a>
+                        </span>
+                    </div>
+                    <div class="card-actions">
+                        <a href="https://github.com/sollama58/HolDex" class="btn-secondary" target="_blank">View GitHub</a>
+                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:HolDex&body=I%20want%20to%20help%20with%20HolDex!" class="btn-primary" target="_blank">I want to help</a>
+                    </div>
+                </div>
+
+                <!-- Project 2: ASDForecast -->
+                <div class="project-card" data-status="in_progress">
+                    <div class="card-header">
+                        <div class="project-icon">🔮</div>
+                        <div class="project-title">
+                            <h3>ASDForecast</h3>
+                            <span class="status-badge status-in_progress">In Progress</span>
+                        </div>
+                    </div>
+                    <p class="project-desc">
+                        Prediction market for Solana, built for ASDFASDFA.
+                        Fees go towards ASDF buybacks and burns.
+                    </p>
+                    <div class="tech-stack">
+                        <span class="tech-tag">HTML</span>
+                        <span class="tech-tag">CSS</span>
+                        <span class="tech-tag">Web3</span>
+                    </div>
+                    <div class="skills-needed">
+                        <span class="skill-tag">Frontend</span>
+                        <span class="skill-tag">Solana</span>
+                    </div>
+                    <div class="builders">
+                        <img src="https://github.com/sollama58.png" alt="sollama58" class="builder-avatar">
+                        <span class="builder-name">
+                            <a href="https://github.com/sollama58" target="_blank">sollama58</a>
+                        </span>
+                    </div>
+                    <div class="card-actions">
+                        <a href="https://github.com/sollama58/ASDForecast" class="btn-secondary" target="_blank">View GitHub</a>
+                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:ASDForecast&body=I%20want%20to%20help%20with%20ASDForecast!" class="btn-primary" target="_blank">I want to help</a>
+                    </div>
+                </div>
+
+                <!-- Project 3: ASDFBurnTracker -->
+                <div class="project-card" data-status="live">
+                    <div class="card-header">
+                        <div class="project-icon">🔥</div>
+                        <div class="project-title">
+                            <h3>ASDFBurnTracker</h3>
+                            <span class="status-badge status-live">Live</span>
+                        </div>
+                    </div>
+                    <p class="project-desc">
+                        Tracks ASDF BuyBacks and Burns in real-time.
+                        Visual proof of the deflationary mechanism at work.
+                    </p>
+                    <div class="tech-stack">
+                        <span class="tech-tag">HTML</span>
+                        <span class="tech-tag">CSS</span>
+                        <span class="tech-tag">API</span>
+                    </div>
+                    <div class="skills-needed">
+                        <span class="skill-tag">Frontend</span>
+                        <span class="skill-tag">Data</span>
+                    </div>
+                    <div class="builders">
+                        <img src="https://github.com/sollama58.png" alt="sollama58" class="builder-avatar">
+                        <span class="builder-name">
+                            <a href="https://github.com/sollama58" target="_blank">sollama58</a>
+                        </span>
+                    </div>
+                    <div class="card-actions">
+                        <a href="https://github.com/sollama58/ASDFBurnTracker" class="btn-secondary" target="_blank">View GitHub</a>
+                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:ASDFBurnTracker&body=I%20want%20to%20help%20with%20ASDFBurnTracker!" class="btn-primary" target="_blank">I want to help</a>
+                    </div>
+                </div>
+
+                <!-- Project 4: ASDev -->
+                <div class="project-card" data-status="in_progress">
+                    <div class="card-header">
+                        <div class="project-icon">🚀</div>
+                        <div class="project-title">
+                            <h3>ASDev</h3>
+                            <span class="status-badge status-in_progress">In Progress</span>
+                        </div>
+                    </div>
+                    <p class="project-desc">
+                        A Pump.fun launching platform with built-in airdrop rewards.
+                        Launch tokens with ASDF integration.
+                    </p>
+                    <div class="tech-stack">
+                        <span class="tech-tag">JavaScript</span>
+                        <span class="tech-tag">Node.js</span>
+                        <span class="tech-tag">Solana</span>
+                    </div>
+                    <div class="skills-needed">
+                        <span class="skill-tag">Backend</span>
+                        <span class="skill-tag">Web3</span>
+                    </div>
+                    <div class="builders">
+                        <img src="https://github.com/sollama58.png" alt="sollama58" class="builder-avatar">
+                        <span class="builder-name">
+                            <a href="https://github.com/sollama58" target="_blank">sollama58</a>
+                        </span>
+                    </div>
+                    <div class="card-actions">
+                        <a href="https://github.com/sollama58/ASDev" class="btn-secondary" target="_blank">View GitHub</a>
+                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:ASDev&body=I%20want%20to%20help%20with%20ASDev!" class="btn-primary" target="_blank">I want to help</a>
+                    </div>
+                </div>
+
+                <!-- Project 5: asdf_grinder -->
+                <div class="project-card" data-status="live">
+                    <div class="card-header">
+                        <div class="project-icon">⚙️</div>
+                        <div class="project-title">
+                            <h3>asdf_grinder</h3>
+                            <span class="status-badge status-live">Live</span>
+                        </div>
+                    </div>
+                    <p class="project-desc">
+                        Grinder for ASDF pubkeys. Generate vanity Solana addresses
+                        with custom prefixes for your projects.
+                    </p>
+                    <div class="tech-stack">
+                        <span class="tech-tag">Rust</span>
+                        <span class="tech-tag">Solana</span>
+                        <span class="tech-tag">CLI</span>
+                    </div>
+                    <div class="skills-needed">
+                        <span class="skill-tag">Rust</span>
+                        <span class="skill-tag">Systems</span>
+                    </div>
+                    <div class="builders">
+                        <img src="https://github.com/sollama58.png" alt="sollama58" class="builder-avatar">
+                        <span class="builder-name">
+                            <a href="https://github.com/sollama58" target="_blank">sollama58</a>
+                        </span>
+                    </div>
+                    <div class="card-actions">
+                        <a href="https://github.com/sollama58/asdf_grinder" class="btn-secondary" target="_blank">View GitHub</a>
+                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:asdf_grinder&body=I%20want%20to%20help%20with%20asdf_grinder!" class="btn-primary" target="_blank">I want to help</a>
+                    </div>
+                </div>
+
+                <!-- Project 6: ASDF Burn Dashboard -->
+                <div class="project-card" data-status="live">
+                    <div class="card-header">
+                        <div class="project-icon">📈</div>
+                        <div class="project-title">
+                            <h3>Burn Dashboard</h3>
+                            <span class="status-badge status-live">Live</span>
+                        </div>
+                    </div>
+                    <p class="project-desc">
+                        Real-time monitoring of burn cycles and token metrics.
+                        The official dashboard for the ASDF Burn Engine.
+                    </p>
+                    <div class="tech-stack">
+                        <span class="tech-tag">Next.js</span>
+                        <span class="tech-tag">TypeScript</span>
+                        <span class="tech-tag">TanStack Query</span>
+                    </div>
+                    <div class="skills-needed">
+                        <span class="skill-tag">React</span>
+                        <span class="skill-tag">Data Viz</span>
+                    </div>
+                    <div class="builders">
+                        <img src="https://github.com/stasiufr.png" alt="stasiufr" class="builder-avatar">
+                        <span class="builder-name">
+                            <a href="https://github.com/stasiufr" target="_blank">stasiufr</a>
+                        </span>
+                    </div>
+                    <div class="card-actions">
+                        <a href="https://github.com/stasiufr/ASH.TRACK" class="btn-secondary" target="_blank">View GitHub</a>
+                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:BurnDashboard&body=I%20want%20to%20help%20with%20the%20Burn%20Dashboard!" class="btn-primary" target="_blank">I want to help</a>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Propose CTA -->
+            <div class="propose-cta">
+                <a href="https://github.com/stasiufr/ASDF-Builders/discussions/new?category=ideas" target="_blank">
+                    ✨ Propose a new project idea
+                </a>
+                <p>Have an idea that aligns with ASDF principles? Share it with the community!</p>
             </div>
 
         </div>
@@ -3872,6 +4434,28 @@
 
             // Show/hide nav progress based on view
             document.getElementById('nav-progress').style.display = view === 'learn' ? 'flex' : 'none';
+        }
+
+        // ============================================
+        // BUILD VIEW - Project Filters
+        // ============================================
+        function filterProjects(status) {
+            // Update active filter button
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.status === status) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Filter project cards
+            document.querySelectorAll('.project-card').forEach(card => {
+                if (status === 'all' || card.dataset.status === status) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
         }
 
         // ============================================
