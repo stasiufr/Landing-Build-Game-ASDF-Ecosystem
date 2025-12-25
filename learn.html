@@ -17,6 +17,18 @@
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="DENY">
     <meta name="referrer" content="strict-origin-when-cross-origin">
+    <!-- Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline';
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+        font-src 'self' https://fonts.gstatic.com;
+        img-src 'self' data: https:;
+        connect-src 'self' https://your-daemon-api.com https://*.solana.com;
+        frame-ancestors 'none';
+        base-uri 'self';
+        form-action 'self';
+    ">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2693,7 +2705,7 @@
                 <div class="content-card">
                     <h3>📊 How to Verify</h3>
                     <div class="highlight-box">
-                        <strong>1.</strong> Check burns at <a href="https://alonisthe.dev/burns" target="_blank" style="color: var(--accent-fire);">alonisthe.dev/burns</a><br>
+                        <strong>1.</strong> Check burns at <a href="https://alonisthe.dev/burns" target="_blank" rel="noopener noreferrer" style="color: var(--accent-fire);">alonisthe.dev/burns</a><br>
                         <strong>2.</strong> Read code on GitHub<br>
                         <strong>3.</strong> Query the /stats API<br>
                         <strong>4.</strong> Verify transactions on Solscan
@@ -2996,7 +3008,7 @@
                     </div>
                     <div class="faq-answer">
                         <div class="faq-answer-inner">
-                            The initial supply was 1 billion tokens. Current burn statistics are available in real-time at <a href="https://alonisthe.dev/burns" target="_blank">alonisthe.dev/burns</a>. Approximately 5% has been burned to date, but this number increases constantly.
+                            The initial supply was 1 billion tokens. Current burn statistics are available in real-time at <a href="https://alonisthe.dev/burns" target="_blank" rel="noopener noreferrer">alonisthe.dev/burns</a>. Approximately 5% has been burned to date, but this number increases constantly.
                         </div>
                     </div>
                 </div>
@@ -3584,8 +3596,8 @@
     <!-- Footer -->
     <footer class="footer">
         <p>
-            Open source. Verifiable. <a href="https://github.com/zeyxx/asdf-burn-engine" target="_blank">GitHub</a> |
-            <a href="https://www.alonisthe.dev/holdex" target="_blank">HolDEX</a> |
+            Open source. Verifiable. <a href="https://github.com/zeyxx/asdf-burn-engine" target="_blank" rel="noopener noreferrer">GitHub</a> |
+            <a href="https://www.alonisthe.dev/holdex" target="_blank" rel="noopener noreferrer">HolDEX</a> |
             <a href="index.html">Landing Page</a> |
             THIS IS FINE.
         </p>
@@ -3609,11 +3621,38 @@
             courseCompleted: false
         };
 
+        // Security: Validate localStorage data schema to prevent tampering
+        function validateState(data) {
+            if (typeof data !== 'object' || data === null) return false;
+            if (typeof data.currentLevel !== 'number' || data.currentLevel < 1 || data.currentLevel > 5) return false;
+            if (!Array.isArray(data.completedLevels)) return false;
+            if (typeof data.totalXP !== 'number' || data.totalXP < 0 || data.totalXP > 100000) return false;
+            if (typeof data.wrongAnswers !== 'number' || data.wrongAnswers < 0) return false;
+            if (!Array.isArray(data.badges)) return false;
+            if (typeof data.courseCompleted !== 'boolean') return false;
+            // Validate array contents
+            if (!data.completedLevels.every(l => typeof l === 'number' && l >= 1 && l <= 5)) return false;
+            if (!data.badges.every(b => typeof b === 'string' && b.length < 50)) return false;
+            return true;
+        }
+
         function getState() {
             try {
                 const saved = localStorage.getItem(STORAGE_KEY);
-                return saved ? { ...defaultState, ...JSON.parse(saved) } : { ...defaultState };
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    const merged = { ...defaultState, ...parsed };
+                    // Validate schema before returning
+                    if (validateState(merged)) {
+                        return merged;
+                    }
+                    console.warn('Invalid state schema, resetting to default');
+                    localStorage.removeItem(STORAGE_KEY);
+                }
+                return { ...defaultState };
             } catch (e) {
+                console.warn('Error reading state, resetting to default');
+                localStorage.removeItem(STORAGE_KEY);
                 return { ...defaultState };
             }
         }
@@ -3947,16 +3986,31 @@
             leaderboardData.sort((a, b) => b.xp - a.xp);
 
             const container = document.getElementById('leaderboard-list');
-            container.innerHTML = leaderboardData.slice(0, 5).map((entry, index) => {
+            // Security: Use DOM API instead of innerHTML to prevent XSS
+            container.textContent = '';
+            leaderboardData.slice(0, 5).forEach((entry, index) => {
                 const rankClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : 'normal';
-                return `
-                    <div class="leaderboard-item ${entry.you ? 'you' : ''}">
-                        <div class="leaderboard-rank ${rankClass}">${index + 1}</div>
-                        <div class="leaderboard-name">${entry.you ? '🔥 You' : entry.name}</div>
-                        <div class="leaderboard-xp">${entry.xp} XP</div>
-                    </div>
-                `;
-            }).join('');
+
+                const item = document.createElement('div');
+                item.className = 'leaderboard-item' + (entry.you ? ' you' : '');
+
+                const rank = document.createElement('div');
+                rank.className = 'leaderboard-rank ' + rankClass;
+                rank.textContent = index + 1;
+
+                const name = document.createElement('div');
+                name.className = 'leaderboard-name';
+                name.textContent = entry.you ? '🔥 You' : entry.name;
+
+                const xp = document.createElement('div');
+                xp.className = 'leaderboard-xp';
+                xp.textContent = entry.xp + ' XP';
+
+                item.appendChild(rank);
+                item.appendChild(name);
+                item.appendChild(xp);
+                container.appendChild(item);
+            });
         }
 
         // ============================================
@@ -3975,6 +4029,25 @@
         // ============================================
 
         const GAMES_STORAGE_KEY = 'asdf_games_v1';
+
+        // Security: Validate game state schema to prevent tampering
+        function validateGameState(data, defaultState) {
+            if (typeof data !== 'object' || data === null) return false;
+            // Validate highScores
+            if (typeof data.highScores !== 'object' || data.highScores === null) return false;
+            const validScoreKeys = Object.keys(defaultState.highScores);
+            for (const key of validScoreKeys) {
+                if (typeof data.highScores[key] !== 'number' || data.highScores[key] < 0 || data.highScores[key] > 1e9) return false;
+            }
+            // Validate numeric fields with reasonable limits
+            if (typeof data.totalClicks !== 'number' || data.totalClicks < 0 || data.totalClicks > 1e12) return false;
+            if (typeof data.clickerPower !== 'number' || data.clickerPower < 1 || data.clickerPower > 1000) return false;
+            if (typeof data.clickerMulti !== 'number' || data.clickerMulti < 1 || data.clickerMulti > 100) return false;
+            if (typeof data.hasAuto !== 'boolean') return false;
+            if (typeof data.dailyXPEarned !== 'number' || data.dailyXPEarned < 0 || data.dailyXPEarned > 10000) return false;
+            if (typeof data.streak !== 'number' || data.streak < 0 || data.streak > 1000) return false;
+            return true;
+        }
 
         function getGameState() {
             const defaultState = {
@@ -3995,7 +4068,14 @@
                 if (saved) {
                     const parsed = JSON.parse(saved);
                     // Merge with defaults for new properties
-                    return { ...defaultState, ...parsed, highScores: { ...defaultState.highScores, ...parsed.highScores } };
+                    const merged = { ...defaultState, ...parsed, highScores: { ...defaultState.highScores, ...parsed.highScores } };
+                    // Validate schema before returning
+                    if (validateGameState(merged, defaultState)) {
+                        return merged;
+                    }
+                    console.warn('Invalid game state schema, resetting to default');
+                    localStorage.removeItem(GAMES_STORAGE_KEY);
+                    return defaultState;
                 }
                 return defaultState;
             } catch (e) {
@@ -4487,14 +4567,28 @@
             // Shuffle
             matchCards.sort(() => Math.random() - 0.5);
 
-            // Render
+            // Render - Security: Use DOM API instead of innerHTML to prevent XSS
             const grid = document.getElementById('match-grid');
-            grid.innerHTML = matchCards.map((card, idx) => `
-                <div class="match-card" data-index="${idx}" data-pair="${card.pairId}" onclick="flipCard(${idx})">
-                    <span class="card-front">?</span>
-                    <span class="card-back">${card.content}</span>
-                </div>
-            `).join('');
+            grid.textContent = '';
+            matchCards.forEach((card, idx) => {
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'match-card';
+                cardDiv.dataset.index = idx;
+                cardDiv.dataset.pair = card.pairId;
+                cardDiv.onclick = () => flipCard(idx);
+
+                const front = document.createElement('span');
+                front.className = 'card-front';
+                front.textContent = '?';
+
+                const back = document.createElement('span');
+                back.className = 'card-back';
+                back.textContent = card.content;
+
+                cardDiv.appendChild(front);
+                cardDiv.appendChild(back);
+                grid.appendChild(cardDiv);
+            });
 
             matchStartTime = Date.now();
             matchTimerInterval = setInterval(updateMatchTimer, 100);
