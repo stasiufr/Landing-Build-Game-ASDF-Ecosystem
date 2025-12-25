@@ -122,6 +122,7 @@
             justify-content: space-between;
             align-items: center;
             gap: 16px;
+            position: relative;
         }
 
         .nav-logo {
@@ -147,8 +148,9 @@
             border-radius: 8px;
             border: 1px solid var(--border-rust);
             overflow-x: auto;
-            max-width: 100%;
-            flex-shrink: 1;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
         }
 
         .nav-tab {
@@ -205,6 +207,13 @@
 
         .nav-connector { width: 16px; height: 2px; background: var(--border-rust); }
         .nav-connector.active { background: var(--green); }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-left: auto;
+        }
 
         .nav-stats {
             display: flex;
@@ -2489,6 +2498,469 @@
         }
 
         /* ============================================
+           BUILD FILTERS (Skills & Project Type)
+           ============================================ */
+
+        .filter-group {
+            margin-bottom: 16px;
+        }
+
+        .filter-group-title {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .type-tag {
+            font-size: 9px;
+            padding: 3px 6px;
+            background: rgba(168, 85, 247, 0.15);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 4px;
+            color: var(--purple);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* ============================================
+           TECHNICAL DOCUMENTATION MODAL
+           ============================================ */
+
+        .doc-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 300;
+            overflow-y: auto;
+            padding: 40px 20px;
+        }
+
+        .doc-modal.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .doc-content {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--bg-charred);
+            border: 2px solid var(--accent-fire);
+            border-radius: var(--radius);
+            padding: 32px;
+        }
+
+        .doc-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-rust);
+        }
+
+        .doc-title {
+            font-family: var(--font-display);
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .doc-close {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 28px;
+            cursor: pointer;
+            padding: 8px;
+            line-height: 1;
+        }
+
+        .doc-close:hover {
+            color: var(--accent-fire);
+        }
+
+        .doc-section {
+            margin-bottom: 24px;
+        }
+
+        .doc-section h3 {
+            font-family: var(--font-display);
+            font-size: 18px;
+            color: var(--accent-fire);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .doc-section p, .doc-section li {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        .doc-section ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .doc-section li {
+            padding: 6px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .doc-section li::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: var(--accent-fire);
+        }
+
+        .doc-code {
+            background: var(--bg-burnt);
+            border: 1px solid var(--border-rust);
+            border-radius: 8px;
+            padding: 16px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-cream);
+            overflow-x: auto;
+            margin: 12px 0;
+        }
+
+        .doc-code pre {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+
+        .doc-contributors {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .doc-contributor {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: var(--bg-burnt);
+            border: 1px solid var(--border-rust);
+            border-radius: 8px;
+        }
+
+        .doc-contributor img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+        }
+
+        .doc-contributor a {
+            color: var(--accent-fire);
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .doc-contributor a:hover {
+            text-decoration: underline;
+        }
+
+        .doc-links {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+
+        .doc-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: var(--accent-fire);
+            border-radius: 8px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .doc-link:hover {
+            background: var(--accent-ember);
+        }
+
+        .doc-link.secondary {
+            background: transparent;
+            border: 1px solid var(--border-rust);
+            color: var(--text-cream);
+        }
+
+        .doc-link.secondary:hover {
+            border-color: var(--accent-fire);
+            color: var(--accent-fire);
+        }
+
+        .btn-docs {
+            background: rgba(168, 85, 247, 0.15);
+            border: 1px solid var(--purple);
+            color: var(--purple);
+        }
+
+        .btn-docs:hover {
+            background: rgba(168, 85, 247, 0.25);
+        }
+
+        .doc-link.deep-learn {
+            background: linear-gradient(135deg, var(--purple), #6366f1);
+            border: none;
+        }
+
+        .doc-link.deep-learn:hover {
+            background: linear-gradient(135deg, #9333ea, #4f46e5);
+        }
+
+        /* Deep Learn Modal */
+        .deep-learn-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 400;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .deep-learn-modal.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .deep-learn-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: var(--bg-charred);
+            border: 2px solid var(--purple);
+            border-radius: var(--radius);
+            padding: 40px;
+        }
+
+        .deep-learn-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 32px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--purple);
+        }
+
+        .deep-learn-title {
+            font-family: var(--font-display);
+            font-size: 32px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            color: var(--purple);
+        }
+
+        .deep-learn-nav {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 32px;
+            padding: 16px;
+            background: var(--bg-burnt);
+            border-radius: 8px;
+        }
+
+        .deep-nav-btn {
+            padding: 8px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            background: transparent;
+            border: 1px solid var(--border-rust);
+            border-radius: 6px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .deep-nav-btn:hover {
+            border-color: var(--purple);
+            color: var(--purple);
+        }
+
+        .deep-nav-btn.active {
+            background: var(--purple);
+            border-color: var(--purple);
+            color: #fff;
+        }
+
+        .deep-section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .deep-section.active {
+            display: block;
+        }
+
+        .deep-section h3 {
+            font-family: var(--font-display);
+            font-size: 22px;
+            color: var(--accent-fire);
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-rust);
+        }
+
+        .deep-section h4 {
+            font-size: 16px;
+            color: var(--purple);
+            margin: 20px 0 12px;
+        }
+
+        .deep-section p {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.8;
+            margin-bottom: 16px;
+        }
+
+        .deep-section ul {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 16px;
+        }
+
+        .deep-section li {
+            padding: 8px 0 8px 24px;
+            position: relative;
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .deep-section li::before {
+            content: "▸";
+            position: absolute;
+            left: 0;
+            color: var(--purple);
+        }
+
+        .deep-code {
+            background: #1a1a2e;
+            border: 1px solid var(--border-rust);
+            border-radius: 8px;
+            padding: 20px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: #e2e8f0;
+            overflow-x: auto;
+            margin: 16px 0;
+            line-height: 1.6;
+        }
+
+        .deep-code .comment { color: #6b7280; }
+        .deep-code .keyword { color: #c084fc; }
+        .deep-code .string { color: #4ade80; }
+        .deep-code .function { color: #60a5fa; }
+
+        .deep-diagram {
+            background: var(--bg-burnt);
+            border: 2px dashed var(--border-rust);
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .deep-diagram-flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .deep-diagram-box {
+            padding: 16px 24px;
+            background: var(--bg-charred);
+            border: 2px solid var(--purple);
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .deep-diagram-arrow {
+            font-size: 24px;
+            color: var(--purple);
+        }
+
+        .deep-warning {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--red);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            font-size: 13px;
+            color: var(--red);
+        }
+
+        .deep-tip {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid var(--green);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            font-size: 13px;
+            color: var(--green);
+        }
+
+        .deep-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 13px;
+        }
+
+        .deep-table th, .deep-table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid var(--border-rust);
+        }
+
+        .deep-table th {
+            background: var(--bg-burnt);
+            color: var(--purple);
+            font-weight: 600;
+        }
+
+        .deep-table td {
+            color: var(--text-muted);
+        }
+
+        /* ============================================
            FOOTER
            ============================================ */
 
@@ -2509,8 +2981,11 @@
 
         @media (max-width: 900px) {
             .nav-content { flex-wrap: wrap; justify-content: center; }
-            .nav-tabs { flex-wrap: wrap; justify-content: center; width: 100%; margin-top: 8px; }
-            .nav-stats { display: none; }
+            .nav-tabs { position: static; transform: none; flex-wrap: wrap; justify-content: center; width: 100%; margin-top: 8px; order: 2; }
+            .nav-logo { order: 1; }
+            .nav-right { width: 100%; justify-content: center; margin-top: 8px; margin-left: 0; order: 3; }
+            .nav-progress { order: 1; }
+            .nav-stats { order: 2; }
             .visual-flow { flex-direction: column; }
             .flow-arrow { transform: rotate(90deg); }
             .level-actions { flex-direction: column; }
@@ -2549,10 +3024,25 @@
                 <button class="nav-tab" onclick="switchView('calculator')">Calculator</button>
             </div>
 
-            <div class="nav-stats">
-                <div class="nav-xp">
-                    <span>⭐</span>
-                    <span id="total-xp">0 XP</span>
+            <div class="nav-right">
+                <!-- Course Progress 1-2-3-4-5 -->
+                <div class="nav-progress" id="nav-progress-bar">
+                    <div class="nav-level current" data-level="1" onclick="goToLevel(1)" title="Level 1: The Spark">1</div>
+                    <div class="nav-connector"></div>
+                    <div class="nav-level locked" data-level="2" onclick="goToLevel(2)" title="Level 2: The Flames">2</div>
+                    <div class="nav-connector"></div>
+                    <div class="nav-level locked" data-level="3" onclick="goToLevel(3)" title="Level 3: The Engine">3</div>
+                    <div class="nav-connector"></div>
+                    <div class="nav-level locked" data-level="4" onclick="goToLevel(4)" title="Level 4: The Forge">4</div>
+                    <div class="nav-connector"></div>
+                    <div class="nav-level locked" data-level="5" onclick="goToLevel(5)" title="Level 5: The Core">5</div>
+                </div>
+
+                <div class="nav-stats">
+                    <div class="nav-xp">
+                        <span>⭐</span>
+                        <span id="total-xp">0 XP</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2573,22 +3063,6 @@
                         <div class="streak-day" data-day="5">5</div>
                         <div class="streak-day" data-day="6">6</div>
                         <div class="streak-day today" data-day="7">7</div>
-                    </div>
-                </div>
-
-                <!-- Level Progress -->
-                <div class="level-progress-panel" id="nav-progress">
-                    <div class="level-progress-title">📚 Course Progress</div>
-                    <div class="level-progress-track">
-                        <div class="nav-level current" data-level="1" onclick="goToLevel(1)">1</div>
-                        <div class="nav-connector"></div>
-                        <div class="nav-level locked" data-level="2" onclick="goToLevel(2)">2</div>
-                        <div class="nav-connector"></div>
-                        <div class="nav-level locked" data-level="3" onclick="goToLevel(3)">3</div>
-                        <div class="nav-connector"></div>
-                        <div class="nav-level locked" data-level="4" onclick="goToLevel(4)">4</div>
-                        <div class="nav-connector"></div>
-                        <div class="nav-level locked" data-level="5" onclick="goToLevel(5)">5</div>
                     </div>
                 </div>
 
@@ -2947,7 +3421,7 @@
                 </div>
 
                 <div class="ecosystem-grid">
-                    <div class="eco-card" onclick="window.open('https://www.alonisthe.dev/holdex', '_blank')">
+                    <div class="eco-card" onclick="window.open('https://www.alonisthe.dev/holdex', '_blank', 'noopener,noreferrer')">
                         <div class="icon">📈</div>
                         <h4>HolDEX</h4>
                         <p>Open-source DexScreener alternative</p>
@@ -3111,19 +3585,163 @@
                 </p>
             </div>
 
-            <!-- Filters -->
-            <div class="build-filters" role="group" aria-label="Filter projects by status">
-                <button class="filter-btn active" data-status="all" onclick="filterProjects('all')" aria-pressed="true">All</button>
-                <button class="filter-btn" data-status="need_help" onclick="filterProjects('need_help')" aria-pressed="false">🆘 Need Help</button>
-                <button class="filter-btn" data-status="in_progress" onclick="filterProjects('in_progress')" aria-pressed="false">🔄 In Progress</button>
-                <button class="filter-btn" data-status="live" onclick="filterProjects('live')" aria-pressed="false">✅ Live</button>
+            <!-- Filters by Status -->
+            <div class="filter-group">
+                <div class="filter-group-title">Status</div>
+                <div class="filter-row" role="group" aria-label="Filter by status">
+                    <button class="filter-btn active" data-filter="status" data-value="all" onclick="filterProjects('status', 'all')">All</button>
+                    <button class="filter-btn" data-filter="status" data-value="need_help" onclick="filterProjects('status', 'need_help')">🆘 Need Help</button>
+                    <button class="filter-btn" data-filter="status" data-value="in_progress" onclick="filterProjects('status', 'in_progress')">🔄 In Progress</button>
+                    <button class="filter-btn" data-filter="status" data-value="live" onclick="filterProjects('status', 'live')">✅ Live</button>
+                </div>
+            </div>
+
+            <!-- Filters by Skills -->
+            <div class="filter-group">
+                <div class="filter-group-title">Skills</div>
+                <div class="filter-row" role="group" aria-label="Filter by skills">
+                    <button class="filter-btn" data-filter="skill" data-value="all" onclick="filterProjects('skill', 'all')">All</button>
+                    <button class="filter-btn" data-filter="skill" data-value="frontend" onclick="filterProjects('skill', 'frontend')">Frontend</button>
+                    <button class="filter-btn" data-filter="skill" data-value="backend" onclick="filterProjects('skill', 'backend')">Backend</button>
+                    <button class="filter-btn" data-filter="skill" data-value="rust" onclick="filterProjects('skill', 'rust')">Rust</button>
+                    <button class="filter-btn" data-filter="skill" data-value="solana" onclick="filterProjects('skill', 'solana')">Solana/Web3</button>
+                    <button class="filter-btn" data-filter="skill" data-value="data" onclick="filterProjects('skill', 'data')">Data/API</button>
+                </div>
+            </div>
+
+            <!-- Filters by Project Type -->
+            <div class="filter-group">
+                <div class="filter-group-title">Project Type</div>
+                <div class="filter-row" role="group" aria-label="Filter by type">
+                    <button class="filter-btn" data-filter="type" data-value="all" onclick="filterProjects('type', 'all')">All</button>
+                    <button class="filter-btn" data-filter="type" data-value="defi" onclick="filterProjects('type', 'defi')">DeFi</button>
+                    <button class="filter-btn" data-filter="type" data-value="tools" onclick="filterProjects('type', 'tools')">Tools</button>
+                    <button class="filter-btn" data-filter="type" data-value="infra" onclick="filterProjects('type', 'infra')">Infrastructure</button>
+                    <button class="filter-btn" data-filter="type" data-value="dashboard" onclick="filterProjects('type', 'dashboard')">Dashboard</button>
+                </div>
             </div>
 
             <!-- Projects Grid -->
-            <div class="projects-grid">
+            <div class="projects-grid" id="projects-grid">
 
-                <!-- Project 1: HolDex -->
-                <div class="project-card" data-status="in_progress">
+                <!-- Project: ASDF Burn Engine -->
+                <div class="project-card" data-status="live" data-skills="backend,solana,rust" data-type="infra">
+                    <div class="card-header">
+                        <div class="project-icon">🔥</div>
+                        <div class="project-title">
+                            <h3>ASDF Burn Engine</h3>
+                            <span class="status-badge status-live">Live</span>
+                        </div>
+                    </div>
+                    <p class="project-desc">
+                        Autonomous protocol that converts ecosystem activity into permanent token burns.
+                        The core deflationary mechanism of ASDF.
+                    </p>
+                    <div class="tech-stack">
+                        <span class="tech-tag">TypeScript</span>
+                        <span class="tech-tag">Rust</span>
+                        <span class="tech-tag">Solana/Anchor</span>
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <span class="type-tag">Infrastructure</span>
+                    </div>
+                    <div class="skills-needed">
+                        <span class="skill-tag">Backend</span>
+                        <span class="skill-tag">Solana</span>
+                        <span class="skill-tag">Rust</span>
+                    </div>
+                    <div class="builders">
+                        <img src="https://github.com/zeyxx.png" alt="zeyxx" class="builder-avatar" loading="lazy">
+                        <span class="builder-name">
+                            <a href="https://github.com/zeyxx" target="_blank" rel="noopener noreferrer">zeyxx</a>
+                        </span>
+                    </div>
+                    <div class="card-actions">
+                        <a href="https://github.com/zeyxx/asdf-burn-engine" class="btn-secondary" target="_blank" rel="noopener noreferrer">GitHub</a>
+                        <button class="btn-docs" onclick="openDocs('burn-engine')">📚 Docs</button>
+                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:BurnEngine&body=I%20want%20to%20help%20with%20the%20Burn%20Engine!" class="btn-primary" target="_blank" rel="noopener noreferrer">Help</a>
+                    </div>
+                </div>
+
+                <!-- Project: ASDF Validator -->
+                <div class="project-card" data-status="live" data-skills="backend,solana,data" data-type="tools">
+                    <div class="card-header">
+                        <div class="project-icon">✅</div>
+                        <div class="project-title">
+                            <h3>ASDF Validator</h3>
+                            <span class="status-badge status-live">Live</span>
+                        </div>
+                    </div>
+                    <p class="project-desc">
+                        Real-time fee tracking for Pump.fun token creators on Solana.
+                        WebSocket-based live updates with ~400ms latency.
+                    </p>
+                    <div class="tech-stack">
+                        <span class="tech-tag">TypeScript</span>
+                        <span class="tech-tag">Node.js</span>
+                        <span class="tech-tag">WebSocket</span>
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <span class="type-tag">Tools</span>
+                    </div>
+                    <div class="skills-needed">
+                        <span class="skill-tag">Backend</span>
+                        <span class="skill-tag">Solana</span>
+                        <span class="skill-tag">Data</span>
+                    </div>
+                    <div class="builders">
+                        <img src="https://github.com/zeyxx.png" alt="zeyxx" class="builder-avatar" loading="lazy">
+                        <span class="builder-name">
+                            <a href="https://github.com/zeyxx" target="_blank" rel="noopener noreferrer">zeyxx</a>
+                        </span>
+                    </div>
+                    <div class="card-actions">
+                        <a href="https://github.com/zeyxx/asdf-validator" class="btn-secondary" target="_blank" rel="noopener noreferrer">GitHub</a>
+                        <button class="btn-docs" onclick="openDocs('validator')">📚 Docs</button>
+                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:Validator&body=I%20want%20to%20help%20with%20the%20Validator!" class="btn-primary" target="_blank" rel="noopener noreferrer">Help</a>
+                    </div>
+                </div>
+
+                <!-- Project: ASDF Vanity Grinder (zeyxx) -->
+                <div class="project-card" data-status="live" data-skills="rust" data-type="tools">
+                    <div class="card-header">
+                        <div class="project-icon">🎯</div>
+                        <div class="project-title">
+                            <h3>Vanity Grinder</h3>
+                            <span class="status-badge status-live">Live</span>
+                        </div>
+                    </div>
+                    <p class="project-desc">
+                        Generate vanity Solana addresses with custom prefixes.
+                        High-performance Rust implementation.
+                    </p>
+                    <div class="tech-stack">
+                        <span class="tech-tag">Rust</span>
+                        <span class="tech-tag">Shell</span>
+                        <span class="tech-tag">CLI</span>
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <span class="type-tag">Tools</span>
+                    </div>
+                    <div class="skills-needed">
+                        <span class="skill-tag">Rust</span>
+                        <span class="skill-tag">Systems</span>
+                    </div>
+                    <div class="builders">
+                        <img src="https://github.com/zeyxx.png" alt="zeyxx" class="builder-avatar" loading="lazy">
+                        <span class="builder-name">
+                            <a href="https://github.com/zeyxx" target="_blank" rel="noopener noreferrer">zeyxx</a>
+                        </span>
+                    </div>
+                    <div class="card-actions">
+                        <a href="https://github.com/zeyxx/asdf-vanity-grinder" class="btn-secondary" target="_blank" rel="noopener noreferrer">GitHub</a>
+                        <button class="btn-docs" onclick="openDocs('vanity-grinder')">📚 Docs</button>
+                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:VanityGrinder&body=I%20want%20to%20help!" class="btn-primary" target="_blank" rel="noopener noreferrer">Help</a>
+                    </div>
+                </div>
+
+                <!-- Project: HolDex -->
+                <div class="project-card" data-status="in_progress" data-skills="frontend,data" data-type="dashboard">
                     <div class="card-header">
                         <div class="project-icon">📊</div>
                         <div class="project-title">
@@ -3137,12 +3755,15 @@
                     </p>
                     <div class="tech-stack">
                         <span class="tech-tag">HTML</span>
-                        <span class="tech-tag">CSS</span>
                         <span class="tech-tag">JavaScript</span>
+                        <span class="tech-tag">Docker</span>
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <span class="type-tag">Dashboard</span>
                     </div>
                     <div class="skills-needed">
                         <span class="skill-tag">Frontend</span>
-                        <span class="skill-tag">Data Viz</span>
+                        <span class="skill-tag">Data</span>
                     </div>
                     <div class="builders">
                         <img src="https://github.com/sollama58.png" alt="sollama58" class="builder-avatar" loading="lazy">
@@ -3151,13 +3772,14 @@
                         </span>
                     </div>
                     <div class="card-actions">
-                        <a href="https://github.com/sollama58/HolDex" class="btn-secondary" target="_blank" rel="noopener noreferrer">View GitHub</a>
-                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:HolDex&body=I%20want%20to%20help%20with%20HolDex!" class="btn-primary" target="_blank" rel="noopener noreferrer">I want to help</a>
+                        <a href="https://github.com/sollama58/HolDex" class="btn-secondary" target="_blank" rel="noopener noreferrer">GitHub</a>
+                        <button class="btn-docs" onclick="openDocs('holdex')">📚 Docs</button>
+                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:HolDex&body=I%20want%20to%20help%20with%20HolDex!" class="btn-primary" target="_blank" rel="noopener noreferrer">Help</a>
                     </div>
                 </div>
 
-                <!-- Project 2: ASDForecast -->
-                <div class="project-card" data-status="in_progress">
+                <!-- Project: ASDForecast -->
+                <div class="project-card" data-status="in_progress" data-skills="frontend,solana" data-type="defi">
                     <div class="card-header">
                         <div class="project-icon">🔮</div>
                         <div class="project-title">
@@ -3171,8 +3793,11 @@
                     </p>
                     <div class="tech-stack">
                         <span class="tech-tag">HTML</span>
-                        <span class="tech-tag">CSS</span>
-                        <span class="tech-tag">Web3</span>
+                        <span class="tech-tag">JavaScript</span>
+                        <span class="tech-tag">Node.js</span>
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <span class="type-tag">DeFi</span>
                     </div>
                     <div class="skills-needed">
                         <span class="skill-tag">Frontend</span>
@@ -3180,20 +3805,23 @@
                     </div>
                     <div class="builders">
                         <img src="https://github.com/sollama58.png" alt="sollama58" class="builder-avatar" loading="lazy">
+                        <img src="https://github.com/zeyxx.png" alt="zeyxx" class="builder-avatar" loading="lazy" style="margin-left: -10px;">
                         <span class="builder-name">
-                            <a href="https://github.com/sollama58" target="_blank" rel="noopener noreferrer">sollama58</a>
+                            <a href="https://github.com/sollama58" target="_blank" rel="noopener noreferrer">sollama58</a>,
+                            <a href="https://github.com/zeyxx" target="_blank" rel="noopener noreferrer">zeyxx</a>
                         </span>
                     </div>
                     <div class="card-actions">
-                        <a href="https://github.com/sollama58/ASDForecast" class="btn-secondary" target="_blank" rel="noopener noreferrer">View GitHub</a>
-                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:ASDForecast&body=I%20want%20to%20help%20with%20ASDForecast!" class="btn-primary" target="_blank" rel="noopener noreferrer">I want to help</a>
+                        <a href="https://github.com/sollama58/ASDForecast" class="btn-secondary" target="_blank" rel="noopener noreferrer">GitHub</a>
+                        <button class="btn-docs" onclick="openDocs('asdforecast')">📚 Docs</button>
+                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:ASDForecast&body=I%20want%20to%20help!" class="btn-primary" target="_blank" rel="noopener noreferrer">Help</a>
                     </div>
                 </div>
 
-                <!-- Project 3: ASDFBurnTracker -->
-                <div class="project-card" data-status="live">
+                <!-- Project: ASDFBurnTracker -->
+                <div class="project-card" data-status="live" data-skills="frontend,data" data-type="dashboard">
                     <div class="card-header">
-                        <div class="project-icon">🔥</div>
+                        <div class="project-icon">📈</div>
                         <div class="project-title">
                             <h3>ASDFBurnTracker</h3>
                             <span class="status-badge status-live">Live</span>
@@ -3205,8 +3833,11 @@
                     </p>
                     <div class="tech-stack">
                         <span class="tech-tag">HTML</span>
-                        <span class="tech-tag">CSS</span>
-                        <span class="tech-tag">API</span>
+                        <span class="tech-tag">JavaScript</span>
+                        <span class="tech-tag">Node.js</span>
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <span class="type-tag">Dashboard</span>
                     </div>
                     <div class="skills-needed">
                         <span class="skill-tag">Frontend</span>
@@ -3219,13 +3850,14 @@
                         </span>
                     </div>
                     <div class="card-actions">
-                        <a href="https://github.com/sollama58/ASDFBurnTracker" class="btn-secondary" target="_blank" rel="noopener noreferrer">View GitHub</a>
-                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:ASDFBurnTracker&body=I%20want%20to%20help%20with%20ASDFBurnTracker!" class="btn-primary" target="_blank" rel="noopener noreferrer">I want to help</a>
+                        <a href="https://github.com/sollama58/ASDFBurnTracker" class="btn-secondary" target="_blank" rel="noopener noreferrer">GitHub</a>
+                        <button class="btn-docs" onclick="openDocs('burntracker')">📚 Docs</button>
+                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:BurnTracker&body=I%20want%20to%20help!" class="btn-primary" target="_blank" rel="noopener noreferrer">Help</a>
                     </div>
                 </div>
 
-                <!-- Project 4: ASDev -->
-                <div class="project-card" data-status="in_progress">
+                <!-- Project: ASDev -->
+                <div class="project-card" data-status="in_progress" data-skills="backend,solana,rust" data-type="defi">
                     <div class="card-header">
                         <div class="project-icon">🚀</div>
                         <div class="project-title">
@@ -3234,32 +3866,39 @@
                         </div>
                     </div>
                     <p class="project-desc">
-                        A Pump.fun launching platform with built-in airdrop rewards.
-                        Launch tokens with ASDF integration.
+                        Token launcher for Solana. Ships tokens that end with "ASDF".
+                        Built-in airdrop rewards and holder tracking.
                     </p>
                     <div class="tech-stack">
-                        <span class="tech-tag">JavaScript</span>
                         <span class="tech-tag">Node.js</span>
-                        <span class="tech-tag">Solana</span>
+                        <span class="tech-tag">Rust</span>
+                        <span class="tech-tag">Redis</span>
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <span class="type-tag">DeFi</span>
                     </div>
                     <div class="skills-needed">
                         <span class="skill-tag">Backend</span>
-                        <span class="skill-tag">Web3</span>
+                        <span class="skill-tag">Solana</span>
+                        <span class="skill-tag">Rust</span>
                     </div>
                     <div class="builders">
                         <img src="https://github.com/sollama58.png" alt="sollama58" class="builder-avatar" loading="lazy">
+                        <img src="https://github.com/zeyxx.png" alt="zeyxx" class="builder-avatar" loading="lazy" style="margin-left: -10px;">
                         <span class="builder-name">
-                            <a href="https://github.com/sollama58" target="_blank" rel="noopener noreferrer">sollama58</a>
+                            <a href="https://github.com/sollama58" target="_blank" rel="noopener noreferrer">sollama58</a>,
+                            <a href="https://github.com/zeyxx" target="_blank" rel="noopener noreferrer">zeyxx</a>
                         </span>
                     </div>
                     <div class="card-actions">
-                        <a href="https://github.com/sollama58/ASDev" class="btn-secondary" target="_blank" rel="noopener noreferrer">View GitHub</a>
-                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:ASDev&body=I%20want%20to%20help%20with%20ASDev!" class="btn-primary" target="_blank" rel="noopener noreferrer">I want to help</a>
+                        <a href="https://github.com/sollama58/ASDev" class="btn-secondary" target="_blank" rel="noopener noreferrer">GitHub</a>
+                        <button class="btn-docs" onclick="openDocs('asdev')">📚 Docs</button>
+                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:ASDev&body=I%20want%20to%20help!" class="btn-primary" target="_blank" rel="noopener noreferrer">Help</a>
                     </div>
                 </div>
 
-                <!-- Project 5: asdf_grinder -->
-                <div class="project-card" data-status="live">
+                <!-- Project: asdf_grinder -->
+                <div class="project-card" data-status="live" data-skills="rust" data-type="tools">
                     <div class="card-header">
                         <div class="project-icon">⚙️</div>
                         <div class="project-title">
@@ -3269,12 +3908,15 @@
                     </div>
                     <p class="project-desc">
                         Grinder for ASDF pubkeys. Generate vanity Solana addresses
-                        with custom prefixes for your projects.
+                        with custom prefixes. Docker support included.
                     </p>
                     <div class="tech-stack">
                         <span class="tech-tag">Rust</span>
-                        <span class="tech-tag">Solana</span>
-                        <span class="tech-tag">CLI</span>
+                        <span class="tech-tag">Docker</span>
+                        <span class="tech-tag">Shell</span>
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <span class="type-tag">Tools</span>
                     </div>
                     <div class="skills-needed">
                         <span class="skill-tag">Rust</span>
@@ -3287,32 +3929,35 @@
                         </span>
                     </div>
                     <div class="card-actions">
-                        <a href="https://github.com/sollama58/asdf_grinder" class="btn-secondary" target="_blank" rel="noopener noreferrer">View GitHub</a>
-                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:asdf_grinder&body=I%20want%20to%20help%20with%20asdf_grinder!" class="btn-primary" target="_blank" rel="noopener noreferrer">I want to help</a>
+                        <a href="https://github.com/sollama58/asdf_grinder" class="btn-secondary" target="_blank" rel="noopener noreferrer">GitHub</a>
+                        <button class="btn-docs" onclick="openDocs('grinder')">📚 Docs</button>
+                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:Grinder&body=I%20want%20to%20help!" class="btn-primary" target="_blank" rel="noopener noreferrer">Help</a>
                     </div>
                 </div>
 
-                <!-- Project 6: ASDF Burn Dashboard -->
-                <div class="project-card" data-status="live">
+                <!-- Project: Landing Page ASDF Ecosystem -->
+                <div class="project-card" data-status="live" data-skills="frontend" data-type="infra">
                     <div class="card-header">
-                        <div class="project-icon">📈</div>
+                        <div class="project-icon">🌐</div>
                         <div class="project-title">
-                            <h3>Burn Dashboard</h3>
+                            <h3>ASDF Ecosystem Website</h3>
                             <span class="status-badge status-live">Live</span>
                         </div>
                     </div>
                     <p class="project-desc">
-                        Real-time monitoring of burn cycles and token metrics.
-                        The official dashboard for the ASDF Burn Engine.
+                        The main landing page and learning platform for the ASDF ecosystem.
+                        Interactive tutorials, mini-games, and documentation.
                     </p>
                     <div class="tech-stack">
-                        <span class="tech-tag">Next.js</span>
-                        <span class="tech-tag">TypeScript</span>
-                        <span class="tech-tag">TanStack Query</span>
+                        <span class="tech-tag">HTML</span>
+                        <span class="tech-tag">CSS</span>
+                        <span class="tech-tag">JavaScript</span>
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <span class="type-tag">Infrastructure</span>
                     </div>
                     <div class="skills-needed">
-                        <span class="skill-tag">React</span>
-                        <span class="skill-tag">Data Viz</span>
+                        <span class="skill-tag">Frontend</span>
                     </div>
                     <div class="builders">
                         <img src="https://github.com/stasiufr.png" alt="stasiufr" class="builder-avatar" loading="lazy">
@@ -3321,8 +3966,8 @@
                         </span>
                     </div>
                     <div class="card-actions">
-                        <a href="https://github.com/stasiufr/ASH.TRACK" class="btn-secondary" target="_blank" rel="noopener noreferrer">View GitHub</a>
-                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:BurnDashboard&body=I%20want%20to%20help%20with%20the%20Burn%20Dashboard!" class="btn-primary" target="_blank" rel="noopener noreferrer">I want to help</a>
+                        <a href="https://github.com/stasiufr/Landing-Page-ASDF-Ecosystem" class="btn-secondary" target="_blank" rel="noopener noreferrer">GitHub</a>
+                        <a href="https://github.com/stasiufr/ASDF-Builders/issues/new?title=Join:Website&body=I%20want%20to%20help!" class="btn-primary" target="_blank" rel="noopener noreferrer">Help</a>
                     </div>
                 </div>
 
@@ -3336,6 +3981,35 @@
                 <p>Have an idea that aligns with ASDF principles? Share it with the community!</p>
             </div>
 
+        </div>
+
+        <!-- Technical Documentation Modals -->
+        <div class="doc-modal" id="doc-modal">
+            <div class="doc-content">
+                <div class="doc-header">
+                    <h2 class="doc-title" id="doc-modal-title">📚 Documentation</h2>
+                    <button class="doc-close" onclick="closeDocs()">&times;</button>
+                </div>
+                <div id="doc-modal-body">
+                    <!-- Content injected by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Deep Learn Modal -->
+        <div class="deep-learn-modal" id="deep-learn-modal">
+            <div class="deep-learn-content">
+                <div class="deep-learn-header">
+                    <h2 class="deep-learn-title" id="deep-learn-title">🎓 Deep Learn</h2>
+                    <button class="doc-close" onclick="closeDeepLearn()">&times;</button>
+                </div>
+                <div class="deep-learn-nav" id="deep-learn-nav">
+                    <!-- Navigation tabs injected by JS -->
+                </div>
+                <div id="deep-learn-body">
+                    <!-- Content injected by JS -->
+                </div>
+            </div>
         </div>
 
         <!-- ============================================
@@ -4171,6 +4845,32 @@
     <!-- JavaScript -->
     <script>
         // ============================================
+        // SECURITY UTILITIES
+        // ============================================
+
+        // Escape HTML to prevent XSS attacks
+        function escapeHtml(str) {
+            if (typeof str !== 'string') return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // Sanitize URL to prevent javascript: protocol attacks
+        function sanitizeUrl(url) {
+            if (typeof url !== 'string') return '';
+            try {
+                const parsed = new URL(url);
+                if (!['http:', 'https:'].includes(parsed.protocol)) {
+                    return '';
+                }
+                return url;
+            } catch {
+                return '';
+            }
+        }
+
+        // ============================================
         // STATE MANAGEMENT
         // ============================================
 
@@ -4434,29 +5134,1945 @@
 
             document.getElementById('view-' + view).classList.add('active');
             event.target.classList.add('active');
-
-            // Show/hide nav progress based on view
-            document.getElementById('nav-progress').style.display = view === 'learn' ? 'flex' : 'none';
         }
 
         // ============================================
-        // BUILD VIEW - Project Filters
+        // BUILD VIEW - Project Filters (Multi-dimensional)
         // ============================================
-        function filterProjects(status) {
-            // Update active filter button and ARIA states
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                const isActive = btn.dataset.status === status;
+        const activeFilters = { status: 'all', skill: 'all', type: 'all' };
+
+        function filterProjects(filterType, value) {
+            activeFilters[filterType] = value;
+
+            // Update active filter buttons
+            document.querySelectorAll(`.filter-btn[data-filter="${filterType}"]`).forEach(btn => {
+                const isActive = btn.dataset.value === value;
                 btn.classList.toggle('active', isActive);
                 btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
             });
 
-            // Filter project cards
+            // Filter project cards based on all active filters
             document.querySelectorAll('.project-card').forEach(card => {
-                const isVisible = status === 'all' || card.dataset.status === status;
+                const statusMatch = activeFilters.status === 'all' || card.dataset.status === activeFilters.status;
+                const skillMatch = activeFilters.skill === 'all' || (card.dataset.skills && card.dataset.skills.includes(activeFilters.skill));
+                const typeMatch = activeFilters.type === 'all' || card.dataset.type === activeFilters.type;
+
+                const isVisible = statusMatch && skillMatch && typeMatch;
                 card.classList.toggle('hidden', !isVisible);
                 card.setAttribute('aria-hidden', !isVisible ? 'true' : 'false');
             });
         }
+
+        // ============================================
+        // TECHNICAL DOCUMENTATION
+        // ============================================
+        const projectDocs = {
+            'burn-engine': {
+                title: '🔥 ASDF Burn Engine',
+                sections: [
+                    {
+                        title: '📖 Overview',
+                        content: 'Autonomous protocol that converts ecosystem activity into permanent token burns. The core deflationary mechanism of ASDF.'
+                    },
+                    {
+                        title: '🏗️ Architecture',
+                        content: `<ul>
+                            <li><strong>Trading Volume:</strong> Pump.fun trades generate creator fees → automatic buyback → token burn</li>
+                            <li><strong>Ecosystem Apps:</strong> Apps deposit SOL or $ASDF tokens → automatic or manual burn cycles</li>
+                            <li><strong>Token Hierarchy:</strong> Secondary tokens contribute 44.8% of fees to root treasury</li>
+                        </ul>`
+                    },
+                    {
+                        title: '🛠️ Tech Stack',
+                        content: 'TypeScript (74.1%), Rust (14.5%), JavaScript, Solana (Anchor framework)'
+                    },
+                    {
+                        title: '📁 Project Structure',
+                        content: `<div class="doc-code"><pre>/programs/asdf-burn-engine/ - Solana smart contract
+/dashboard/ - Web interface
+/docs/ - Developer guides (API Reference, Architecture)
+/scripts/ - Automation tools
+/tests/ - Test suite</pre></div>`
+                    },
+                    {
+                        title: '⚙️ Installation',
+                        content: `<div class="doc-code"><pre>git clone https://github.com/zeyxx/asdf-burn-engine
+cd asdf-burn-engine
+cp .env.template .env
+# Configure environment variables
+npm install
+anchor build</pre></div>`
+                    },
+                    {
+                        title: '🔗 Key Info',
+                        content: 'Program ID: <code>ASDFc5hkEM2MF8mrAAtCPieV6x6h1B5BwjgztFt7Xbui</code><br>Philosophy: "Creation, not extraction. Flush. Burn. Verify."'
+                    }
+                ],
+                contributors: [{ name: 'zeyxx', url: 'https://github.com/zeyxx' }],
+                github: 'https://github.com/zeyxx/asdf-burn-engine'
+            },
+            'validator': {
+                title: '✅ ASDF Validator',
+                sections: [
+                    {
+                        title: '📖 Overview',
+                        content: 'Real-time fee tracking system for Pump.fun token creators on Solana blockchain with WebSocket-based live updates (~400ms latency).'
+                    },
+                    {
+                        title: '✨ Features',
+                        content: `<ul>
+                            <li>Real-time tracking via WebSocket</li>
+                            <li>Per-token fee attribution and auto-discovery</li>
+                            <li>Proof-of-History SHA-256 chain verification</li>
+                            <li>Web dashboard with analytics</li>
+                            <li>Dual vault monitoring (Bonding Curve + AMM)</li>
+                        </ul>`
+                    },
+                    {
+                        title: '🛠️ Tech Stack',
+                        content: 'TypeScript (85.8%), JavaScript, Node.js, Express.js, Jest, React dashboard'
+                    },
+                    {
+                        title: '📁 Project Structure',
+                        content: `<div class="doc-code"><pre>asdf-validator/
+├── cli.ts / daemon.ts / index.ts (entry points)
+├── lib/
+│   ├── fee-tracker.ts
+│   ├── realtime-tracker.ts
+│   ├── history-manager.ts
+│   ├── token-manager.ts
+│   └── websocket-manager.ts
+├── dashboard/ (Express server + frontend)
+└── tests/</pre></div>`
+                    },
+                    {
+                        title: '⚙️ Installation & Usage',
+                        content: `<div class="doc-code"><pre># Install
+npm install && npm run build
+
+# CLI Mode
+npx ts-node cli.ts --creator YOUR_CREATOR_ADDRESS
+
+# Dashboard
+npx ts-node dashboard/server.ts CREATOR_ADDRESS [RPC_URL] [PORT]
+# Access: http://localhost:3000</pre></div>`
+                    }
+                ],
+                contributors: [{ name: 'zeyxx', url: 'https://github.com/zeyxx' }],
+                github: 'https://github.com/zeyxx/asdf-validator'
+            },
+            'vanity-grinder': {
+                title: '🎯 Vanity Grinder',
+                sections: [
+                    {
+                        title: '📖 Overview',
+                        content: 'High-performance Rust implementation for generating vanity Solana addresses with custom prefixes.'
+                    },
+                    {
+                        title: '🛠️ Tech Stack',
+                        content: 'Rust (95.1%), Shell (4.9%)'
+                    },
+                    {
+                        title: '⚙️ Usage',
+                        content: `<div class="doc-code"><pre># Clone and build
+git clone https://github.com/zeyxx/asdf-vanity-grinder
+cd asdf-vanity-grinder
+cargo build --release
+
+# Run
+./start_grinder.sh</pre></div>`
+                    }
+                ],
+                contributors: [{ name: 'zeyxx', url: 'https://github.com/zeyxx' }],
+                github: 'https://github.com/zeyxx/asdf-vanity-grinder'
+            },
+            'holdex': {
+                title: '📊 HolDex',
+                sections: [
+                    {
+                        title: '📖 Overview',
+                        content: 'An open-source DexScreener alternative, powered by ASDFASDFA. Track tokens, view charts, and monitor the ecosystem.'
+                    },
+                    {
+                        title: '🛠️ Tech Stack',
+                        content: 'HTML (66.1%), JavaScript (33.5%), Docker support'
+                    },
+                    {
+                        title: '📁 Project Structure',
+                        content: `<div class="doc-code"><pre>HolDex/
+├── src/ (application code)
+├── homepage.html
+├── submissions.html
+├── package.json
+├── Dockerfile
+└── docker-compose.yml</pre></div>`
+                    },
+                    {
+                        title: '⚙️ Installation',
+                        content: `<div class="doc-code"><pre># Using Docker
+docker-compose up -d
+
+# Or manual
+npm install
+npm start</pre></div>`
+                    }
+                ],
+                contributors: [{ name: 'sollama58', url: 'https://github.com/sollama58' }],
+                github: 'https://github.com/sollama58/HolDex'
+            },
+            'asdforecast': {
+                title: '🔮 ASDForecast',
+                sections: [
+                    {
+                        title: '📖 Overview',
+                        content: 'Prediction market for Solana, built for ASDFASDFA. Fees go towards ASDF buybacks and burns.'
+                    },
+                    {
+                        title: '🛠️ Tech Stack',
+                        content: 'HTML (70%), JavaScript (30%), Node.js'
+                    },
+                    {
+                        title: '📁 Project Structure',
+                        content: `<div class="doc-code"><pre>ASDForecast/
+├── frontend.html (main app)
+├── control_panel.html
+├── burnMonitorFrontend.html
+├── status_monitor_widget.html
+├── server.js
+└── package.json</pre></div>`
+                    },
+                    {
+                        title: '⚙️ Installation',
+                        content: `<div class="doc-code"><pre>npm install
+node server.js
+# Open frontend.html in browser</pre></div>`
+                    }
+                ],
+                contributors: [
+                    { name: 'sollama58', url: 'https://github.com/sollama58' },
+                    { name: 'zeyxx', url: 'https://github.com/zeyxx' }
+                ],
+                github: 'https://github.com/sollama58/ASDForecast'
+            },
+            'burntracker': {
+                title: '📈 ASDFBurnTracker',
+                sections: [
+                    {
+                        title: '📖 Overview',
+                        content: 'Tracks ASDF BuyBacks and Burns in real-time. Visual proof of the deflationary mechanism at work.'
+                    },
+                    {
+                        title: '🛠️ Tech Stack',
+                        content: 'HTML (59.3%), JavaScript (40.7%), Node.js'
+                    },
+                    {
+                        title: '📁 Project Structure',
+                        content: `<div class="doc-code"><pre>ASDFBurnTracker/
+├── originalHTMLwidget.html
+├── server.js
+└── package.json</pre></div>`
+                    },
+                    {
+                        title: '⚙️ Installation',
+                        content: `<div class="doc-code"><pre>npm install
+node server.js</pre></div>`
+                    }
+                ],
+                contributors: [{ name: 'sollama58', url: 'https://github.com/sollama58' }],
+                github: 'https://github.com/sollama58/ASDFBurnTracker'
+            },
+            'asdev': {
+                title: '🚀 ASDev',
+                sections: [
+                    {
+                        title: '📖 Overview',
+                        content: 'Token launcher for Solana. Ships tokens that end with "ASDF". Built-in airdrop rewards and holder tracking.'
+                    },
+                    {
+                        title: '✨ Features',
+                        content: `<ul>
+                            <li>Token deployment queuing</li>
+                            <li>Vanity address generation (ASDF suffix)</li>
+                            <li>Metadata upload to IPFS via Pinata</li>
+                            <li>Airdrop eligibility checking</li>
+                            <li>Holder tracking (top 50 per token)</li>
+                            <li>Leaderboard by volume</li>
+                            <li>Real-time launch feed</li>
+                        </ul>`
+                    },
+                    {
+                        title: '🛠️ Tech Stack',
+                        content: 'Node.js 18+, Rust (vanity grinder), Redis, Solana Web3.js, Express.js'
+                    },
+                    {
+                        title: '🔒 Security',
+                        content: `<ul>
+                            <li>Rate limiting (100 req/15min on API, 3/min on deployment)</li>
+                            <li>Helmet security headers</li>
+                            <li>CORS configuration</li>
+                            <li>Input validation for Solana addresses</li>
+                            <li>Admin authentication for debug endpoints</li>
+                        </ul>`
+                    },
+                    {
+                        title: '⚙️ Installation',
+                        content: `<div class="doc-code"><pre># Clone
+git clone https://github.com/sollama58/ASDev
+cd ASDev
+
+# Install dependencies
+npm install
+
+# Install Rust for vanity grinder
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# Configure environment
+cp .env.template .env
+# Edit .env with your settings
+
+# Start
+npm start</pre></div>`
+                    }
+                ],
+                contributors: [
+                    { name: 'sollama58', url: 'https://github.com/sollama58' },
+                    { name: 'zeyxx', url: 'https://github.com/zeyxx' }
+                ],
+                github: 'https://github.com/sollama58/ASDev'
+            },
+            'grinder': {
+                title: '⚙️ asdf_grinder',
+                sections: [
+                    {
+                        title: '📖 Overview',
+                        content: 'Grinder for ASDF pubkeys. Generate vanity Solana addresses with custom prefixes. Docker support included.'
+                    },
+                    {
+                        title: '🛠️ Tech Stack',
+                        content: 'Rust (89.5%), Docker (5.9%), Shell (4.6%)'
+                    },
+                    {
+                        title: '⚙️ Installation',
+                        content: `<div class="doc-code"><pre># Clone
+git clone https://github.com/sollama58/asdf_grinder
+cd asdf_grinder
+
+# Build with Cargo
+cargo build --release
+
+# Or use Docker
+docker build -t asdf-grinder .
+docker run asdf-grinder
+
+# Run
+./start_grinder.sh</pre></div>`
+                    }
+                ],
+                contributors: [{ name: 'sollama58', url: 'https://github.com/sollama58' }],
+                github: 'https://github.com/sollama58/asdf_grinder'
+            }
+        };
+
+        function openDocs(projectId) {
+            const doc = projectDocs[projectId];
+            if (!doc) return;
+
+            const modal = document.getElementById('doc-modal');
+            const title = document.getElementById('doc-modal-title');
+            const body = document.getElementById('doc-modal-body');
+
+            title.textContent = doc.title;
+
+            let html = '';
+            doc.sections.forEach(section => {
+                html += `<div class="doc-section">
+                    <h3>${escapeHtml(section.title)}</h3>
+                    <p>${escapeHtml(section.content)}</p>
+                </div>`;
+            });
+
+            html += '<div class="doc-section"><h3>👥 Contributors</h3><div class="doc-contributors">';
+            doc.contributors.forEach(c => {
+                const safeUrl = sanitizeUrl(c.url);
+                const safeName = escapeHtml(c.name);
+                html += `<div class="doc-contributor">
+                    <img src="https://github.com/${safeName}.png" alt="${safeName}">
+                    <a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeName}</a>
+                </div>`;
+            });
+            html += '</div></div>';
+
+            html += `<div class="doc-links">
+                <a href="${escapeHtml(doc.github)}" class="doc-link" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+                <button class="doc-link deep-learn" onclick="closeDocs(); openDeepLearn('${escapeHtml(projectId)}')">🎓 Deep Learn</button>
+                <a href="${escapeHtml(doc.github)}/issues/new" class="doc-link secondary" target="_blank" rel="noopener noreferrer">Report Issue</a>
+            </div>`;
+
+            body.innerHTML = html;
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeDocs() {
+            document.getElementById('doc-modal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // ============================================
+        // DEEP LEARN - Complete Technical Documentation
+        // ============================================
+        const deepLearnDocs = {
+            'burn-engine': {
+                title: '🔥 ASDF Burn Engine - Deep Learn',
+                tabs: ['Introduction', 'Architecture', 'Smart Contract', 'Integration', 'API Reference', 'Deployment'],
+                content: {
+                    'Introduction': `
+                        <h3>What is the ASDF Burn Engine?</h3>
+                        <p>The ASDF Burn Engine is an <strong>autonomous protocol</strong> that converts ecosystem activity into permanent token burns. It's the core deflationary mechanism that powers the entire ASDF ecosystem.</p>
+
+                        <h4>Philosophy</h4>
+                        <p>"Creation, not extraction. Flush. Burn. Verify." - Unlike traditional fee mechanisms that extract value from users, the Burn Engine creates value by permanently reducing token supply.</p>
+
+                        <div class="deep-diagram">
+                            <p style="margin-bottom: 16px; color: var(--text-cream);">The Deflationary Flywheel</p>
+                            <div class="deep-diagram-flow">
+                                <div class="deep-diagram-box">Trading Activity</div>
+                                <span class="deep-diagram-arrow">→</span>
+                                <div class="deep-diagram-box">Fees Collected</div>
+                                <span class="deep-diagram-arrow">→</span>
+                                <div class="deep-diagram-box">Auto Buyback</div>
+                                <span class="deep-diagram-arrow">→</span>
+                                <div class="deep-diagram-box">Token Burn</div>
+                            </div>
+                        </div>
+
+                        <h4>Key Benefits</h4>
+                        <ul>
+                            <li><strong>No staking required</strong> - Holders benefit automatically</li>
+                            <li><strong>Zero inflation</strong> - Pure deflationary mechanics</li>
+                            <li><strong>Transparent</strong> - All burns verifiable on-chain</li>
+                            <li><strong>Autonomous</strong> - No manual intervention needed</li>
+                        </ul>
+
+                        <div class="deep-tip">
+                            <strong>Pro Tip:</strong> Every transaction in the ASDF ecosystem contributes to burns. The more activity, the more tokens burned.
+                        </div>
+                    `,
+                    'Architecture': `
+                        <h3>System Architecture</h3>
+                        <p>The Burn Engine operates through three distinct burn channels, each contributing to the deflationary mechanism.</p>
+
+                        <h4>1. Trading Volume Channel</h4>
+                        <p>When tokens are traded on Pump.fun, creator fees are automatically collected. These fees trigger an automatic buyback of ASDF tokens, which are then burned.</p>
+                        <div class="deep-code">
+<span class="comment">// Trading Flow</span>
+User trades on Pump.fun
+    → Creator fee (1%) collected
+    → Fee sent to Burn Engine
+    → Engine swaps SOL → ASDF
+    → ASDF sent to burn address
+    → Supply permanently reduced</div>
+
+                        <h4>2. Ecosystem Apps Channel</h4>
+                        <p>Third-party applications integrated with ASDF can deposit SOL or ASDF tokens directly into the burn cycle.</p>
+                        <div class="deep-code">
+<span class="comment">// For SOL deposits</span>
+<span class="function">depositFeeSOL</span>(amount) {
+    <span class="comment">// 100% converted to ASDF and burned</span>
+}
+
+<span class="comment">// For ASDF deposits</span>
+<span class="function">depositFeeASDF</span>(amount) {
+    <span class="comment">// 99.448% burned, 0.552% user rebate</span>
+}</div>
+
+                        <h4>3. Token Hierarchy Channel</h4>
+                        <p>Secondary tokens in the ecosystem contribute a portion of their fees to the root treasury.</p>
+                        <table class="deep-table">
+                            <tr><th>Destination</th><th>Percentage</th></tr>
+                            <tr><td>Root Treasury (Burns)</td><td>44.8%</td></tr>
+                            <tr><td>Token's Own Burns</td><td>55.2%</td></tr>
+                        </table>
+
+                        <h4>Component Diagram</h4>
+                        <div class="deep-code">
+┌─────────────────────────────────────────────────────┐
+│                   BURN ENGINE                        │
+├─────────────────────────────────────────────────────┤
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐ │
+│  │   Daemon    │  │   Smart     │  │  Dashboard  │ │
+│  │  (Node.js)  │  │  Contract   │  │   (React)   │ │
+│  │             │  │  (Anchor)   │  │             │ │
+│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘ │
+│         │                │                │        │
+│         └────────────────┼────────────────┘        │
+│                          │                          │
+│                    ┌─────▼─────┐                   │
+│                    │  Solana   │                   │
+│                    │ Blockchain│                   │
+│                    └───────────┘                   │
+└─────────────────────────────────────────────────────┘</div>
+                    `,
+                    'Smart Contract': `
+                        <h3>Smart Contract Deep Dive</h3>
+                        <p>The Burn Engine smart contract is built using the <strong>Anchor framework</strong> on Solana.</p>
+
+                        <h4>Program ID</h4>
+                        <div class="deep-code">ASDFc5hkEM2MF8mrAAtCPieV6x6h1B5BwjgztFt7Xbui</div>
+
+                        <h4>Core Instructions</h4>
+                        <div class="deep-code">
+<span class="keyword">pub mod</span> burn_engine {
+    <span class="keyword">use</span> anchor_lang::prelude::*;
+
+    <span class="comment">// Initialize the burn engine</span>
+    <span class="keyword">pub fn</span> <span class="function">initialize</span>(ctx: Context<Initialize>) -> Result<()> {
+        <span class="comment">// Sets up treasury accounts and config</span>
+    }
+
+    <span class="comment">// Deposit SOL for burning</span>
+    <span class="keyword">pub fn</span> <span class="function">deposit_sol</span>(ctx: Context<DepositSol>, amount: u64) -> Result<()> {
+        <span class="comment">// Swaps SOL to ASDF via Jupiter</span>
+        <span class="comment">// Burns the ASDF tokens</span>
+    }
+
+    <span class="comment">// Deposit ASDF for burning</span>
+    <span class="keyword">pub fn</span> <span class="function">deposit_asdf</span>(ctx: Context<DepositAsdf>, amount: u64) -> Result<()> {
+        <span class="comment">// 99.448% burned</span>
+        <span class="comment">// 0.552% returned as rebate</span>
+    }
+
+    <span class="comment">// Execute burn cycle</span>
+    <span class="keyword">pub fn</span> <span class="function">execute_burn</span>(ctx: Context<ExecuteBurn>) -> Result<()> {
+        <span class="comment">// Triggers accumulated burns</span>
+    }
+}</div>
+
+                        <h4>Account Structure</h4>
+                        <table class="deep-table">
+                            <tr><th>Account</th><th>Purpose</th><th>Size</th></tr>
+                            <tr><td>BurnConfig</td><td>Global configuration</td><td>128 bytes</td></tr>
+                            <tr><td>Treasury</td><td>Holds pending burns</td><td>PDA</td></tr>
+                            <tr><td>BurnHistory</td><td>Records all burns</td><td>Dynamic</td></tr>
+                        </table>
+
+                        <div class="deep-warning">
+                            <strong>Security Note:</strong> The burn address has no private key. Tokens sent there are permanently irrecoverable.
+                        </div>
+                    `,
+                    'Integration': `
+                        <h3>Integrating with the Burn Engine</h3>
+                        <p>Any application can integrate with the Burn Engine to contribute to the deflationary mechanism.</p>
+
+                        <h4>JavaScript SDK</h4>
+                        <div class="deep-code">
+<span class="keyword">import</span> { BurnEngine } <span class="keyword">from</span> <span class="string">'@asdf/burn-engine-sdk'</span>;
+
+<span class="comment">// Initialize</span>
+<span class="keyword">const</span> engine = <span class="keyword">new</span> <span class="function">BurnEngine</span>({
+    rpcUrl: <span class="string">'https://api.mainnet-beta.solana.com'</span>,
+    wallet: yourWallet
+});
+
+<span class="comment">// Deposit SOL for burning</span>
+<span class="keyword">await</span> engine.<span class="function">depositSOL</span>({
+    amount: 0.1, <span class="comment">// SOL</span>
+    memo: <span class="string">'App fee contribution'</span>
+});
+
+<span class="comment">// Deposit ASDF for burning</span>
+<span class="keyword">await</span> engine.<span class="function">depositASDF</span>({
+    amount: 1000, <span class="comment">// ASDF tokens</span>
+    memo: <span class="string">'User burn'</span>
+});
+
+<span class="comment">// Check burn stats</span>
+<span class="keyword">const</span> stats = <span class="keyword">await</span> engine.<span class="function">getStats</span>();
+console.log(<span class="string">\`Total burned: \${stats.totalBurned}\`</span>);</div>
+
+                        <h4>Direct RPC Integration</h4>
+                        <div class="deep-code">
+<span class="comment">// Build transaction manually</span>
+<span class="keyword">const</span> tx = <span class="keyword">new</span> Transaction().<span class="function">add</span>(
+    <span class="keyword">await</span> program.methods
+        .<span class="function">depositSol</span>(<span class="keyword">new</span> BN(amount))
+        .<span class="function">accounts</span>({
+            depositor: wallet.publicKey,
+            treasury: treasuryPDA,
+            systemProgram: SystemProgram.programId
+        })
+        .<span class="function">instruction</span>()
+);
+
+<span class="keyword">await</span> <span class="function">sendAndConfirmTransaction</span>(connection, tx, [wallet]);</div>
+
+                        <h4>Integration Checklist</h4>
+                        <ul>
+                            <li>Install the SDK: <code>npm install @asdf/burn-engine-sdk</code></li>
+                            <li>Configure your RPC endpoint</li>
+                            <li>Set up wallet connection</li>
+                            <li>Implement deposit calls in your fee logic</li>
+                            <li>Display burn contribution to users (optional)</li>
+                        </ul>
+
+                        <div class="deep-tip">
+                            <strong>Best Practice:</strong> Show users their contribution to burns. It builds trust and community engagement.
+                        </div>
+                    `,
+                    'API Reference': `
+                        <h3>API Reference</h3>
+                        <p>The Burn Engine daemon exposes public APIs for monitoring and verification.</p>
+
+                        <h4>Endpoints</h4>
+                        <table class="deep-table">
+                            <tr><th>Endpoint</th><th>Method</th><th>Description</th></tr>
+                            <tr><td>/stats</td><td>GET</td><td>Current burn statistics</td></tr>
+                            <tr><td>/health</td><td>GET</td><td>Daemon health check</td></tr>
+                            <tr><td>/burns</td><td>GET</td><td>Recent burn history</td></tr>
+                            <tr><td>/burns/:txId</td><td>GET</td><td>Specific burn details</td></tr>
+                        </table>
+
+                        <h4>GET /stats</h4>
+                        <div class="deep-code">
+<span class="comment">// Response</span>
+{
+    <span class="string">"totalBurned"</span>: <span class="string">"1,234,567,890"</span>,
+    <span class="string">"totalBurnedUSD"</span>: <span class="string">"$45,678"</span>,
+    <span class="string">"burnCount"</span>: 1547,
+    <span class="string">"last24hBurned"</span>: <span class="string">"12,345,678"</span>,
+    <span class="string">"avgBurnSize"</span>: <span class="string">"798,432"</span>,
+    <span class="string">"supplyReduction"</span>: <span class="string">"2.34%"</span>
+}</div>
+
+                        <h4>GET /burns</h4>
+                        <div class="deep-code">
+<span class="comment">// Query parameters</span>
+?limit=50         <span class="comment">// Max results (default 50)</span>
+&offset=0         <span class="comment">// Pagination offset</span>
+&from=1703980800  <span class="comment">// Unix timestamp start</span>
+&to=1704067200    <span class="comment">// Unix timestamp end</span>
+
+<span class="comment">// Response</span>
+{
+    <span class="string">"burns"</span>: [
+        {
+            <span class="string">"txId"</span>: <span class="string">"5Kj2..."</span>,
+            <span class="string">"amount"</span>: <span class="string">"1,000,000"</span>,
+            <span class="string">"source"</span>: <span class="string">"trading"</span>,
+            <span class="string">"timestamp"</span>: 1703980800,
+            <span class="string">"verified"</span>: <span class="keyword">true</span>
+        }
+    ],
+    <span class="string">"total"</span>: 1547,
+    <span class="string">"hasMore"</span>: <span class="keyword">true</span>
+}</div>
+
+                        <h4>Verification</h4>
+                        <p>All burns can be independently verified on Solscan:</p>
+                        <div class="deep-code">https://solscan.io/tx/{txId}</div>
+                    `,
+                    'Deployment': `
+                        <h3>Deployment Guide</h3>
+                        <p>How to deploy and run the Burn Engine components.</p>
+
+                        <h4>Prerequisites</h4>
+                        <ul>
+                            <li>Node.js 18+</li>
+                            <li>Rust & Cargo (latest stable)</li>
+                            <li>Solana CLI tools</li>
+                            <li>Anchor CLI v0.29+</li>
+                        </ul>
+
+                        <h4>1. Clone & Setup</h4>
+                        <div class="deep-code">
+git clone https://github.com/zeyxx/asdf-burn-engine
+cd asdf-burn-engine
+cp .env.template .env
+<span class="comment"># Edit .env with your configuration</span></div>
+
+                        <h4>2. Environment Variables</h4>
+                        <div class="deep-code">
+<span class="comment"># Required</span>
+RPC_URL=https://api.mainnet-beta.solana.com
+WALLET_PATH=/path/to/keypair.json
+
+<span class="comment"># Optional</span>
+BURN_INTERVAL=300000  <span class="comment"># 5 minutes</span>
+MIN_BURN_AMOUNT=1000  <span class="comment"># Minimum tokens to trigger burn</span>
+LOG_LEVEL=info</div>
+
+                        <h4>3. Build Smart Contract</h4>
+                        <div class="deep-code">
+anchor build
+anchor test  <span class="comment"># Run tests</span>
+anchor deploy --provider.cluster mainnet</div>
+
+                        <h4>4. Run Daemon</h4>
+                        <div class="deep-code">
+npm install
+npm run build
+npm run start:daemon</div>
+
+                        <h4>5. Run Dashboard</h4>
+                        <div class="deep-code">
+cd dashboard
+npm install
+npm run build
+npm run start</div>
+
+                        <div class="deep-warning">
+                            <strong>Production Warning:</strong> Always test on devnet first. Mainnet deployments involve real funds.
+                        </div>
+
+                        <h4>Monitoring</h4>
+                        <p>The daemon exposes Prometheus metrics at <code>/metrics</code> for monitoring with Grafana.</p>
+                    `
+                }
+            },
+            'validator': {
+                title: '✅ ASDF Validator - Deep Learn',
+                tabs: ['Introduction', 'How It Works', 'Installation', 'CLI Usage', 'Dashboard', 'API'],
+                content: {
+                    'Introduction': `
+                        <h3>What is the ASDF Validator?</h3>
+                        <p>The ASDF Validator is a <strong>real-time fee tracking system</strong> for Pump.fun token creators on the Solana blockchain. It provides WebSocket-based live updates with approximately 400ms latency.</p>
+
+                        <h4>Key Features</h4>
+                        <ul>
+                            <li><strong>Real-time tracking</strong> via WebSocket subscriptions</li>
+                            <li><strong>Per-token fee attribution</strong> with auto-discovery</li>
+                            <li><strong>Proof-of-History</strong> SHA-256 chain verification</li>
+                            <li><strong>Web dashboard</strong> with analytics</li>
+                            <li><strong>Dual vault monitoring</strong> (Bonding Curve + AMM)</li>
+                        </ul>
+
+                        <div class="deep-diagram">
+                            <p style="margin-bottom: 16px; color: var(--text-cream);">Data Flow</p>
+                            <div class="deep-diagram-flow">
+                                <div class="deep-diagram-box">Solana RPC</div>
+                                <span class="deep-diagram-arrow">→</span>
+                                <div class="deep-diagram-box">WebSocket</div>
+                                <span class="deep-diagram-arrow">→</span>
+                                <div class="deep-diagram-box">Fee Tracker</div>
+                                <span class="deep-diagram-arrow">→</span>
+                                <div class="deep-diagram-box">Dashboard</div>
+                            </div>
+                        </div>
+
+                        <h4>Use Cases</h4>
+                        <ul>
+                            <li>Track creator earnings in real-time</li>
+                            <li>Verify fee distributions</li>
+                            <li>Build analytics dashboards</li>
+                            <li>Integrate with burn mechanisms</li>
+                        </ul>
+                    `,
+                    'How It Works': `
+                        <h3>Technical Architecture</h3>
+
+                        <h4>WebSocket Subscription</h4>
+                        <p>The validator subscribes to account changes on Solana using WebSocket connections:</p>
+                        <div class="deep-code">
+<span class="comment">// Subscribe to vault account changes</span>
+connection.<span class="function">onAccountChange</span>(vaultPubkey, (accountInfo) => {
+    <span class="comment">// Detect balance modifications</span>
+    <span class="keyword">const</span> newBalance = accountInfo.lamports;
+    <span class="keyword">if</span> (newBalance > previousBalance) {
+        <span class="comment">// Fee detected!</span>
+        <span class="function">processFeeEvent</span>(newBalance - previousBalance);
+    }
+});</div>
+
+                        <h4>Fee Attribution</h4>
+                        <p>When a fee is detected, the system:</p>
+                        <ul>
+                            <li>Fetches the full transaction data</li>
+                            <li>Parses token balances and transfers</li>
+                            <li>Attributes the fee to specific token mints</li>
+                            <li>Records with cryptographic hash chain</li>
+                        </ul>
+
+                        <h4>Proof-of-History Chain</h4>
+                        <div class="deep-code">
+<span class="keyword">interface</span> FeeRecord {
+    txId: <span class="keyword">string</span>;
+    amount: <span class="keyword">number</span>;
+    tokenMint: <span class="keyword">string</span>;
+    timestamp: <span class="keyword">number</span>;
+    previousHash: <span class="keyword">string</span>;
+    hash: <span class="keyword">string</span>;  <span class="comment">// SHA-256(txId + amount + previousHash)</span>
+}
+
+<span class="comment">// Each record links to the previous, creating tamper-proof history</span></div>
+
+                        <h4>Component Overview</h4>
+                        <table class="deep-table">
+                            <tr><th>Component</th><th>File</th><th>Purpose</th></tr>
+                            <tr><td>Fee Tracker</td><td>fee-tracker.ts</td><td>Core tracking logic</td></tr>
+                            <tr><td>Realtime Tracker</td><td>realtime-tracker.ts</td><td>WebSocket handler</td></tr>
+                            <tr><td>History Manager</td><td>history-manager.ts</td><td>Proof-of-History chain</td></tr>
+                            <tr><td>Token Manager</td><td>token-manager.ts</td><td>Token discovery</td></tr>
+                            <tr><td>RPC Manager</td><td>rpc-manager.ts</td><td>Connection handling</td></tr>
+                        </table>
+                    `,
+                    'Installation': `
+                        <h3>Installation Guide</h3>
+
+                        <h4>Prerequisites</h4>
+                        <ul>
+                            <li>Node.js 18 or higher</li>
+                            <li>npm or yarn</li>
+                            <li>A Solana RPC endpoint (mainnet)</li>
+                        </ul>
+
+                        <h4>Quick Start</h4>
+                        <div class="deep-code">
+<span class="comment"># Clone the repository</span>
+git clone https://github.com/zeyxx/asdf-validator
+cd asdf-validator
+
+<span class="comment"># Install dependencies</span>
+npm install
+
+<span class="comment"># Build the project</span>
+npm run build
+
+<span class="comment"># Run tests</span>
+npm test</div>
+
+                        <h4>Environment Configuration</h4>
+                        <div class="deep-code">
+<span class="comment"># Create .env file</span>
+RPC_URL=https://api.mainnet-beta.solana.com
+<span class="comment"># Or use a private RPC for better performance:</span>
+<span class="comment"># RPC_URL=https://your-rpc-provider.com</span></div>
+
+                        <div class="deep-tip">
+                            <strong>Performance Tip:</strong> Use a dedicated RPC endpoint (Helius, QuickNode, etc.) for production. Public endpoints have rate limits.
+                        </div>
+
+                        <h4>Project Structure</h4>
+                        <div class="deep-code">
+asdf-validator/
+├── cli.ts              <span class="comment"># Command-line interface</span>
+├── daemon.ts           <span class="comment"># Background service</span>
+├── index.ts            <span class="comment"># Library exports</span>
+├── lib/
+│   ├── fee-tracker.ts
+│   ├── realtime-tracker.ts
+│   ├── history-manager.ts
+│   ├── token-manager.ts
+│   ├── rpc-manager.ts
+│   └── websocket-manager.ts
+├── dashboard/
+│   ├── server.ts       <span class="comment"># Express server</span>
+│   └── public/         <span class="comment"># Frontend assets</span>
+└── tests/</div>
+                    `,
+                    'CLI Usage': `
+                        <h3>Command Line Interface</h3>
+
+                        <h4>Basic Usage</h4>
+                        <div class="deep-code">
+<span class="comment"># Track a specific creator address</span>
+npx ts-node cli.ts --creator YOUR_CREATOR_ADDRESS
+
+<span class="comment"># With verbose output</span>
+npx ts-node cli.ts -c ADDRESS -v
+
+<span class="comment"># Save history to file</span>
+npx ts-node cli.ts -c ADDRESS -H history.json</div>
+
+                        <h4>CLI Options</h4>
+                        <table class="deep-table">
+                            <tr><th>Option</th><th>Alias</th><th>Description</th></tr>
+                            <tr><td>--creator</td><td>-c</td><td>Creator address to track (required)</td></tr>
+                            <tr><td>--history</td><td>-H</td><td>Path to save/load history JSON</td></tr>
+                            <tr><td>--verbose</td><td>-v</td><td>Enable verbose logging</td></tr>
+                            <tr><td>--rpc</td><td>-r</td><td>Custom RPC endpoint</td></tr>
+                        </table>
+
+                        <h4>Example Output</h4>
+                        <div class="deep-code">
+$ npx ts-node cli.ts -c 7xKX...abc -v
+
+[INFO] Connecting to Solana mainnet...
+[INFO] Subscribing to creator: 7xKX...abc
+[INFO] Found 3 active tokens
+
+[FEE] Token: ASDF | Amount: 0.125 SOL | Tx: 5Kj2...
+[FEE] Token: PUMP | Amount: 0.089 SOL | Tx: 8Mn4...
+
+<span class="comment">--- Running totals ---</span>
+Total fees collected: 2.456 SOL
+Tokens tracked: 3
+Uptime: 4h 32m</div>
+
+                        <h4>Daemon Mode</h4>
+                        <div class="deep-code">
+<span class="comment"># Run as background daemon</span>
+npx ts-node daemon.ts CREATOR_ADDRESS
+
+<span class="comment"># With PM2 for production</span>
+pm2 start daemon.ts -- CREATOR_ADDRESS</div>
+                    `,
+                    'Dashboard': `
+                        <h3>Web Dashboard</h3>
+                        <p>The validator includes a React-based web dashboard for visualizing fee data.</p>
+
+                        <h4>Starting the Dashboard</h4>
+                        <div class="deep-code">
+<span class="comment"># Start dashboard server</span>
+npx ts-node dashboard/server.ts CREATOR_ADDRESS [RPC_URL] [PORT]
+
+<span class="comment"># Example</span>
+npx ts-node dashboard/server.ts 7xKX...abc https://api.mainnet-beta.solana.com 3000
+
+<span class="comment"># Access at http://localhost:3000</span></div>
+
+                        <h4>Dashboard Features</h4>
+                        <ul>
+                            <li><strong>Real-time feed</strong> - Live fee events as they happen</li>
+                            <li><strong>Charts</strong> - Historical fee visualization</li>
+                            <li><strong>Token breakdown</strong> - Per-token fee attribution</li>
+                            <li><strong>Export</strong> - Download data as CSV/JSON</li>
+                        </ul>
+
+                        <h4>Customization</h4>
+                        <p>The dashboard is built with React and can be customized:</p>
+                        <div class="deep-code">
+cd dashboard
+npm install
+<span class="comment"># Edit components in src/</span>
+npm run build</div>
+
+                        <div class="deep-tip">
+                            <strong>Embedding:</strong> The dashboard can be embedded in other applications via iframe or integrated as a React component.
+                        </div>
+                    `,
+                    'API': `
+                        <h3>Programmatic API</h3>
+                        <p>Use the validator as a library in your own applications.</p>
+
+                        <h4>Basic Usage</h4>
+                        <div class="deep-code">
+<span class="keyword">import</span> { ValidatorDaemon } <span class="keyword">from</span> <span class="string">'./daemon'</span>;
+
+<span class="keyword">const</span> daemon = <span class="keyword">new</span> <span class="function">ValidatorDaemon</span>({
+    creatorAddress: <span class="string">'7xKX...abc'</span>,
+    rpcUrl: <span class="string">'https://api.mainnet-beta.solana.com'</span>,
+    onFeeDetected: (fee) => {
+        console.log(<span class="string">\`Fee: \${fee.amount} SOL from \${fee.tokenMint}\`</span>);
+    },
+    onError: (error) => {
+        console.error(<span class="string">'Error:'</span>, error);
+    }
+});
+
+<span class="keyword">await</span> daemon.<span class="function">start</span>();
+
+<span class="comment">// Later...</span>
+<span class="keyword">await</span> daemon.<span class="function">stop</span>();</div>
+
+                        <h4>RealtimeTracker Class</h4>
+                        <div class="deep-code">
+<span class="keyword">import</span> { RealtimeTracker } <span class="keyword">from</span> <span class="string">'./lib/realtime-tracker'</span>;
+
+<span class="keyword">const</span> tracker = <span class="keyword">new</span> <span class="function">RealtimeTracker</span>(connection, creatorPubkey);
+
+tracker.<span class="function">on</span>(<span class="string">'fee'</span>, (event) => {
+    console.log(event.amount, event.tokenMint, event.txId);
+});
+
+tracker.<span class="function">on</span>(<span class="string">'newToken'</span>, (mint) => {
+    console.log(<span class="string">'New token discovered:'</span>, mint);
+});
+
+<span class="keyword">await</span> tracker.<span class="function">subscribe</span>();</div>
+
+                        <h4>HistoryManager Class</h4>
+                        <div class="deep-code">
+<span class="keyword">import</span> { HistoryManager } <span class="keyword">from</span> <span class="string">'./lib/history-manager'</span>;
+
+<span class="keyword">const</span> history = <span class="keyword">new</span> <span class="function">HistoryManager</span>(<span class="string">'./history.json'</span>);
+
+<span class="comment">// Add record with automatic hash chaining</span>
+history.<span class="function">addRecord</span>({
+    txId: <span class="string">'5Kj2...'</span>,
+    amount: 0.125,
+    tokenMint: <span class="string">'ASDF...'</span>
+});
+
+<span class="comment">// Verify chain integrity</span>
+<span class="keyword">const</span> isValid = history.<span class="function">verifyChain</span>();
+console.log(<span class="string">'History valid:'</span>, isValid);</div>
+                    `
+                }
+            },
+            'vanity-grinder': {
+                title: '🎯 Vanity Grinder - Deep Learn',
+                tabs: ['Introduction', 'How It Works', 'Usage', 'Performance'],
+                content: {
+                    'Introduction': `
+                        <h3>What is the Vanity Grinder?</h3>
+                        <p>The Vanity Grinder is a high-performance <strong>Rust application</strong> for generating Solana keypairs with custom prefixes (vanity addresses).</p>
+
+                        <h4>What are Vanity Addresses?</h4>
+                        <p>A vanity address is a cryptocurrency address that contains a specific pattern or prefix. For example:</p>
+                        <div class="deep-code">
+<span class="comment">// Normal Solana address</span>
+7xKXmR5qN8vZT3wP2LkB9sFgYc1dHjE4aUoW6rMnCp
+
+<span class="comment">// Vanity address with "ASDF" prefix</span>
+ASDF7xKXmR5qN8vZT3wP2LkB9sFgYc1dHjE4aUoW6</div>
+
+                        <h4>Use Cases</h4>
+                        <ul>
+                            <li><strong>Branding</strong> - Create memorable project addresses</li>
+                            <li><strong>Verification</strong> - Easily identify official addresses</li>
+                            <li><strong>Integration</strong> - Required for ASDev token launches</li>
+                        </ul>
+                    `,
+                    'How It Works': `
+                        <h3>Technical Details</h3>
+
+                        <h4>Generation Process</h4>
+                        <p>The grinder uses brute-force generation with parallel processing:</p>
+                        <div class="deep-code">
+<span class="keyword">loop</span> {
+    <span class="comment">// 1. Generate random keypair</span>
+    <span class="keyword">let</span> keypair = Keypair::<span class="function">new</span>();
+
+    <span class="comment">// 2. Get base58 public key</span>
+    <span class="keyword">let</span> pubkey = keypair.pubkey().<span class="function">to_string</span>();
+
+    <span class="comment">// 3. Check if it matches target prefix</span>
+    <span class="keyword">if</span> pubkey.<span class="function">starts_with</span>(<span class="string">"ASDF"</span>) {
+        <span class="comment">// Found! Save and exit</span>
+        <span class="function">save_keypair</span>(keypair);
+        <span class="keyword">break</span>;
+    }
+}</div>
+
+                        <h4>Probability</h4>
+                        <p>Solana addresses use Base58 encoding (58 possible characters). The probability of finding a match:</p>
+                        <table class="deep-table">
+                            <tr><th>Prefix Length</th><th>Probability</th><th>Avg. Attempts</th></tr>
+                            <tr><td>1 char</td><td>1/58</td><td>~58</td></tr>
+                            <tr><td>2 chars</td><td>1/3,364</td><td>~3,364</td></tr>
+                            <tr><td>3 chars</td><td>1/195,112</td><td>~195K</td></tr>
+                            <tr><td>4 chars (ASDF)</td><td>1/11,316,496</td><td>~11.3M</td></tr>
+                        </table>
+
+                        <div class="deep-warning">
+                            <strong>Time Warning:</strong> Finding a 4-character prefix can take minutes to hours depending on hardware.
+                        </div>
+                    `,
+                    'Usage': `
+                        <h3>Using the Grinder</h3>
+
+                        <h4>Installation</h4>
+                        <div class="deep-code">
+<span class="comment"># Clone repository</span>
+git clone https://github.com/zeyxx/asdf-vanity-grinder
+cd asdf-vanity-grinder
+
+<span class="comment"># Build with optimizations</span>
+cargo build --release</div>
+
+                        <h4>Running</h4>
+                        <div class="deep-code">
+<span class="comment"># Using the start script</span>
+./start_grinder.sh
+
+<span class="comment"># Or directly</span>
+./target/release/asdf-vanity-grinder --prefix ASDF</div>
+
+                        <h4>Output</h4>
+                        <p>When a matching keypair is found, it's saved to a JSON file:</p>
+                        <div class="deep-code">
+{
+    "publicKey": "ASDF7xKXmR5qN8vZT3wP2LkB9sFgYc1dHjE4aUoW6",
+    "secretKey": [/* 64 bytes */]
+}</div>
+
+                        <div class="deep-warning">
+                            <strong>Security:</strong> Never share your secret key! Store it securely and back it up.
+                        </div>
+                    `,
+                    'Performance': `
+                        <h3>Performance Optimization</h3>
+
+                        <h4>Hardware Requirements</h4>
+                        <ul>
+                            <li><strong>CPU:</strong> Multi-core recommended (scales with threads)</li>
+                            <li><strong>RAM:</strong> Minimal (~100MB)</li>
+                            <li><strong>Storage:</strong> Minimal</li>
+                        </ul>
+
+                        <h4>Expected Performance</h4>
+                        <table class="deep-table">
+                            <tr><th>CPU</th><th>Keys/Second</th><th>4-char Time</th></tr>
+                            <tr><td>4-core laptop</td><td>~50,000</td><td>~4 minutes</td></tr>
+                            <tr><td>8-core desktop</td><td>~150,000</td><td>~75 seconds</td></tr>
+                            <tr><td>32-core server</td><td>~500,000</td><td>~23 seconds</td></tr>
+                        </table>
+
+                        <h4>Tips</h4>
+                        <ul>
+                            <li>Use <code>--release</code> build for 10x+ speedup</li>
+                            <li>Run on a server for long prefix searches</li>
+                            <li>Case-insensitive matching is faster</li>
+                        </ul>
+
+                        <div class="deep-tip">
+                            <strong>Cloud Option:</strong> For very long prefixes, consider renting a high-CPU cloud instance temporarily.
+                        </div>
+                    `
+                }
+            },
+            'holdex': {
+                title: '📊 HolDex - Deep Learn',
+                tabs: ['Introduction', 'Architecture', 'Setup', 'Customization'],
+                content: {
+                    'Introduction': `
+                        <h3>What is HolDex?</h3>
+                        <p>HolDex is an <strong>open-source DexScreener alternative</strong> built for the ASDF ecosystem. It provides token tracking, charts, and ecosystem monitoring.</p>
+
+                        <h4>Features</h4>
+                        <ul>
+                            <li>Real-time token price tracking</li>
+                            <li>Interactive price charts</li>
+                            <li>Token search and discovery</li>
+                            <li>Ecosystem overview dashboard</li>
+                            <li>Docker deployment support</li>
+                        </ul>
+
+                        <h4>Why HolDex?</h4>
+                        <p>Unlike centralized alternatives, HolDex is:</p>
+                        <ul>
+                            <li><strong>Open source</strong> - Full transparency</li>
+                            <li><strong>Self-hostable</strong> - Run your own instance</li>
+                            <li><strong>ASDF-integrated</strong> - Native ecosystem support</li>
+                            <li><strong>No tracking</strong> - Privacy-respecting</li>
+                        </ul>
+                    `,
+                    'Architecture': `
+                        <h3>Technical Architecture</h3>
+
+                        <h4>Stack Overview</h4>
+                        <table class="deep-table">
+                            <tr><th>Layer</th><th>Technology</th></tr>
+                            <tr><td>Frontend</td><td>HTML, CSS, JavaScript</td></tr>
+                            <tr><td>Backend</td><td>Node.js (optional)</td></tr>
+                            <tr><td>Data Source</td><td>Solana RPC, Jupiter API</td></tr>
+                            <tr><td>Deployment</td><td>Docker, Static hosting</td></tr>
+                        </table>
+
+                        <h4>File Structure</h4>
+                        <div class="deep-code">
+HolDex/
+├── src/
+│   ├── js/
+│   │   ├── app.js        <span class="comment"># Main application</span>
+│   │   ├── charts.js     <span class="comment"># Chart rendering</span>
+│   │   └── api.js        <span class="comment"># Data fetching</span>
+│   └── css/
+│       └── styles.css
+├── homepage.html         <span class="comment"># Main page</span>
+├── submissions.html      <span class="comment"># Token submissions</span>
+├── package.json
+├── Dockerfile
+└── docker-compose.yml</div>
+
+                        <h4>Data Flow</h4>
+                        <div class="deep-diagram">
+                            <div class="deep-diagram-flow">
+                                <div class="deep-diagram-box">User Request</div>
+                                <span class="deep-diagram-arrow">→</span>
+                                <div class="deep-diagram-box">Jupiter/RPC API</div>
+                                <span class="deep-diagram-arrow">→</span>
+                                <div class="deep-diagram-box">Process Data</div>
+                                <span class="deep-diagram-arrow">→</span>
+                                <div class="deep-diagram-box">Render UI</div>
+                            </div>
+                        </div>
+                    `,
+                    'Setup': `
+                        <h3>Setup Guide</h3>
+
+                        <h4>Option 1: Docker (Recommended)</h4>
+                        <div class="deep-code">
+<span class="comment"># Clone the repository</span>
+git clone https://github.com/sollama58/HolDex
+cd HolDex
+
+<span class="comment"># Start with Docker Compose</span>
+docker-compose up -d
+
+<span class="comment"># Access at http://localhost:3000</span></div>
+
+                        <h4>Option 2: Manual Setup</h4>
+                        <div class="deep-code">
+<span class="comment"># Install dependencies</span>
+npm install
+
+<span class="comment"># Start development server</span>
+npm run dev
+
+<span class="comment"># Or build for production</span>
+npm run build</div>
+
+                        <h4>Option 3: Static Hosting</h4>
+                        <p>HolDex can run as static files on any web server:</p>
+                        <div class="deep-code">
+<span class="comment"># Just serve the HTML files</span>
+npx serve .
+
+<span class="comment"># Or upload to Vercel, Netlify, GitHub Pages, etc.</span></div>
+
+                        <div class="deep-tip">
+                            <strong>Quick Deploy:</strong> Fork the repo and connect to Vercel for instant deployment.
+                        </div>
+                    `,
+                    'Customization': `
+                        <h3>Customizing HolDex</h3>
+
+                        <h4>Theming</h4>
+                        <p>Modify CSS variables in <code>styles.css</code>:</p>
+                        <div class="deep-code">
+:root {
+    --primary-color: #ea580c;  <span class="comment">/* ASDF orange */</span>
+    --bg-color: #0a0a0f;
+    --text-color: #ffedd5;
+    <span class="comment">/* ... more variables */</span>
+}</div>
+
+                        <h4>Adding Tokens</h4>
+                        <p>Edit the token list in <code>src/js/tokens.js</code>:</p>
+                        <div class="deep-code">
+<span class="keyword">export const</span> tokens = [
+    {
+        symbol: <span class="string">'ASDF'</span>,
+        mint: <span class="string">'ASDF...'</span>,
+        name: <span class="string">'ASDFASDFA'</span>,
+        logo: <span class="string">'/images/asdf.png'</span>
+    },
+    <span class="comment">// Add more tokens...</span>
+];</div>
+
+                        <h4>API Integration</h4>
+                        <p>To use different data sources, modify <code>src/js/api.js</code>:</p>
+                        <div class="deep-code">
+<span class="keyword">export async function</span> <span class="function">getPrice</span>(mint) {
+    <span class="comment">// Default: Jupiter Price API</span>
+    <span class="keyword">const</span> response = <span class="keyword">await</span> <span class="function">fetch</span>(
+        <span class="string">\`https://price.jup.ag/v4/price?ids=\${mint}\`</span>
+    );
+    <span class="keyword">return</span> response.<span class="function">json</span>();
+}</div>
+                    `
+                }
+            },
+            'asdforecast': {
+                title: '🔮 ASDForecast - Deep Learn',
+                tabs: ['Introduction', 'How It Works', 'Setup', 'Creating Markets'],
+                content: {
+                    'Introduction': `
+                        <h3>What is ASDForecast?</h3>
+                        <p>ASDForecast is a <strong>prediction market platform</strong> built on Solana for the ASDF ecosystem. All trading fees contribute to ASDF buybacks and burns.</p>
+
+                        <h4>How Prediction Markets Work</h4>
+                        <ul>
+                            <li>Users bet on future outcomes (Yes/No questions)</li>
+                            <li>Prices reflect the crowd's probability estimates</li>
+                            <li>Winners receive payouts; losers lose their stakes</li>
+                            <li>Platform fees go to ASDF burns</li>
+                        </ul>
+
+                        <div class="deep-diagram">
+                            <p style="margin-bottom: 16px; color: var(--text-cream);">Market Lifecycle</p>
+                            <div class="deep-diagram-flow">
+                                <div class="deep-diagram-box">Create Market</div>
+                                <span class="deep-diagram-arrow">→</span>
+                                <div class="deep-diagram-box">Trading Open</div>
+                                <span class="deep-diagram-arrow">→</span>
+                                <div class="deep-diagram-box">Resolution</div>
+                                <span class="deep-diagram-arrow">→</span>
+                                <div class="deep-diagram-box">Payout</div>
+                            </div>
+                        </div>
+
+                        <h4>Fee Structure</h4>
+                        <table class="deep-table">
+                            <tr><th>Action</th><th>Fee</th><th>Destination</th></tr>
+                            <tr><td>Trade</td><td>1%</td><td>ASDF BBB</td></tr>
+                            <tr><td>Market Creation</td><td>0.1 SOL</td><td>ASDF BBB</td></tr>
+                            <tr><td>Payout</td><td>0%</td><td>N/A</td></tr>
+                        </table>
+                    `,
+                    'How It Works': `
+                        <h3>Technical Details</h3>
+
+                        <h4>Market Mechanics</h4>
+                        <p>Each market has two outcome tokens: YES and NO. Their prices are determined by an automated market maker (AMM).</p>
+                        <div class="deep-code">
+<span class="comment">// Price formula (CPMM-like)</span>
+YES_price = YES_pool / (YES_pool + NO_pool)
+NO_price = NO_pool / (YES_pool + NO_pool)
+
+<span class="comment">// Always: YES_price + NO_price = 1</span></div>
+
+                        <h4>Trading Example</h4>
+                        <div class="deep-code">
+<span class="comment">// Initial state</span>
+YES_pool: 1000, NO_pool: 1000
+YES_price: 0.50 (50%), NO_price: 0.50 (50%)
+
+<span class="comment">// User buys 100 YES tokens</span>
+YES_pool: 1100, NO_pool: 909  <span class="comment">// Constant product</span>
+YES_price: 0.55 (55%), NO_price: 0.45 (45%)</div>
+
+                        <h4>Resolution</h4>
+                        <p>Markets are resolved by designated oracles or admin after the event occurs:</p>
+                        <ul>
+                            <li><strong>YES wins:</strong> YES holders get full payout</li>
+                            <li><strong>NO wins:</strong> NO holders get full payout</li>
+                            <li><strong>Invalid:</strong> All stakes returned</li>
+                        </ul>
+                    `,
+                    'Setup': `
+                        <h3>Running ASDForecast</h3>
+
+                        <h4>Installation</h4>
+                        <div class="deep-code">
+<span class="comment"># Clone repository</span>
+git clone https://github.com/sollama58/ASDForecast
+cd ASDForecast
+
+<span class="comment"># Install dependencies</span>
+npm install
+
+<span class="comment"># Start the server</span>
+node server.js</div>
+
+                        <h4>File Overview</h4>
+                        <table class="deep-table">
+                            <tr><th>File</th><th>Purpose</th></tr>
+                            <tr><td>frontend.html</td><td>Main trading interface</td></tr>
+                            <tr><td>control_panel.html</td><td>Admin controls</td></tr>
+                            <tr><td>burnMonitorFrontend.html</td><td>Fee tracking widget</td></tr>
+                            <tr><td>server.js</td><td>Backend API server</td></tr>
+                        </table>
+
+                        <h4>Configuration</h4>
+                        <div class="deep-code">
+<span class="comment">// In server.js</span>
+<span class="keyword">const</span> config = {
+    port: 3000,
+    rpcUrl: <span class="string">'https://api.mainnet-beta.solana.com'</span>,
+    burnEngineAddress: <span class="string">'ASDF...'</span>,
+    adminWallet: <span class="string">'YOUR_ADMIN_WALLET'</span>
+};</div>
+
+                        <div class="deep-warning">
+                            <strong>Note:</strong> The control panel requires admin wallet authentication.
+                        </div>
+                    `,
+                    'Creating Markets': `
+                        <h3>Creating Prediction Markets</h3>
+
+                        <h4>Via Control Panel</h4>
+                        <ol>
+                            <li>Open <code>control_panel.html</code></li>
+                            <li>Connect admin wallet</li>
+                            <li>Fill in market details:
+                                <ul>
+                                    <li>Question (e.g., "Will BTC reach $100k in 2025?")</li>
+                                    <li>Resolution date</li>
+                                    <li>Initial liquidity</li>
+                                </ul>
+                            </li>
+                            <li>Submit and sign transaction</li>
+                        </ol>
+
+                        <h4>Programmatically</h4>
+                        <div class="deep-code">
+<span class="keyword">const</span> market = <span class="keyword">await</span> <span class="function">createMarket</span>({
+    question: <span class="string">"Will ASDF burn 1B tokens by EOY?"</span>,
+    resolutionDate: <span class="keyword">new</span> Date(<span class="string">'2025-12-31'</span>),
+    initialLiquidity: 10, <span class="comment">// SOL</span>
+    oracle: adminWallet.publicKey
+});
+
+console.log(<span class="string">'Market created:'</span>, market.address);</div>
+
+                        <h4>Best Practices</h4>
+                        <ul>
+                            <li>Use clear, unambiguous questions</li>
+                            <li>Set realistic resolution dates</li>
+                            <li>Provide sufficient initial liquidity</li>
+                            <li>Choose trusted oracles for resolution</li>
+                        </ul>
+                    `
+                }
+            },
+            'burntracker': {
+                title: '📈 ASDFBurnTracker - Deep Learn',
+                tabs: ['Introduction', 'Setup', 'Embedding', 'API'],
+                content: {
+                    'Introduction': `
+                        <h3>What is ASDFBurnTracker?</h3>
+                        <p>ASDFBurnTracker is a real-time monitoring widget that <strong>tracks ASDF buybacks and burns</strong>. It provides visual proof of the deflationary mechanism in action.</p>
+
+                        <h4>Features</h4>
+                        <ul>
+                            <li>Live burn event feed</li>
+                            <li>Total burned counter</li>
+                            <li>24-hour statistics</li>
+                            <li>Embeddable widget</li>
+                        </ul>
+
+                        <h4>Data Sources</h4>
+                        <p>The tracker monitors:</p>
+                        <ul>
+                            <li>Burn Engine transactions</li>
+                            <li>Burn address balance changes</li>
+                            <li>Trading fee accumulation</li>
+                        </ul>
+                    `,
+                    'Setup': `
+                        <h3>Running the Tracker</h3>
+
+                        <h4>Quick Start</h4>
+                        <div class="deep-code">
+<span class="comment"># Clone repository</span>
+git clone https://github.com/sollama58/ASDFBurnTracker
+cd ASDFBurnTracker
+
+<span class="comment"># Install dependencies</span>
+npm install
+
+<span class="comment"># Start server</span>
+node server.js
+
+<span class="comment"># Open in browser</span>
+<span class="comment"># http://localhost:3000</span></div>
+
+                        <h4>Project Files</h4>
+                        <table class="deep-table">
+                            <tr><th>File</th><th>Description</th></tr>
+                            <tr><td>server.js</td><td>Backend server with WebSocket</td></tr>
+                            <tr><td>originalHTMLwidget.html</td><td>Widget frontend</td></tr>
+                            <tr><td>package.json</td><td>Dependencies</td></tr>
+                        </table>
+                    `,
+                    'Embedding': `
+                        <h3>Embedding the Widget</h3>
+                        <p>Add the burn tracker to your website with a simple iframe:</p>
+
+                        <h4>Basic Embed</h4>
+                        <div class="deep-code">
+&lt;iframe
+    src="https://your-tracker-url.com/widget"
+    width="400"
+    height="300"
+    frameborder="0"
+&gt;&lt;/iframe&gt;</div>
+
+                        <h4>Responsive Embed</h4>
+                        <div class="deep-code">
+&lt;div style="position: relative; padding-bottom: 75%; height: 0;"&gt;
+    &lt;iframe
+        src="https://your-tracker-url.com/widget"
+        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
+        frameborder="0"
+    &gt;&lt;/iframe&gt;
+&lt;/div&gt;</div>
+
+                        <h4>Customization Parameters</h4>
+                        <div class="deep-code">
+<span class="comment">// URL parameters</span>
+?theme=dark      <span class="comment">// dark or light</span>
+&compact=true    <span class="comment">// minimal mode</span>
+&showTotal=true  <span class="comment">// show total burned</span></div>
+                    `,
+                    'API': `
+                        <h3>API Endpoints</h3>
+
+                        <h4>GET /stats</h4>
+                        <div class="deep-code">
+{
+    "totalBurned": "1,234,567,890",
+    "burned24h": "12,345,678",
+    "burnCount": 1547,
+    "lastBurnTime": 1703980800
+}</div>
+
+                        <h4>GET /burns</h4>
+                        <div class="deep-code">
+{
+    "burns": [
+        {
+            "txId": "5Kj2...",
+            "amount": "1,000,000",
+            "timestamp": 1703980800
+        }
+    ]
+}</div>
+
+                        <h4>WebSocket</h4>
+                        <div class="deep-code">
+<span class="keyword">const</span> ws = <span class="keyword">new</span> <span class="function">WebSocket</span>(<span class="string">'wss://your-tracker-url.com/ws'</span>);
+
+ws.<span class="function">onmessage</span> = (event) => {
+    <span class="keyword">const</span> burn = JSON.<span class="function">parse</span>(event.data);
+    console.log(<span class="string">'New burn:'</span>, burn.amount);
+};</div>
+                    `
+                }
+            },
+            'asdev': {
+                title: '🚀 ASDev - Deep Learn',
+                tabs: ['Introduction', 'Architecture', 'Installation', 'Token Launch', 'API Reference', 'Security'],
+                content: {
+                    'Introduction': `
+                        <h3>What is ASDev?</h3>
+                        <p>ASDev is a <strong>token launcher platform for Solana</strong> that creates tokens with addresses ending in "ASDF". It includes built-in airdrop rewards and holder tracking.</p>
+
+                        <h4>Key Features</h4>
+                        <ul>
+                            <li><strong>Vanity addresses</strong> - All tokens end with "ASDF"</li>
+                            <li><strong>Airdrop integration</strong> - Automatic eligibility checking</li>
+                            <li><strong>Holder tracking</strong> - Top 50 holders per token</li>
+                            <li><strong>Leaderboards</strong> - Volume-based rankings</li>
+                            <li><strong>Real-time feed</strong> - Live launch notifications</li>
+                        </ul>
+
+                        <div class="deep-diagram">
+                            <p style="margin-bottom: 16px; color: var(--text-cream);">Launch Flow</p>
+                            <div class="deep-diagram-flow">
+                                <div class="deep-diagram-box">Submit</div>
+                                <span class="deep-diagram-arrow">→</span>
+                                <div class="deep-diagram-box">Queue</div>
+                                <span class="deep-diagram-arrow">→</span>
+                                <div class="deep-diagram-box">Grind Key</div>
+                                <span class="deep-diagram-arrow">→</span>
+                                <div class="deep-diagram-box">Deploy</div>
+                            </div>
+                        </div>
+                    `,
+                    'Architecture': `
+                        <h3>System Architecture</h3>
+
+                        <h4>Components</h4>
+                        <table class="deep-table">
+                            <tr><th>Component</th><th>Technology</th><th>Purpose</th></tr>
+                            <tr><td>API Server</td><td>Node.js/Express</td><td>Handle requests</td></tr>
+                            <tr><td>Vanity Grinder</td><td>Rust</td><td>Generate ASDF keys</td></tr>
+                            <tr><td>Job Queue</td><td>Redis</td><td>Manage deployments</td></tr>
+                            <tr><td>Frontend</td><td>HTML/JS</td><td>User interface</td></tr>
+                        </table>
+
+                        <h4>Directory Structure</h4>
+                        <div class="deep-code">
+ASDev/
+├── src/
+│   ├── index.js           <span class="comment"># Entry point</span>
+│   ├── config/            <span class="comment"># Configuration</span>
+│   ├── services/
+│   │   ├── solana.js      <span class="comment"># Blockchain ops</span>
+│   │   ├── redis.js       <span class="comment"># Cache/queue</span>
+│   │   └── grinder.js     <span class="comment"># Vanity service</span>
+│   ├── routes/            <span class="comment"># API endpoints</span>
+│   └── tasks/             <span class="comment"># Background jobs</span>
+├── grinder/               <span class="comment"># Rust vanity grinder</span>
+├── public/                <span class="comment"># Frontend</span>
+└── docker-compose.yml</div>
+
+                        <h4>Request Flow</h4>
+                        <div class="deep-code">
+1. User submits token launch request
+2. Request validated and added to Redis queue
+3. Background worker picks up job
+4. Rust grinder generates ASDF keypair
+5. Token deployed to Solana
+6. Metadata uploaded to IPFS (Pinata)
+7. User notified of success</div>
+                    `,
+                    'Installation': `
+                        <h3>Installation Guide</h3>
+
+                        <h4>Prerequisites</h4>
+                        <ul>
+                            <li>Node.js 18+</li>
+                            <li>Rust (latest stable)</li>
+                            <li>Redis</li>
+                            <li>Solana CLI</li>
+                        </ul>
+
+                        <h4>Step 1: Clone & Dependencies</h4>
+                        <div class="deep-code">
+git clone https://github.com/sollama58/ASDev
+cd ASDev
+npm install</div>
+
+                        <h4>Step 2: Build Grinder</h4>
+                        <div class="deep-code">
+<span class="comment"># Install Rust if needed</span>
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+<span class="comment"># Build grinder</span>
+cd grinder
+cargo build --release
+cd ..</div>
+
+                        <h4>Step 3: Configure Environment</h4>
+                        <div class="deep-code">
+cp .env.template .env
+
+<span class="comment"># Edit .env with your settings:</span>
+RPC_URL=https://api.mainnet-beta.solana.com
+REDIS_URL=redis://localhost:6379
+PINATA_JWT=your_pinata_jwt
+DEPLOYER_WALLET=/path/to/keypair.json</div>
+
+                        <h4>Step 4: Start Services</h4>
+                        <div class="deep-code">
+<span class="comment"># Start Redis (if not running)</span>
+redis-server
+
+<span class="comment"># Start ASDev</span>
+npm start
+
+<span class="comment"># Or with Docker</span>
+docker-compose up -d</div>
+                    `,
+                    'Token Launch': `
+                        <h3>Launching Tokens</h3>
+
+                        <h4>Via Web Interface</h4>
+                        <ol>
+                            <li>Navigate to the ASDev frontend</li>
+                            <li>Connect your Solana wallet</li>
+                            <li>Fill in token details:
+                                <ul>
+                                    <li>Name</li>
+                                    <li>Symbol</li>
+                                    <li>Description</li>
+                                    <li>Image</li>
+                                    <li>Initial supply</li>
+                                </ul>
+                            </li>
+                            <li>Submit and wait for ASDF keypair generation</li>
+                            <li>Confirm deployment transaction</li>
+                        </ol>
+
+                        <h4>Via API</h4>
+                        <div class="deep-code">
+<span class="keyword">const</span> response = <span class="keyword">await</span> <span class="function">fetch</span>(<span class="string">'/api/launch'</span>, {
+    method: <span class="string">'POST'</span>,
+    headers: { <span class="string">'Content-Type'</span>: <span class="string">'application/json'</span> },
+    body: JSON.<span class="function">stringify</span>({
+        name: <span class="string">'My Token'</span>,
+        symbol: <span class="string">'MTK'</span>,
+        description: <span class="string">'A cool token'</span>,
+        image: imageFile, <span class="comment">// Base64 or URL</span>
+        supply: 1000000000,
+        creator: walletAddress
+    })
+});
+
+<span class="keyword">const</span> { jobId } = <span class="keyword">await</span> response.<span class="function">json</span>();
+
+<span class="comment">// Poll for status</span>
+<span class="keyword">const</span> status = <span class="keyword">await</span> <span class="function">fetch</span>(<span class="string">\`/api/status/\${jobId}\`</span>);</div>
+
+                        <h4>Launch Statuses</h4>
+                        <table class="deep-table">
+                            <tr><th>Status</th><th>Meaning</th></tr>
+                            <tr><td>queued</td><td>Waiting in queue</td></tr>
+                            <tr><td>grinding</td><td>Generating ASDF keypair</td></tr>
+                            <tr><td>deploying</td><td>Submitting to Solana</td></tr>
+                            <tr><td>complete</td><td>Token live!</td></tr>
+                            <tr><td>failed</td><td>Error occurred</td></tr>
+                        </table>
+                    `,
+                    'API Reference': `
+                        <h3>API Reference</h3>
+
+                        <h4>POST /api/launch</h4>
+                        <p>Submit a new token launch request.</p>
+                        <div class="deep-code">
+<span class="comment">// Request</span>
+{
+    "name": "Token Name",
+    "symbol": "TKN",
+    "description": "Description",
+    "image": "https://... or base64",
+    "supply": 1000000000,
+    "creator": "wallet_address"
+}
+
+<span class="comment">// Response</span>
+{
+    "jobId": "job_abc123",
+    "status": "queued",
+    "position": 5
+}</div>
+
+                        <h4>GET /api/status/:jobId</h4>
+                        <div class="deep-code">
+{
+    "jobId": "job_abc123",
+    "status": "complete",
+    "tokenAddress": "ASDF...",
+    "txId": "5Kj2..."
+}</div>
+
+                        <h4>GET /api/leaderboard</h4>
+                        <div class="deep-code">
+{
+    "tokens": [
+        {
+            "address": "ASDF...",
+            "name": "Top Token",
+            "volume24h": 50000,
+            "rank": 1
+        }
+    ]
+}</div>
+
+                        <h4>GET /api/holders/:tokenAddress</h4>
+                        <div class="deep-code">
+{
+    "holders": [
+        {
+            "address": "7xKX...",
+            "balance": 1000000,
+            "percentage": 10.5
+        }
+    ],
+    "total": 50
+}</div>
+                    `,
+                    'Security': `
+                        <h3>Security Measures</h3>
+
+                        <h4>Rate Limiting</h4>
+                        <table class="deep-table">
+                            <tr><th>Endpoint</th><th>Limit</th></tr>
+                            <tr><td>API routes</td><td>100 req / 15 min</td></tr>
+                            <tr><td>Token deployment</td><td>3 req / min</td></tr>
+                            <tr><td>Admin endpoints</td><td>10 req / min</td></tr>
+                        </table>
+
+                        <h4>Input Validation</h4>
+                        <ul>
+                            <li>All Solana addresses validated</li>
+                            <li>Token names sanitized (DOMPurify)</li>
+                            <li>Image size/type restrictions</li>
+                            <li>Supply limits enforced</li>
+                        </ul>
+
+                        <h4>Authentication</h4>
+                        <div class="deep-code">
+<span class="comment">// Admin endpoints require API key</span>
+headers: {
+    <span class="string">'X-API-Key'</span>: process.env.ADMIN_API_KEY
+}</div>
+
+                        <div class="deep-warning">
+                            <strong>Security:</strong> Never expose your admin API key or deployer wallet in client-side code.
+                        </div>
+
+                        <h4>Best Practices</h4>
+                        <ul>
+                            <li>Use environment variables for secrets</li>
+                            <li>Run behind a reverse proxy (nginx)</li>
+                            <li>Enable HTTPS in production</li>
+                            <li>Monitor logs for suspicious activity</li>
+                            <li>Keep dependencies updated</li>
+                        </ul>
+                    `
+                }
+            },
+            'grinder': {
+                title: '⚙️ asdf_grinder - Deep Learn',
+                tabs: ['Introduction', 'Installation', 'Usage', 'Docker'],
+                content: {
+                    'Introduction': `
+                        <h3>What is asdf_grinder?</h3>
+                        <p>asdf_grinder is a <strong>Rust-based vanity address generator</strong> for Solana. It creates keypairs with custom prefixes, particularly "ASDF" for ecosystem projects.</p>
+
+                        <h4>Features</h4>
+                        <ul>
+                            <li>High-performance Rust implementation</li>
+                            <li>Multi-threaded processing</li>
+                            <li>Docker support</li>
+                            <li>Simple CLI interface</li>
+                        </ul>
+
+                        <h4>Performance</h4>
+                        <p>The grinder leverages Rust's speed and multi-threading to maximize key generation rate.</p>
+                    `,
+                    'Installation': `
+                        <h3>Installation</h3>
+
+                        <h4>From Source</h4>
+                        <div class="deep-code">
+<span class="comment"># Install Rust</span>
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source ~/.cargo/env
+
+<span class="comment"># Clone and build</span>
+git clone https://github.com/sollama58/asdf_grinder
+cd asdf_grinder
+cargo build --release</div>
+
+                        <h4>Binary Location</h4>
+                        <div class="deep-code">./target/release/asdf_grinder</div>
+
+                        <div class="deep-tip">
+                            <strong>Important:</strong> Always use <code>--release</code> for production. Debug builds are 10-50x slower.
+                        </div>
+                    `,
+                    'Usage': `
+                        <h3>Using the Grinder</h3>
+
+                        <h4>Basic Usage</h4>
+                        <div class="deep-code">
+<span class="comment"># Run with start script</span>
+./start_grinder.sh
+
+<span class="comment"># Or run binary directly</span>
+./target/release/asdf_grinder</div>
+
+                        <h4>Output</h4>
+                        <p>When a matching keypair is found:</p>
+                        <div class="deep-code">
+Found matching keypair!
+Public Key: ASDF7xKXmR5qN8vZT3wP2LkB9sFgYc1dHjE4aUoW6
+Saved to: keypair.json
+
+<span class="comment"># keypair.json contains the full keypair</span>
+{
+    "publicKey": "ASDF...",
+    "secretKey": [/* 64 bytes */]
+}</div>
+
+                        <div class="deep-warning">
+                            <strong>Security:</strong> The keypair.json file contains your private key. Store it securely!
+                        </div>
+                    `,
+                    'Docker': `
+                        <h3>Docker Deployment</h3>
+
+                        <h4>Build Image</h4>
+                        <div class="deep-code">
+docker build -t asdf-grinder .</div>
+
+                        <h4>Run Container</h4>
+                        <div class="deep-code">
+<span class="comment"># Run and output to current directory</span>
+docker run -v $(pwd):/output asdf-grinder
+
+<span class="comment"># Run in background</span>
+docker run -d -v $(pwd):/output asdf-grinder</div>
+
+                        <h4>Dockerfile</h4>
+                        <div class="deep-code">
+FROM rust:latest as builder
+WORKDIR /app
+COPY . .
+RUN cargo build --release
+
+FROM debian:slim
+COPY --from=builder /app/target/release/asdf_grinder /usr/local/bin/
+CMD ["asdf_grinder"]</div>
+
+                        <div class="deep-tip">
+                            <strong>Cloud Deployment:</strong> For faster results, run on a high-CPU cloud instance (AWS c5.4xlarge, etc.).
+                        </div>
+                    `
+                }
+            }
+        };
+
+        let currentDeepLearnProject = null;
+
+        function openDeepLearn(projectId) {
+            const doc = deepLearnDocs[projectId];
+            if (!doc) return;
+
+            currentDeepLearnProject = projectId;
+
+            const modal = document.getElementById('deep-learn-modal');
+            const title = document.getElementById('deep-learn-title');
+            const nav = document.getElementById('deep-learn-nav');
+            const body = document.getElementById('deep-learn-body');
+
+            title.textContent = doc.title;
+
+            // Build navigation tabs
+            let navHtml = '';
+            doc.tabs.forEach((tab, index) => {
+                const safeTab = escapeHtml(tab);
+                const safeProjectId = escapeHtml(projectId);
+                navHtml += `<button class="deep-nav-btn ${index === 0 ? 'active' : ''}" onclick="switchDeepTab('${safeProjectId}', '${safeTab}')">${safeTab}</button>`;
+            });
+            nav.innerHTML = navHtml;
+
+            // Build content sections
+            let contentHtml = '';
+            doc.tabs.forEach((tab, index) => {
+                contentHtml += `<div class="deep-section ${index === 0 ? 'active' : ''}" id="deep-section-${tab.replace(/\s+/g, '-')}">${doc.content[tab]}</div>`;
+            });
+            body.innerHTML = contentHtml;
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function switchDeepTab(projectId, tabName) {
+            const doc = deepLearnDocs[projectId];
+            if (!doc) return;
+
+            // Update nav buttons
+            document.querySelectorAll('.deep-nav-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent === tabName);
+            });
+
+            // Update sections
+            doc.tabs.forEach(tab => {
+                const section = document.getElementById(`deep-section-${tab.replace(/\s+/g, '-')}`);
+                if (section) {
+                    section.classList.toggle('active', tab === tabName);
+                }
+            });
+        }
+
+        function closeDeepLearn() {
+            document.getElementById('deep-learn-modal').classList.remove('active');
+            document.body.style.overflow = '';
+            currentDeepLearnProject = null;
+        }
+
+        // Close modals on escape or click outside
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                closeDocs();
+                closeDeepLearn();
+            }
+        });
+
+        document.getElementById('doc-modal')?.addEventListener('click', e => {
+            if (e.target.id === 'doc-modal') closeDocs();
+        });
+
+        document.getElementById('deep-learn-modal')?.addEventListener('click', e => {
+            if (e.target.id === 'deep-learn-modal') closeDeepLearn();
+        });
 
         // ============================================
         // INTERACTIVE ELEMENTS
@@ -4605,7 +7221,7 @@
             const state = getState();
             const text = `🔥 I just completed the ASDF Learning Path and earned ${state.badges.length} badges with ${state.totalXP} XP!\n\nLearn about the Optimistic Burn Protocol:\n`;
             const url = window.location.href;
-            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener,noreferrer');
         }
 
         // ============================================
