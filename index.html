@@ -10,6 +10,18 @@
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="DENY">
     <meta name="referrer" content="strict-origin-when-cross-origin">
+    <!-- Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline';
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+        font-src 'self' https://fonts.gstatic.com;
+        img-src 'self' data: https:;
+        connect-src 'self' https://your-daemon-api.com https://*.solana.com;
+        frame-ancestors 'none';
+        base-uri 'self';
+        form-action 'self';
+    ">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1334,7 +1346,7 @@
                     <a href="#how-it-works" class="btn">
                         How It Works
                     </a>
-                    <a href="https://solscan.io" class="btn btn-ghost" target="_blank">
+                    <a href="https://solscan.io" class="btn btn-ghost" target="_blank" rel="noopener noreferrer">
                         Verify on Solscan ↗
                     </a>
                 </div>
@@ -1643,7 +1655,7 @@
                         </ul>
                         <div class="tool-links">
                             <a href="https://www.alonisthe.dev/holdex" class="btn btn-primary">Open HolDEX</a>
-                            <a href="https://github.com/sollama58/HolDex" class="btn" target="_blank">GitHub ↗</a>
+                            <a href="https://github.com/sollama58/HolDex" class="btn" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
                         </div>
                     </div>
                     <div class="tool-preview">
@@ -1673,7 +1685,7 @@
                         </ul>
                         <div class="tool-links">
                             <a href="#" class="btn" style="opacity: 0.5; pointer-events: none;">Coming Soon</a>
-                            <a href="https://github.com/zeyxx" class="btn" target="_blank">GitHub ↗</a>
+                            <a href="https://github.com/zeyxx" class="btn" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
                         </div>
                     </div>
                     <div class="tool-preview">
@@ -1703,7 +1715,7 @@
                         </ul>
                         <div class="tool-links">
                             <a href="#" class="btn" style="opacity: 0.5; pointer-events: none;">Coming Soon</a>
-                            <a href="https://github.com/zeyxx" class="btn" target="_blank">GitHub ↗</a>
+                            <a href="https://github.com/zeyxx" class="btn" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
                         </div>
                     </div>
                     <div class="tool-preview">
@@ -1733,7 +1745,7 @@
                         </ul>
                         <div class="tool-links">
                             <a href="#" class="btn" style="opacity: 0.5; pointer-events: none;">Open Beta</a>
-                            <a href="https://github.com/zeyxx" class="btn" target="_blank">GitHub ↗</a>
+                            <a href="https://github.com/zeyxx" class="btn" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
                         </div>
                     </div>
                     <div class="tool-preview">
@@ -1886,13 +1898,13 @@
                     All code is open-source. Check it yourself.
                 </p>
                 <div class="transparency-links">
-                    <a href="https://alonisthe.dev/burns" class="btn btn-primary" target="_blank">
+                    <a href="https://alonisthe.dev/burns" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
                         Burn Tracker 🔥
                     </a>
-                    <a href="https://github.com/zeyxx/asdf-burn-engine" class="btn" target="_blank">
+                    <a href="https://github.com/zeyxx/asdf-burn-engine" class="btn" target="_blank" rel="noopener noreferrer">
                         GitHub ↗
                     </a>
-                    <a href="https://solscan.io" class="btn" target="_blank">
+                    <a href="https://solscan.io" class="btn" target="_blank" rel="noopener noreferrer">
                         Solscan ↗
                     </a>
                 </div>
@@ -1912,7 +1924,7 @@
                     <a href="https://www.alonisthe.dev/holdex" class="btn btn-primary">
                         Launch HolDEX
                     </a>
-                    <a href="https://pump.fun" class="btn" target="_blank">
+                    <a href="https://pump.fun" class="btn" target="_blank" rel="noopener noreferrer">
                         Trade on Pump.fun ↗
                     </a>
                 </div>
@@ -1956,8 +1968,8 @@
                 <div class="footer-links">
                     <h4>Verify</h4>
                     <ul>
-                        <li><a href="https://github.com/zeyxx/asdf-burn-engine" target="_blank">GitHub</a></li>
-                        <li><a href="https://solscan.io" target="_blank">Solscan</a></li>
+                        <li><a href="https://github.com/zeyxx/asdf-burn-engine" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+                        <li><a href="https://solscan.io" target="_blank" rel="noopener noreferrer">Solscan</a></li>
                         <li><a href="#">API Docs</a></li>
                     </ul>
                 </div>
