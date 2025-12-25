@@ -206,13 +206,46 @@
         }
 
         /* ============================================
-           MAIN CONTAINER
+           MAIN CONTAINER - SIDEBAR LAYOUT
            ============================================ */
 
         .main {
-            max-width: var(--container-max);
+            max-width: 1400px;
             margin: 0 auto;
             padding: 90px 24px 60px;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 32px;
+            align-items: start;
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 90px;
+            max-height: calc(100vh - 110px);
+            overflow-y: auto;
+        }
+
+        .sidebar::-webkit-scrollbar { width: 4px; }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--border-rust); border-radius: 2px; }
+
+        .content-area {
+            min-width: 0;
+            max-width: var(--container-max);
+        }
+
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                position: relative;
+                top: 0;
+                max-height: none;
+            }
         }
 
         /* ============================================
@@ -528,6 +561,1122 @@
         .badge-icon { font-size: 32px; }
         .badge-name { font-size: 10px; font-weight: 700; color: var(--text-cream); }
         .badge-desc { font-size: 9px; color: var(--text-muted); }
+
+        /* Sidebar specific badges styling */
+        .sidebar .badges-panel {
+            margin-bottom: 16px;
+        }
+        .sidebar .badges-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+        .sidebar .badge-item {
+            padding: 12px 6px;
+        }
+        .sidebar .badge-icon { font-size: 24px; }
+        .sidebar .badge-name { font-size: 9px; }
+        .sidebar .badge-desc { font-size: 8px; }
+
+        /* ============================================
+           MINI-GAMES SECTION
+           ============================================ */
+
+        .minigames-panel {
+            background: var(--bg-charred);
+            border: 2px solid var(--border-rust);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .minigames-title {
+            font-family: var(--font-display);
+            font-size: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .minigame-btn {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: var(--bg-burnt);
+            border: 2px solid var(--border-rust);
+            border-radius: 8px;
+            color: var(--text-cream);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .minigame-btn:hover {
+            border-color: var(--accent-fire);
+            transform: translateX(4px);
+        }
+
+        .minigame-btn:last-child { margin-bottom: 0; }
+
+        .minigame-btn .mg-icon { font-size: 20px; }
+        .minigame-btn .mg-info { flex: 1; text-align: left; }
+        .minigame-btn .mg-name { display: block; }
+        .minigame-btn .mg-reward { font-size: 10px; color: var(--gold); }
+        .minigame-btn .mg-arrow { color: var(--accent-fire); }
+
+        /* Game Modal */
+        .game-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 300;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .game-modal.active { display: flex; }
+
+        .game-container {
+            background: var(--bg-charred);
+            border: 3px solid var(--accent-fire);
+            border-radius: var(--radius);
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 2px solid var(--border-rust);
+        }
+
+        .game-title {
+            font-family: var(--font-display);
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .game-close {
+            width: 36px;
+            height: 36px;
+            background: var(--bg-burnt);
+            border: 2px solid var(--border-rust);
+            border-radius: 8px;
+            color: var(--text-cream);
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .game-close:hover {
+            background: var(--red);
+            border-color: var(--red);
+        }
+
+        .game-refresh {
+            width: 36px;
+            height: 36px;
+            background: var(--bg-burnt);
+            border: 2px solid var(--border-rust);
+            border-radius: 8px;
+            color: var(--text-cream);
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-right: 8px;
+        }
+
+        .game-refresh:hover {
+            background: var(--green);
+            border-color: var(--green);
+        }
+
+        .game-header-buttons {
+            display: flex;
+            align-items: center;
+        }
+
+        .game-content {
+            padding: 24px;
+        }
+
+        .game-score {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 20px;
+        }
+
+        .score-item {
+            text-align: center;
+            padding: 12px 20px;
+            background: var(--bg-burnt);
+            border: 1px solid var(--border-rust);
+            border-radius: 8px;
+        }
+
+        .score-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; }
+        .score-value { font-size: 24px; font-weight: 700; color: var(--accent-bright); }
+        .score-value.gold { color: var(--gold); }
+
+        .game-area {
+            background: var(--bg-burnt);
+            border: 2px solid var(--border-rust);
+            border-radius: var(--radius);
+            min-height: 300px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-instructions {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .game-start-btn {
+            display: block;
+            margin: 20px auto;
+            padding: 16px 40px;
+            background: var(--accent-fire);
+            border: 2px solid var(--accent-bright);
+            border-radius: var(--radius);
+            color: #fff;
+            font-family: var(--font-mono);
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 4px 4px 0 var(--border-rust);
+        }
+
+        .game-start-btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0 var(--border-rust);
+        }
+
+        /* Token Catcher Game */
+        .catcher-area {
+            height: 350px;
+            position: relative;
+            background: linear-gradient(180deg, var(--bg-void) 0%, var(--bg-burnt) 100%);
+        }
+
+        .catcher-basket {
+            position: absolute;
+            bottom: 10px;
+            width: 80px;
+            height: 50px;
+            background: var(--accent-fire);
+            border: 3px solid var(--accent-bright);
+            border-radius: 8px 8px 16px 16px;
+            transition: left 0.1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .falling-token {
+            position: absolute;
+            font-size: 28px;
+            animation: fallDown linear forwards;
+            cursor: pointer;
+        }
+
+        @keyframes fallDown {
+            from { top: -40px; }
+            to { top: 400px; }
+        }
+
+        /* Burn Sequence Game (Simon Says) */
+        .sequence-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            padding: 20px;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        .sequence-btn {
+            aspect-ratio: 1;
+            border-radius: 16px;
+            border: 3px solid transparent;
+            font-size: 32px;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sequence-btn[data-step="collect"] { background: #3b82f6; border-color: #60a5fa; }
+        .sequence-btn[data-step="swap"] { background: #22c55e; border-color: #4ade80; }
+        .sequence-btn[data-step="burn"] { background: #f97316; border-color: #fb923c; }
+        .sequence-btn[data-step="verify"] { background: #a855f7; border-color: #c084fc; }
+
+        .sequence-btn.flash {
+            filter: brightness(1.5);
+            transform: scale(1.05);
+            box-shadow: 0 0 30px currentColor;
+        }
+
+        .sequence-btn:active { transform: scale(0.95); }
+
+        .sequence-display {
+            text-align: center;
+            padding: 16px;
+            font-size: 18px;
+            font-family: var(--font-display);
+            color: var(--text-cream);
+            min-height: 60px;
+        }
+
+        /* Speed Match Game */
+        .match-container {
+            display: grid;
+            grid-template-columns: 180px 1fr;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .match-legend {
+            background: var(--bg-charred);
+            border: 2px solid var(--border-rust);
+            border-radius: var(--radius);
+            padding: 16px;
+        }
+
+        .match-legend-title {
+            font-family: var(--font-display);
+            font-size: 14px;
+            margin-bottom: 12px;
+            color: var(--accent-bright);
+            text-align: center;
+        }
+
+        .match-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-rust);
+            font-size: 12px;
+        }
+
+        .match-legend-item:last-child { border-bottom: none; }
+        .match-legend-item .legend-icon { font-size: 20px; }
+        .match-legend-item .legend-text { color: var(--text-muted); }
+
+        .match-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .match-card {
+            aspect-ratio: 1;
+            background: var(--bg-charred);
+            border: 2px solid var(--border-rust);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            text-align: center;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-cream);
+            min-height: 70px;
+        }
+
+        .match-card:hover { border-color: var(--accent-fire); transform: scale(1.02); }
+        .match-card.flipped { background: var(--accent-fire); }
+        .match-card.matched { background: var(--green); border-color: var(--green-light); pointer-events: none; }
+        .match-card .card-front { display: block; font-size: 28px; }
+        .match-card.flipped .card-front { display: none; }
+        .match-card .card-back { display: none; font-size: 13px; font-weight: 600; line-height: 1.3; }
+        .match-card.flipped .card-back { display: block; }
+
+        @media (max-width: 768px) {
+            .match-container {
+                grid-template-columns: 1fr;
+            }
+            .match-legend {
+                display: none;
+            }
+        }
+
+        /* Play Section */
+        .play-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .game-card {
+            background: var(--bg-charred);
+            border: 2px solid var(--border-rust);
+            border-radius: var(--radius);
+            padding: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .game-card:hover {
+            border-color: var(--accent-fire);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(234, 88, 12, 0.2);
+        }
+
+        .game-card-icon {
+            font-size: 48px;
+            text-align: center;
+        }
+
+        .game-card-content h3 {
+            font-family: var(--font-display);
+            font-size: 20px;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .game-card-content p {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        .game-card-meta {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 12px;
+        }
+
+        .game-xp {
+            padding: 4px 12px;
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid var(--gold);
+            border-radius: 100px;
+            font-size: 11px;
+            color: var(--gold);
+        }
+
+        .game-time {
+            padding: 4px 12px;
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid var(--purple);
+            border-radius: 100px;
+            font-size: 11px;
+            color: var(--purple);
+        }
+
+        .game-card-highscore {
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            padding-top: 8px;
+            border-top: 1px solid var(--border-rust);
+        }
+
+        .game-card-highscore span {
+            color: var(--gold);
+            font-weight: 700;
+        }
+
+        .game-card-play {
+            text-align: center;
+            padding: 12px;
+            background: var(--accent-fire);
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .game-card:hover .game-card-play {
+            background: var(--accent-bright);
+        }
+
+        /* ============================================
+           BURN FIGHTER (2D Combat)
+           ============================================ */
+        .fighter-arena {
+            height: 300px;
+            background: linear-gradient(180deg, #1a0a1a 0%, #2d1f3d 50%, #1a1a2e 100%);
+            position: relative;
+            overflow: hidden;
+            border-bottom: 4px solid var(--accent-fire);
+        }
+
+        .fighter-ground {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: linear-gradient(180deg, #3d2817 0%, #2a1a0f 100%);
+        }
+
+        .fighter-player, .fighter-enemy {
+            position: absolute;
+            bottom: 40px;
+            font-size: 48px;
+            transition: left 0.1s ease, right 0.1s ease, bottom 0.15s ease;
+        }
+
+        .fighter-player { left: 50px; }
+        .fighter-enemy { right: 50px; }
+
+        .fighter-player.jumping {
+            animation: fighterJump 0.5s ease-out;
+        }
+
+        @keyframes fighterJump {
+            0% { bottom: 40px; }
+            50% { bottom: 140px; }
+            100% { bottom: 40px; }
+        }
+
+        .fighter-player.blocking {
+            opacity: 0.7;
+            filter: brightness(0.8);
+        }
+
+        .fighter-player.blocking::after {
+            content: '🛡️';
+            position: absolute;
+            font-size: 32px;
+            right: -30px;
+            top: 0;
+        }
+
+        .fighter-health-bar {
+            position: absolute;
+            top: 10px;
+            height: 20px;
+            background: var(--bg-charred);
+            border: 2px solid var(--border-rust);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .fighter-health-bar.player { left: 10px; right: 55%; }
+        .fighter-health-bar.enemy { left: 55%; right: 10px; }
+
+        .fighter-health-fill {
+            height: 100%;
+            background: var(--green);
+            transition: width 0.2s ease;
+        }
+
+        .fighter-health-fill.low { background: var(--red); }
+
+        .fighter-attack {
+            position: absolute;
+            font-size: 32px;
+            animation: attackAnimRight 0.3s ease-out forwards;
+        }
+
+        .fighter-attack.left { animation-name: attackAnimLeft; }
+        .fighter-attack.up { animation-name: attackAnimUp; }
+
+        @keyframes attackAnimRight {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(2) translateX(50px); opacity: 0; }
+        }
+
+        @keyframes attackAnimLeft {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(2) translateX(-50px); opacity: 0; }
+        }
+
+        @keyframes attackAnimUp {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(2) translateY(-50px); opacity: 0; }
+        }
+
+        .fighter-combo {
+            position: absolute;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: var(--font-display);
+            font-size: 24px;
+            color: var(--gold);
+            text-shadow: 0 0 10px var(--gold);
+        }
+
+        .fighter-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 15px;
+            background: var(--bg-charred);
+        }
+
+        .fighter-btn {
+            padding: 12px 24px;
+            background: var(--bg-burnt);
+            border: 2px solid var(--border-rust);
+            border-radius: 8px;
+            color: var(--text-cream);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.1s ease;
+        }
+
+        .fighter-btn:hover { border-color: var(--accent-fire); }
+        .fighter-btn:active { transform: scale(0.95); }
+        .fighter-btn.attack { background: var(--red); border-color: #f87171; }
+        .fighter-btn.special { background: var(--purple); border-color: #c084fc; }
+
+        /* ============================================
+           TOKEN RACER (Car Game)
+           ============================================ */
+        .racer-track {
+            height: 350px;
+            background: linear-gradient(180deg, #1a2a1a 0%, #0f1f0f 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .racer-road {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 100%;
+            background: #333;
+            border-left: 4px dashed #666;
+            border-right: 4px dashed #666;
+        }
+
+        .racer-line {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 40px;
+            background: #fff;
+            animation: roadMove 0.5s linear infinite;
+        }
+
+        @keyframes roadMove {
+            from { transform: translateX(-50%) translateY(-40px); }
+            to { transform: translateX(-50%) translateY(350px); }
+        }
+
+        .racer-car {
+            position: absolute;
+            bottom: 30px;
+            font-size: 40px;
+            transition: left 0.1s ease;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+        }
+
+        .racer-obstacle, .racer-coin {
+            position: absolute;
+            font-size: 28px;
+            animation: obstacleMove linear forwards;
+        }
+
+        @keyframes obstacleMove {
+            from { top: -40px; }
+            to { top: 400px; }
+        }
+
+        .racer-speed {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            padding: 8px 16px;
+            background: rgba(0,0,0,0.7);
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent-fire);
+        }
+
+        /* ============================================
+           SCAM BLASTER (Shooting Game)
+           ============================================ */
+        .blaster-arena {
+            height: 350px;
+            background: radial-gradient(ellipse at center, #1a1a3a 0%, #0a0a1a 100%);
+            position: relative;
+            overflow: hidden;
+            cursor: crosshair;
+        }
+
+        .blaster-target {
+            position: absolute;
+            font-size: 36px;
+            cursor: crosshair;
+            transition: transform 0.1s ease;
+            animation: float 2s ease-in-out infinite;
+        }
+
+        .blaster-target:hover { transform: scale(1.2); }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .blaster-explosion {
+            position: absolute;
+            font-size: 48px;
+            animation: explode 0.4s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes explode {
+            0% { transform: scale(0.5); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        .blaster-crosshair {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border: 2px solid var(--accent-fire);
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+        }
+
+        .blaster-crosshair::before, .blaster-crosshair::after {
+            content: '';
+            position: absolute;
+            background: var(--accent-fire);
+        }
+
+        .blaster-crosshair::before {
+            width: 2px;
+            height: 10px;
+            left: 50%;
+            top: -12px;
+            transform: translateX(-50%);
+        }
+
+        .blaster-crosshair::after {
+            width: 10px;
+            height: 2px;
+            top: 50%;
+            left: -12px;
+            transform: translateY(-50%);
+        }
+
+        .blaster-wave {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 20px;
+            background: rgba(168, 85, 247, 0.3);
+            border: 1px solid var(--purple);
+            border-radius: 20px;
+            font-size: 14px;
+            color: var(--purple);
+        }
+
+        /* ============================================
+           TREASURY DEFENSE (Strategy)
+           ============================================ */
+        .defense-field {
+            height: 350px;
+            background: linear-gradient(180deg, #0a1a2a 0%, #1a2a3a 100%);
+            position: relative;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(6, 1fr);
+            gap: 2px;
+        }
+
+        .defense-cell {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .defense-cell:hover:not(.path):not(.tower) { background: rgba(34, 197, 94, 0.3); border-color: var(--green); }
+        .defense-cell.path {
+            background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+            border: 2px solid #CD853F;
+            cursor: not-allowed;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
+        }
+        .defense-cell.path:hover { background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%); }
+        .defense-cell.tower { background: rgba(34, 197, 94, 0.4); border-color: var(--green); cursor: default; }
+        .defense-cell.treasury { background: linear-gradient(135deg, #D4AF37 0%, #FFD700 100%); border: 2px solid var(--gold); }
+        .defense-cell.start { background: linear-gradient(135deg, #228B22 0%, #32CD32 100%); border: 2px solid var(--green); }
+
+        .defense-enemy {
+            position: absolute;
+            font-size: 24px;
+            transition: all 0.5s linear;
+            z-index: 10;
+        }
+
+        .defense-projectile {
+            position: absolute;
+            font-size: 16px;
+            z-index: 15;
+            pointer-events: none;
+            animation: projectileFly 0.3s ease-out forwards;
+        }
+
+        .defense-projectile.fire { filter: hue-rotate(0deg); }
+        .defense-projectile.ice { filter: hue-rotate(180deg); }
+        .defense-projectile.lightning { filter: hue-rotate(60deg); }
+
+        @keyframes projectileFly {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        .defense-damage {
+            position: absolute;
+            font-size: 12px;
+            font-weight: bold;
+            color: #ff4444;
+            z-index: 20;
+            pointer-events: none;
+            animation: damageFloat 0.6s ease-out forwards;
+        }
+
+        @keyframes damageFloat {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-20px); opacity: 0; }
+        }
+
+        .defense-sidebar {
+            padding: 15px;
+            background: var(--bg-charred);
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .defense-tower-btn {
+            padding: 10px 15px;
+            background: var(--bg-burnt);
+            border: 2px solid var(--border-rust);
+            border-radius: 8px;
+            color: var(--text-cream);
+            font-size: 11px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .defense-tower-btn:hover { border-color: var(--accent-fire); }
+        .defense-tower-btn.selected { border-color: var(--green); background: rgba(34, 197, 94, 0.2); }
+        .defense-tower-btn .tower-icon { font-size: 24px; }
+        .defense-tower-btn .tower-cost { color: var(--gold); font-size: 10px; }
+
+        .defense-lives {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+            padding: 8px;
+            background: var(--bg-burnt);
+        }
+
+        .defense-lives span { font-size: 20px; }
+
+        /* ============================================
+           TOKEN STACKER (Build Game)
+           ============================================ */
+        .stacker-area {
+            height: 350px;
+            background: linear-gradient(180deg, #0a0a1a 0%, #1a1a2a 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stacker-viewport {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            transition: transform 0.3s ease;
+        }
+
+        .stacker-platform {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 20px;
+            background: var(--accent-fire);
+            border-radius: 4px;
+        }
+
+        .stacker-block {
+            position: absolute;
+            height: 30px;
+            background: var(--accent-fire);
+            border: 2px solid var(--accent-bright);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: background 0.2s ease;
+        }
+
+        .stacker-block.falling {
+            animation: none;
+        }
+
+        .stacker-block.placed {
+            background: var(--green);
+            border-color: var(--green-light);
+        }
+
+        .stacker-block.perfect {
+            background: var(--gold);
+            border-color: #fcd34d;
+            animation: perfectPulse 0.5s ease;
+        }
+
+        @keyframes perfectPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.5); }
+            50% { box-shadow: 0 0 20px 10px rgba(251, 191, 36, 0.3); }
+        }
+
+        .stacker-moving {
+            position: absolute;
+            height: 30px;
+            background: var(--accent-fire);
+            border: 2px solid var(--accent-bright);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            z-index: 10;
+        }
+
+        .stacker-height {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 8px 16px;
+            background: rgba(0,0,0,0.7);
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--gold);
+        }
+
+        .stacker-perfect-text {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: var(--font-display);
+            font-size: 28px;
+            color: var(--gold);
+            text-shadow: 0 0 20px var(--gold);
+            animation: perfectText 0.8s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes perfectText {
+            0% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-50px) scale(1.5); }
+        }
+
+        /* Burn Clicker Game */
+        .clicker-area {
+            text-align: center;
+            padding: 24px;
+        }
+
+        .burn-counter {
+            font-family: var(--font-display);
+            font-size: 48px;
+            color: var(--accent-bright);
+            text-shadow: 0 0 20px var(--accent-fire);
+            margin-bottom: 20px;
+        }
+
+        .burn-clicker-btn {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, var(--accent-bright), var(--accent-fire), #c2410c);
+            border: 4px solid var(--accent-bright);
+            font-size: 48px;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            box-shadow: 0 8px 0 #7c2d12, 0 12px 20px rgba(0,0,0,0.4);
+            position: relative;
+        }
+
+        .burn-clicker-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 0 #7c2d12, 0 16px 24px rgba(0,0,0,0.4); }
+        .burn-clicker-btn:active { transform: translateY(4px); box-shadow: 0 4px 0 #7c2d12, 0 6px 12px rgba(0,0,0,0.4); }
+
+        .click-effect {
+            position: absolute;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--gold);
+            pointer-events: none;
+            animation: floatUp 0.8s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-80px) scale(1.5); }
+        }
+
+        .clicker-upgrades {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .upgrade-btn {
+            padding: 12px;
+            background: var(--bg-burnt);
+            border: 2px solid var(--border-rust);
+            border-radius: 8px;
+            color: var(--text-cream);
+            font-family: var(--font-mono);
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .upgrade-btn:hover { border-color: var(--accent-fire); }
+        .upgrade-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .upgrade-btn .up-name { display: block; font-weight: 700; }
+        .upgrade-btn .up-cost { color: var(--gold); font-size: 10px; }
+
+        /* Game Over Screen */
+        .game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 10, 15, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .game-over h3 {
+            font-family: var(--font-display);
+            font-size: 32px;
+            margin-bottom: 12px;
+            color: var(--accent-bright);
+        }
+
+        .game-over .final-score {
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--gold);
+            margin-bottom: 8px;
+        }
+
+        .game-over .xp-earned {
+            font-size: 16px;
+            color: var(--green);
+            margin-bottom: 20px;
+        }
+
+        /* Daily Streak */
+        .streak-panel {
+            background: var(--bg-charred);
+            border: 2px solid var(--gold);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .streak-title {
+            font-family: var(--font-display);
+            font-size: 14px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--gold);
+        }
+
+        .streak-days {
+            display: flex;
+            gap: 4px;
+        }
+
+        .streak-day {
+            width: 28px;
+            height: 28px;
+            background: var(--bg-burnt);
+            border: 1px solid var(--border-rust);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .streak-day.active {
+            background: var(--gold);
+            border-color: var(--gold);
+            color: #000;
+        }
+
+        .streak-day.today {
+            border-color: var(--accent-fire);
+            animation: pulse-border 2s infinite;
+        }
 
         /* ============================================
            ACHIEVEMENTS POPUP
@@ -1065,6 +2214,7 @@
 
             <div class="nav-tabs">
                 <button class="nav-tab active" onclick="switchView('learn')">Learn</button>
+                <button class="nav-tab" onclick="switchView('play')">Play</button>
                 <button class="nav-tab" onclick="switchView('faq')">FAQ</button>
                 <button class="nav-tab" onclick="switchView('glossary')">Glossary</button>
                 <button class="nav-tab" onclick="switchView('calculator')">Calculator</button>
@@ -1092,58 +2242,131 @@
     </nav>
 
     <main class="main">
+        <div class="main-layout">
+            <!-- LEFT SIDEBAR: Badges & Mini-Games -->
+            <aside class="sidebar">
+                <!-- Daily Streak -->
+                <div class="streak-panel">
+                    <div class="streak-title">🔥 Daily Streak</div>
+                    <div class="streak-days" id="streak-days">
+                        <div class="streak-day" data-day="1">1</div>
+                        <div class="streak-day" data-day="2">2</div>
+                        <div class="streak-day" data-day="3">3</div>
+                        <div class="streak-day" data-day="4">4</div>
+                        <div class="streak-day" data-day="5">5</div>
+                        <div class="streak-day" data-day="6">6</div>
+                        <div class="streak-day today" data-day="7">7</div>
+                    </div>
+                </div>
+
+                <!-- Badges Panel -->
+                <div class="badges-panel">
+                    <div class="badges-title">🏆 Badges</div>
+                    <div class="badges-grid" id="badges-grid">
+                        <div class="badge-item locked" id="badge-spark">
+                            <div class="badge-icon">🔥</div>
+                            <div class="badge-name">The Spark</div>
+                            <div class="badge-desc">Level 1</div>
+                        </div>
+                        <div class="badge-item locked" id="badge-flames">
+                            <div class="badge-icon">🌋</div>
+                            <div class="badge-name">The Flames</div>
+                            <div class="badge-desc">Level 2</div>
+                        </div>
+                        <div class="badge-item locked" id="badge-engine">
+                            <div class="badge-icon">⚙️</div>
+                            <div class="badge-name">The Engine</div>
+                            <div class="badge-desc">Level 3</div>
+                        </div>
+                        <div class="badge-item locked" id="badge-forge">
+                            <div class="badge-icon">🛠️</div>
+                            <div class="badge-name">The Forge</div>
+                            <div class="badge-desc">Level 4</div>
+                        </div>
+                        <div class="badge-item locked" id="badge-core">
+                            <div class="badge-icon">💎</div>
+                            <div class="badge-name">The Core</div>
+                            <div class="badge-desc">Level 5</div>
+                        </div>
+                        <div class="badge-item locked" id="badge-speed">
+                            <div class="badge-icon">⚡</div>
+                            <div class="badge-name">Speed Runner</div>
+                            <div class="badge-desc">&lt;10 min</div>
+                        </div>
+                        <div class="badge-item locked" id="badge-perfect">
+                            <div class="badge-icon">🎯</div>
+                            <div class="badge-name">Perfect</div>
+                            <div class="badge-desc">No errors</div>
+                        </div>
+                        <div class="badge-item locked" id="badge-master">
+                            <div class="badge-icon">👑</div>
+                            <div class="badge-name">Master</div>
+                            <div class="badge-desc">All badges</div>
+                        </div>
+                        <div class="badge-item locked" id="badge-catcher">
+                            <div class="badge-icon">🪣</div>
+                            <div class="badge-name">Catcher</div>
+                            <div class="badge-desc">Score 500</div>
+                        </div>
+                        <div class="badge-item locked" id="badge-memory">
+                            <div class="badge-icon">🧠</div>
+                            <div class="badge-name">Memory</div>
+                            <div class="badge-desc">Level 10</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- High Scores -->
+                <div class="badges-panel">
+                    <div class="badges-title">🏅 High Scores</div>
+                    <div style="font-size: 11px; color: var(--text-muted); max-height: 280px; overflow-y: auto;">
+                        <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border-rust);">
+                            <span>🪣 Catcher</span>
+                            <span id="hs-catcher" style="color: var(--gold);">0</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border-rust);">
+                            <span>🔄 Sequence</span>
+                            <span id="hs-sequence" style="color: var(--gold);">Lvl 0</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border-rust);">
+                            <span>🃏 Match</span>
+                            <span id="hs-match" style="color: var(--gold);">--</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border-rust);">
+                            <span>🔥 Burns</span>
+                            <span id="hs-clicker" style="color: var(--gold);">0</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border-rust);">
+                            <span>🐕 Fighter</span>
+                            <span id="hs-fighter" style="color: var(--gold);">Wave 0</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border-rust);">
+                            <span>🏎️ Racer</span>
+                            <span id="hs-racer" style="color: var(--gold);">0m</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border-rust);">
+                            <span>🎯 Blaster</span>
+                            <span id="hs-blaster" style="color: var(--gold);">Wave 0</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border-rust);">
+                            <span>🏰 Defense</span>
+                            <span id="hs-defense" style="color: var(--gold);">Wave 0</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 6px 0;">
+                            <span>🏗️ Stacker</span>
+                            <span id="hs-stacker" style="color: var(--gold);">0</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- MAIN CONTENT AREA -->
+            <div class="content-area">
 
         <!-- ============================================
              LEARN VIEW (Contains all levels)
              ============================================ -->
         <div class="view-section active" id="view-learn">
-
-            <!-- Badges Panel -->
-            <div class="badges-panel">
-                <div class="badges-title">🏆 Your Badges</div>
-                <div class="badges-grid" id="badges-grid">
-                    <div class="badge-item locked" id="badge-spark">
-                        <div class="badge-icon">🔥</div>
-                        <div class="badge-name">The Spark</div>
-                        <div class="badge-desc">Complete Level 1</div>
-                    </div>
-                    <div class="badge-item locked" id="badge-flames">
-                        <div class="badge-icon">🌋</div>
-                        <div class="badge-name">The Flames</div>
-                        <div class="badge-desc">Complete Level 2</div>
-                    </div>
-                    <div class="badge-item locked" id="badge-engine">
-                        <div class="badge-icon">⚙️</div>
-                        <div class="badge-name">The Engine</div>
-                        <div class="badge-desc">Complete Level 3</div>
-                    </div>
-                    <div class="badge-item locked" id="badge-forge">
-                        <div class="badge-icon">🛠️</div>
-                        <div class="badge-name">The Forge</div>
-                        <div class="badge-desc">Complete Level 4</div>
-                    </div>
-                    <div class="badge-item locked" id="badge-core">
-                        <div class="badge-icon">💎</div>
-                        <div class="badge-name">The Core</div>
-                        <div class="badge-desc">Complete Level 5</div>
-                    </div>
-                    <div class="badge-item locked" id="badge-speed">
-                        <div class="badge-icon">⚡</div>
-                        <div class="badge-name">Speed Runner</div>
-                        <div class="badge-desc">Finish in &lt;10 min</div>
-                    </div>
-                    <div class="badge-item locked" id="badge-perfect">
-                        <div class="badge-icon">🎯</div>
-                        <div class="badge-name">Perfect Score</div>
-                        <div class="badge-desc">No wrong answers</div>
-                    </div>
-                    <div class="badge-item locked" id="badge-master">
-                        <div class="badge-icon">👑</div>
-                        <div class="badge-name">ASDF Master</div>
-                        <div class="badge-desc">Earn all badges</div>
-                    </div>
-                </div>
-            </div>
 
             <!-- LEVEL 1: THE SPARK -->
             <section class="level-section level-1 active" id="level-1">
@@ -1539,6 +2762,188 @@
         </div>
 
         <!-- ============================================
+             PLAY VIEW (Mini-Games)
+             ============================================ -->
+        <div class="view-section" id="view-play">
+            <div class="section-header">
+                <h1 class="section-title">🎮 Mini-Games</h1>
+                <p class="section-subtitle">Learn ASDF mechanics through fun, addictive games!</p>
+            </div>
+
+            <div class="play-grid">
+                <!-- Token Catcher Card -->
+                <div class="game-card" onclick="openGame('catcher')">
+                    <div class="game-card-icon">🪣</div>
+                    <div class="game-card-content">
+                        <h3>Token Catcher</h3>
+                        <p>Catch falling ASDF tokens with your basket. Avoid scam tokens!</p>
+                        <div class="game-card-meta">
+                            <span class="game-xp">+50 XP max</span>
+                            <span class="game-time">30 sec</span>
+                        </div>
+                        <div class="game-card-highscore">
+                            Best: <span id="play-hs-catcher">0</span> pts
+                        </div>
+                    </div>
+                    <div class="game-card-play">PLAY →</div>
+                </div>
+
+                <!-- Burn Sequence Card -->
+                <div class="game-card" onclick="openGame('sequence')">
+                    <div class="game-card-icon">🔄</div>
+                    <div class="game-card-content">
+                        <h3>Burn Sequence</h3>
+                        <p>Memorize the burn cycle: Collect → Swap → Burn → Verify</p>
+                        <div class="game-card-meta">
+                            <span class="game-xp">+75 XP max</span>
+                            <span class="game-time">Memory</span>
+                        </div>
+                        <div class="game-card-highscore">
+                            Best: Level <span id="play-hs-sequence">0</span>
+                        </div>
+                    </div>
+                    <div class="game-card-play">PLAY →</div>
+                </div>
+
+                <!-- Speed Match Card -->
+                <div class="game-card" onclick="openGame('match')">
+                    <div class="game-card-icon">🃏</div>
+                    <div class="game-card-content">
+                        <h3>Speed Match</h3>
+                        <p>Match ASDF terms with their meanings as fast as possible!</p>
+                        <div class="game-card-meta">
+                            <span class="game-xp">+60 XP max</span>
+                            <span class="game-time">Timed</span>
+                        </div>
+                        <div class="game-card-highscore">
+                            Best: <span id="play-hs-match">--</span>
+                        </div>
+                    </div>
+                    <div class="game-card-play">PLAY →</div>
+                </div>
+
+                <!-- Burn Clicker Card -->
+                <div class="game-card" onclick="openGame('clicker')">
+                    <div class="game-card-icon">🔥</div>
+                    <div class="game-card-content">
+                        <h3>Burn Clicker</h3>
+                        <p>Idle clicker game! Click to burn, buy upgrades, go infinite!</p>
+                        <div class="game-card-meta">
+                            <span class="game-xp">Infinite XP</span>
+                            <span class="game-time">Idle</span>
+                        </div>
+                        <div class="game-card-highscore">
+                            Total: <span id="play-hs-clicker">0</span> burns
+                        </div>
+                    </div>
+                    <div class="game-card-play">PLAY →</div>
+                </div>
+
+                <!-- Burn Fighter Card -->
+                <div class="game-card" onclick="openGame('fighter')">
+                    <div class="game-card-icon">⚔️</div>
+                    <div class="game-card-content">
+                        <h3>Burn Fighter</h3>
+                        <p>Combat 2D! Fight scam tokens and protect ASDF!</p>
+                        <div class="game-card-meta">
+                            <span class="game-xp">+80 XP max</span>
+                            <span class="game-time">Combat</span>
+                        </div>
+                        <div class="game-card-highscore">
+                            Best: Wave <span id="play-hs-fighter">0</span>
+                        </div>
+                    </div>
+                    <div class="game-card-play">FIGHT →</div>
+                </div>
+
+                <!-- Token Racer Card -->
+                <div class="game-card" onclick="openGame('racer')">
+                    <div class="game-card-icon">🏎️</div>
+                    <div class="game-card-content">
+                        <h3>Token Racer</h3>
+                        <p>Race through the blockchain! Collect tokens, avoid rugs!</p>
+                        <div class="game-card-meta">
+                            <span class="game-xp">+70 XP max</span>
+                            <span class="game-time">Racing</span>
+                        </div>
+                        <div class="game-card-highscore">
+                            Best: <span id="play-hs-racer">0</span> m
+                        </div>
+                    </div>
+                    <div class="game-card-play">RACE →</div>
+                </div>
+
+                <!-- Scam Blaster Card -->
+                <div class="game-card" onclick="openGame('blaster')">
+                    <div class="game-card-icon">🎯</div>
+                    <div class="game-card-content">
+                        <h3>Scam Blaster</h3>
+                        <p>Shoot down scam tokens before they escape!</p>
+                        <div class="game-card-meta">
+                            <span class="game-xp">+65 XP max</span>
+                            <span class="game-time">Shooter</span>
+                        </div>
+                        <div class="game-card-highscore">
+                            Best: Wave <span id="play-hs-blaster">0</span>
+                        </div>
+                    </div>
+                    <div class="game-card-play">BLAST →</div>
+                </div>
+
+                <!-- Treasury Defense Card -->
+                <div class="game-card" onclick="openGame('defense')">
+                    <div class="game-card-icon">🏰</div>
+                    <div class="game-card-content">
+                        <h3>Treasury Defense</h3>
+                        <p>Tower defense! Build towers to protect the treasury!</p>
+                        <div class="game-card-meta">
+                            <span class="game-xp">+90 XP max</span>
+                            <span class="game-time">Strategy</span>
+                        </div>
+                        <div class="game-card-highscore">
+                            Best: Wave <span id="play-hs-defense">0</span>
+                        </div>
+                    </div>
+                    <div class="game-card-play">DEFEND →</div>
+                </div>
+
+                <!-- Token Stacker Card -->
+                <div class="game-card" onclick="openGame('stacker')">
+                    <div class="game-card-icon">🏗️</div>
+                    <div class="game-card-content">
+                        <h3>Token Stacker</h3>
+                        <p>Stack tokens to build the tallest tower!</p>
+                        <div class="game-card-meta">
+                            <span class="game-xp">+55 XP max</span>
+                            <span class="game-time">Building</span>
+                        </div>
+                        <div class="game-card-highscore">
+                            Best: <span id="play-hs-stacker">0</span> floors
+                        </div>
+                    </div>
+                    <div class="game-card-play">BUILD →</div>
+                </div>
+            </div>
+
+            <!-- How Games Work -->
+            <div class="content-card" style="margin-top: 32px;">
+                <h3>🏆 How It Works</h3>
+                <p>Play mini-games to earn XP and unlock exclusive badges!</p>
+                <div class="highlight-box">
+                    <strong>🪣 Token Catcher:</strong> Score 500+ to unlock the "Catcher" badge<br>
+                    <strong>🔄 Burn Sequence:</strong> Reach Level 10 to unlock the "Memory" badge<br>
+                    <strong>🃏 Speed Match:</strong> Beat your best time to climb the leaderboard<br>
+                    <strong>🔥 Burn Clicker:</strong> Earn +10 XP every 100 burns (up to 100 XP)<br>
+                    <strong>🐕 Burn Fighter:</strong> Defeat waves of enemies to earn XP<br>
+                    <strong>🏎️ Token Racer:</strong> Race and collect coins, avoid obstacles<br>
+                    <strong>🎯 Scam Blaster:</strong> Destroy scam tokens, avoid skulls!<br>
+                    <strong>🏰 Treasury Defense:</strong> Defend the treasury from invaders<br>
+                    <strong>🏗️ Token Stacker:</strong> Stack blocks perfectly to build higher
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================
              FAQ VIEW
              ============================================ -->
         <div class="view-section" id="view-faq">
@@ -1766,7 +3171,415 @@
             </div>
         </div>
 
+            </div> <!-- End content-area -->
+        </div> <!-- End main-layout -->
     </main>
+
+    <!-- GAME MODALS -->
+
+    <!-- Token Catcher Modal -->
+    <div class="game-modal" id="game-catcher">
+        <div class="game-container">
+            <div class="game-header">
+                <div class="game-title">🪣 Token Catcher</div>
+                <div class="game-header-buttons">
+                    <button class="game-refresh" onclick="resetGame('catcher')" title="Restart">↻</button>
+                    <button class="game-close" onclick="closeGame('catcher')">✕</button>
+                </div>
+            </div>
+            <div class="game-content">
+                <div class="game-instructions">
+                    Catch falling ASDF tokens with your basket!<br>
+                    Avoid scam tokens (💀) - they cost you points.<br>
+                    <strong>Use ← → arrow keys or touch to move</strong>
+                </div>
+                <div class="game-score">
+                    <div class="score-item">
+                        <div class="score-label">Score</div>
+                        <div class="score-value" id="catcher-score">0</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-label">Time</div>
+                        <div class="score-value gold" id="catcher-time">30</div>
+                    </div>
+                </div>
+                <div class="game-area catcher-area" id="catcher-area">
+                    <div class="catcher-basket" id="catcher-basket">🔥</div>
+                </div>
+                <button class="game-start-btn" id="catcher-start" onclick="startCatcher()">START GAME</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Burn Sequence Modal (Simon Says) -->
+    <div class="game-modal" id="game-sequence">
+        <div class="game-container">
+            <div class="game-header">
+                <div class="game-title">🔄 Burn Sequence</div>
+                <div class="game-header-buttons">
+                    <button class="game-refresh" onclick="resetGame('sequence')" title="Restart">↻</button>
+                    <button class="game-close" onclick="closeGame('sequence')">✕</button>
+                </div>
+            </div>
+            <div class="game-content">
+                <div class="game-instructions">
+                    Learn the burn cycle by memory!<br>
+                    Watch the sequence, then repeat it correctly.<br>
+                    <strong>Collect → Swap → Burn → Verify</strong>
+                </div>
+                <div class="game-score">
+                    <div class="score-item">
+                        <div class="score-label">Level</div>
+                        <div class="score-value" id="sequence-level">1</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-label">Score</div>
+                        <div class="score-value gold" id="sequence-score">0</div>
+                    </div>
+                </div>
+                <div class="sequence-display" id="sequence-display">Press START to begin</div>
+                <div class="game-area" style="min-height: auto; background: transparent; border: none;">
+                    <div class="sequence-grid">
+                        <button class="sequence-btn" data-step="collect" onclick="sequenceClick('collect')">💰</button>
+                        <button class="sequence-btn" data-step="swap" onclick="sequenceClick('swap')">💱</button>
+                        <button class="sequence-btn" data-step="burn" onclick="sequenceClick('burn')">🔥</button>
+                        <button class="sequence-btn" data-step="verify" onclick="sequenceClick('verify')">✓</button>
+                    </div>
+                </div>
+                <button class="game-start-btn" id="sequence-start" onclick="startSequence()">START GAME</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Speed Match Modal -->
+    <div class="game-modal" id="game-match">
+        <div class="game-container" style="max-width: 750px;">
+            <div class="game-header">
+                <div class="game-title">🃏 Speed Match</div>
+                <div class="game-header-buttons">
+                    <button class="game-refresh" onclick="resetGame('match')" title="Restart">↻</button>
+                    <button class="game-close" onclick="closeGame('match')">✕</button>
+                </div>
+            </div>
+            <div class="game-content">
+                <div class="game-instructions">
+                    Match ASDF terms with their meanings!<br>
+                    Find all 8 pairs as fast as you can.<br>
+                    <strong>Click cards to flip them</strong>
+                </div>
+                <div class="game-score">
+                    <div class="score-item">
+                        <div class="score-label">Pairs</div>
+                        <div class="score-value" id="match-pairs">0/8</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-label">Time</div>
+                        <div class="score-value gold" id="match-time">0:00</div>
+                    </div>
+                </div>
+                <div class="game-area" style="min-height: auto; padding: 0;">
+                    <div class="match-container">
+                        <div class="match-legend">
+                            <div class="match-legend-title">📖 Legend</div>
+                            <div class="match-legend-item">
+                                <span class="legend-icon">🔥</span>
+                                <span class="legend-text">Burn</span>
+                            </div>
+                            <div class="match-legend-item">
+                                <span class="legend-icon">💰</span>
+                                <span class="legend-text">Fees</span>
+                            </div>
+                            <div class="match-legend-item">
+                                <span class="legend-icon">🔄</span>
+                                <span class="legend-text">Cycle</span>
+                            </div>
+                            <div class="match-legend-item">
+                                <span class="legend-icon">🤖</span>
+                                <span class="legend-text">Daemon</span>
+                            </div>
+                            <div class="match-legend-item">
+                                <span class="legend-icon">🏦</span>
+                                <span class="legend-text">Treasury</span>
+                            </div>
+                            <div class="match-legend-item">
+                                <span class="legend-icon">💱</span>
+                                <span class="legend-text">Swap</span>
+                            </div>
+                            <div class="match-legend-item">
+                                <span class="legend-icon">📉</span>
+                                <span class="legend-text">Deflation</span>
+                            </div>
+                            <div class="match-legend-item">
+                                <span class="legend-icon">🔍</span>
+                                <span class="legend-text">Verify</span>
+                            </div>
+                        </div>
+                        <div class="match-grid" id="match-grid"></div>
+                    </div>
+                </div>
+                <button class="game-start-btn" id="match-start" onclick="startMatch()">START GAME</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Burn Clicker Modal -->
+    <div class="game-modal" id="game-clicker">
+        <div class="game-container">
+            <div class="game-header">
+                <div class="game-title">🔥 Burn Clicker</div>
+                <div class="game-header-buttons">
+                    <button class="game-refresh" onclick="resetGame('clicker')" title="Restart">↻</button>
+                    <button class="game-close" onclick="closeGame('clicker')">✕</button>
+                </div>
+            </div>
+            <div class="game-content">
+                <div class="game-instructions">
+                    Click to burn tokens! Upgrade your burn power.<br>
+                    Every 100 burns = +10 XP (max 100 XP/session)
+                </div>
+                <div class="game-area clicker-area" id="clicker-area">
+                    <div class="burn-counter" id="clicker-count">0</div>
+                    <button class="burn-clicker-btn" id="clicker-btn" onclick="clickBurn(event)">🔥</button>
+                    <div class="clicker-upgrades">
+                        <button class="upgrade-btn" id="upgrade-power" onclick="buyUpgrade('power')">
+                            <span class="up-name">+1 Burn Power</span>
+                            <span class="up-cost">Cost: 50 burns</span>
+                        </button>
+                        <button class="upgrade-btn" id="upgrade-auto" onclick="buyUpgrade('auto')">
+                            <span class="up-name">Auto Burner</span>
+                            <span class="up-cost">Cost: 200 burns</span>
+                        </button>
+                        <button class="upgrade-btn" id="upgrade-multi" onclick="buyUpgrade('multi')">
+                            <span class="up-name">2x Multiplier</span>
+                            <span class="up-cost">Cost: 500 burns</span>
+                        </button>
+                        <button class="upgrade-btn" id="upgrade-frenzy" onclick="buyUpgrade('frenzy')">
+                            <span class="up-name">Burn Frenzy (10s)</span>
+                            <span class="up-cost">Cost: 1000 burns</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Burn Fighter Modal (2D Combat) -->
+    <div class="game-modal" id="game-fighter">
+        <div class="game-container">
+            <div class="game-header">
+                <div class="game-title">⚔️ Burn Fighter</div>
+                <div class="game-header-buttons">
+                    <button class="game-refresh" onclick="resetGame('fighter')" title="Restart">↻</button>
+                    <button class="game-close" onclick="closeGame('fighter')">✕</button>
+                </div>
+            </div>
+            <div class="game-content">
+                <div class="game-instructions">
+                    Fight scam tokens! Use A/D to move, J to punch, K for special attack.<br>
+                    <strong>Defeat enemies to protect ASDF!</strong>
+                </div>
+                <div class="game-score">
+                    <div class="score-item">
+                        <div class="score-label">Wave</div>
+                        <div class="score-value" id="fighter-wave">1</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-label">Combo</div>
+                        <div class="score-value gold" id="fighter-combo">0</div>
+                    </div>
+                </div>
+                <div class="game-area" style="display: flex; gap: 15px;">
+                    <div class="fighter-legend" style="width: 120px; padding: 10px; background: var(--bg-charred); border-radius: 8px; font-size: 11px;">
+                        <div style="font-weight: bold; margin-bottom: 10px; color: var(--accent-fire);">CONTROLS</div>
+                        <div style="margin-bottom: 6px;">🎮 <b>Move</b></div>
+                        <div style="margin-left: 20px; color: var(--text-muted);">Q ← Left</div>
+                        <div style="margin-left: 20px; color: var(--text-muted);">D → Right</div>
+                        <div style="margin: 8px 0 6px;">⬆️ <b>Jump</b></div>
+                        <div style="margin-left: 20px; color: var(--text-muted);">Z</div>
+                        <div style="margin: 8px 0 6px;">🛡️ <b>Block</b></div>
+                        <div style="margin-left: 20px; color: var(--text-muted);">F (hold)</div>
+                        <div style="margin: 8px 0 6px;">👊 <b>Attack</b></div>
+                        <div style="margin-left: 20px; color: var(--text-muted);">Left Click</div>
+                        <div style="margin: 8px 0 6px;">🔥 <b>Special</b></div>
+                        <div style="margin-left: 20px; color: var(--text-muted);">Right Click</div>
+                    </div>
+                    <div style="flex: 1;">
+                        <div class="fighter-arena" id="fighter-arena" style="cursor: crosshair;">
+                            <div class="fighter-health-bar player">
+                                <div class="fighter-health-fill" id="fighter-player-health" style="width: 100%"></div>
+                            </div>
+                            <div class="fighter-health-bar enemy">
+                                <div class="fighter-health-fill" id="fighter-enemy-health" style="width: 100%"></div>
+                            </div>
+                            <div class="fighter-player" id="fighter-player">🐕</div>
+                            <div class="fighter-enemy" id="fighter-enemy">🐱</div>
+                            <div class="fighter-ground"></div>
+                        </div>
+                    </div>
+                </div>
+                <button class="game-start-btn" id="fighter-start" onclick="startFighter()">START FIGHT</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Token Racer Modal (Car Game) -->
+    <div class="game-modal" id="game-racer">
+        <div class="game-container">
+            <div class="game-header">
+                <div class="game-title">🏎️ Token Racer</div>
+                <div class="game-header-buttons">
+                    <button class="game-refresh" onclick="resetGame('racer')" title="Restart">↻</button>
+                    <button class="game-close" onclick="closeGame('racer')">✕</button>
+                </div>
+            </div>
+            <div class="game-content">
+                <div class="game-instructions">
+                    Race through the blockchain! Use ← → arrows to steer.<br>
+                    <strong>Collect tokens 🪙, avoid rugs 🚨!</strong>
+                </div>
+                <div class="game-score">
+                    <div class="score-item">
+                        <div class="score-label">Distance</div>
+                        <div class="score-value" id="racer-distance">0m</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-label">Coins</div>
+                        <div class="score-value gold" id="racer-coins">0</div>
+                    </div>
+                </div>
+                <div class="game-area racer-track" id="racer-track">
+                    <div class="racer-road">
+                        <div class="racer-line" style="top: 50px;"></div>
+                        <div class="racer-line" style="top: 150px;"></div>
+                        <div class="racer-line" style="top: 250px;"></div>
+                    </div>
+                    <div class="racer-car" id="racer-car">🏎️</div>
+                    <div class="racer-speed" id="racer-speed">0 km/h</div>
+                </div>
+                <button class="game-start-btn" id="racer-start" onclick="startRacer()">START RACE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scam Blaster Modal (Shooting Game) -->
+    <div class="game-modal" id="game-blaster">
+        <div class="game-container">
+            <div class="game-header">
+                <div class="game-title">🎯 Scam Blaster</div>
+                <div class="game-header-buttons">
+                    <button class="game-refresh" onclick="resetGame('blaster')" title="Restart">↻</button>
+                    <button class="game-close" onclick="closeGame('blaster')">✕</button>
+                </div>
+            </div>
+            <div class="game-content">
+                <div class="game-instructions">
+                    Click on scam tokens to destroy them!<br>
+                    <strong>Don't let them escape! Avoid hitting good tokens 🔥</strong>
+                </div>
+                <div class="game-score">
+                    <div class="score-item">
+                        <div class="score-label">Score</div>
+                        <div class="score-value" id="blaster-score">0</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-label">Wave</div>
+                        <div class="score-value gold" id="blaster-wave">1</div>
+                    </div>
+                </div>
+                <div class="game-area blaster-arena" id="blaster-arena" onclick="blasterShoot(event)">
+                    <div class="blaster-wave">Wave <span id="blaster-wave-display">1</span></div>
+                </div>
+                <button class="game-start-btn" id="blaster-start" onclick="startBlaster()">START BLASTING</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Treasury Defense Modal (Strategy) -->
+    <div class="game-modal" id="game-defense">
+        <div class="game-container" style="max-width: 700px;">
+            <div class="game-header">
+                <div class="game-title">🏰 Treasury Defense</div>
+                <div class="game-header-buttons">
+                    <button class="game-refresh" onclick="resetGame('defense')" title="Restart">↻</button>
+                    <button class="game-close" onclick="closeGame('defense')">✕</button>
+                </div>
+            </div>
+            <div class="game-content">
+                <div class="game-instructions">
+                    Build towers to defend the treasury! Click cells to place towers.<br>
+                    <strong>Don't let enemies reach the 🏦 treasury!</strong>
+                </div>
+                <div class="game-score">
+                    <div class="score-item">
+                        <div class="score-label">Wave</div>
+                        <div class="score-value" id="defense-wave">1</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-label">Gold</div>
+                        <div class="score-value gold" id="defense-gold">150</div>
+                    </div>
+                </div>
+                <div class="defense-lives" id="defense-lives">
+                    <span>❤️</span><span>❤️</span><span>❤️</span><span>❤️</span><span>❤️</span>
+                </div>
+                <div class="game-area defense-field" id="defense-field"></div>
+                <div class="defense-sidebar">
+                    <button class="defense-tower-btn selected" onclick="selectTower('fire')" id="tower-fire">
+                        <span class="tower-icon">🔥</span>
+                        <span>Fire (25dmg)</span>
+                        <span class="tower-cost">40g</span>
+                    </button>
+                    <button class="defense-tower-btn" onclick="selectTower('ice')" id="tower-ice">
+                        <span class="tower-icon">❄️</span>
+                        <span>Ice (slow)</span>
+                        <span class="tower-cost">60g</span>
+                    </button>
+                    <button class="defense-tower-btn" onclick="selectTower('lightning')" id="tower-lightning">
+                        <span class="tower-icon">⚡</span>
+                        <span>Bolt (40dmg)</span>
+                        <span class="tower-cost">80g</span>
+                    </button>
+                    <button class="game-start-btn" id="defense-start" onclick="startDefensePrep()" style="margin: 0; padding: 10px 20px;">START PREP</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Token Stacker Modal (Build Game) -->
+    <div class="game-modal" id="game-stacker">
+        <div class="game-container">
+            <div class="game-header">
+                <div class="game-title">🏗️ Token Stacker</div>
+                <div class="game-header-buttons">
+                    <button class="game-refresh" onclick="resetGame('stacker')" title="Restart">↻</button>
+                    <button class="game-close" onclick="closeGame('stacker')">✕</button>
+                </div>
+            </div>
+            <div class="game-content">
+                <div class="game-instructions">
+                    Click or press SPACE to drop the block!<br>
+                    <strong>Stack perfectly for bonus points!</strong>
+                </div>
+                <div class="game-score">
+                    <div class="score-item">
+                        <div class="score-label">Height</div>
+                        <div class="score-value" id="stacker-height">0</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-label">Score</div>
+                        <div class="score-value gold" id="stacker-score">0</div>
+                    </div>
+                </div>
+                <div class="game-area stacker-area" id="stacker-area" onclick="stackerDrop()">
+                    <div class="stacker-height">Height: <span id="stacker-height-display">0</span></div>
+                    <div class="stacker-viewport" id="stacker-viewport">
+                        <div class="stacker-platform"></div>
+                    </div>
+                </div>
+                <button class="game-start-btn" id="stacker-start" onclick="startStacker()">START STACKING</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer class="footer">
@@ -2158,6 +3971,1975 @@
         }
 
         // ============================================
+        // MINI-GAMES SYSTEM
+        // ============================================
+
+        const GAMES_STORAGE_KEY = 'asdf_games_v1';
+
+        function getGameState() {
+            const defaultState = {
+                highScores: {
+                    catcher: 0, sequence: 0, match: 999, clicker: 0,
+                    fighter: 0, racer: 0, blaster: 0, defense: 0, stacker: 0
+                },
+                totalClicks: 0,
+                clickerPower: 1,
+                clickerMulti: 1,
+                hasAuto: false,
+                dailyXPEarned: 0,
+                lastPlayDate: null,
+                streak: 0
+            };
+            try {
+                const saved = localStorage.getItem(GAMES_STORAGE_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    // Merge with defaults for new properties
+                    return { ...defaultState, ...parsed, highScores: { ...defaultState.highScores, ...parsed.highScores } };
+                }
+                return defaultState;
+            } catch (e) {
+                return defaultState;
+            }
+        }
+
+        function saveGameState(state) {
+            try { localStorage.setItem(GAMES_STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+        }
+
+        function openGame(gameId) {
+            document.getElementById('game-' + gameId).classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeGame(gameId) {
+            document.getElementById('game-' + gameId).classList.remove('active');
+            document.body.style.overflow = '';
+            // Reset game states
+            stopGameById(gameId);
+        }
+
+        function stopGameById(gameId) {
+            if (gameId === 'catcher') stopCatcher();
+            if (gameId === 'sequence') stopSequence();
+            if (gameId === 'match') stopMatch();
+            if (gameId === 'fighter') { fighterActive = false; clearInterval(fighterInterval); document.removeEventListener('keydown', fighterKeyHandler); document.removeEventListener('keyup', fighterKeyUpHandler); const a = document.getElementById('fighter-arena'); if(a) a.removeEventListener('mousedown', fighterMouseHandler); }
+            if (gameId === 'racer') { racerActive = false; clearInterval(racerInterval); clearInterval(racerSpawnInterval); clearInterval(racerMoveInterval); racerMoveInterval = null; document.removeEventListener('keydown', racerKeyDown); document.removeEventListener('keyup', racerKeyUp); }
+            if (gameId === 'blaster') { blasterActive = false; clearInterval(blasterSpawnInterval); }
+            if (gameId === 'defense') { defenseActive = false; defensePrepPhase = false; clearInterval(defenseInterval); clearInterval(defensePrepTimer); }
+            if (gameId === 'stacker') { stackerActive = false; clearInterval(stackerInterval); document.removeEventListener('keydown', stackerKeyHandler); }
+        }
+
+        function resetGame(gameId) {
+            // Stop current game
+            stopGameById(gameId);
+
+            // Reset UI and start fresh
+            switch(gameId) {
+                case 'catcher':
+                    document.querySelectorAll('.falling-token').forEach(t => t.remove());
+                    document.getElementById('catcher-start').style.display = 'block';
+                    document.getElementById('catcher-start').textContent = 'START GAME';
+                    document.getElementById('catcher-score').textContent = '0';
+                    document.getElementById('catcher-time').textContent = '30';
+                    break;
+                case 'sequence':
+                    document.getElementById('sequence-start').style.display = 'block';
+                    document.getElementById('sequence-start').textContent = 'START GAME';
+                    document.getElementById('sequence-level').textContent = '1';
+                    document.getElementById('sequence-score').textContent = '0';
+                    document.getElementById('sequence-display').textContent = 'Press START to begin';
+                    break;
+                case 'match':
+                    document.getElementById('match-start').style.display = 'block';
+                    document.getElementById('match-start').textContent = 'START GAME';
+                    document.getElementById('match-pairs').textContent = '0/8';
+                    document.getElementById('match-time').textContent = '0:00';
+                    document.getElementById('match-grid').innerHTML = '';
+                    break;
+                case 'clicker': {
+                    // Clicker - refresh display from saved state
+                    document.querySelectorAll('.click-effect').forEach(e => e.remove());
+                    initClicker();
+                    // Flash effect to show refresh happened
+                    const clickerBtn = document.getElementById('clicker-btn');
+                    if (clickerBtn) {
+                        clickerBtn.style.transform = 'scale(1.1)';
+                        setTimeout(() => { clickerBtn.style.transform = ''; }, 200);
+                    }
+                    break;
+                }
+                case 'fighter':
+                    document.querySelectorAll('.fighter-attack').forEach(a => a.remove());
+                    document.getElementById('fighter-start').style.display = 'block';
+                    document.getElementById('fighter-start').textContent = 'START FIGHT';
+                    document.getElementById('fighter-wave').textContent = '1';
+                    document.getElementById('fighter-combo').textContent = '0';
+                    document.getElementById('fighter-player-health').style.width = '100%';
+                    document.getElementById('fighter-enemy-health').style.width = '100%';
+                    break;
+                case 'racer':
+                    racerMoveDir = 0;
+                    racerCarPos = 50;
+                    document.querySelectorAll('.racer-obstacle, .racer-coin').forEach(o => o.remove());
+                    document.getElementById('racer-start').style.display = 'block';
+                    document.getElementById('racer-start').textContent = 'START RACE';
+                    document.getElementById('racer-distance').textContent = '0m';
+                    document.getElementById('racer-coins').textContent = '0';
+                    document.getElementById('racer-speed').textContent = '0 km/h';
+                    document.getElementById('racer-car').style.left = 'calc(50% - 20px)';
+                    break;
+                case 'blaster':
+                    document.querySelectorAll('.blaster-target').forEach(t => t.remove());
+                    document.getElementById('blaster-start').style.display = 'block';
+                    document.getElementById('blaster-start').textContent = 'START BLASTING';
+                    document.getElementById('blaster-score').textContent = '0';
+                    document.getElementById('blaster-wave').textContent = '1';
+                    document.getElementById('blaster-wave-display').textContent = '1';
+                    break;
+                case 'defense':
+                    document.querySelectorAll('.defense-enemy, .defense-projectile, .damage-number').forEach(e => e.remove());
+                    defenseGrid.fill(null);
+                    defenseTowers = [];
+                    defenseEnemies = [];
+                    initDefenseField();
+                    document.getElementById('defense-start').style.display = 'block';
+                    document.getElementById('defense-start').textContent = 'START DEFENSE';
+                    document.getElementById('defense-start').disabled = false;
+                    document.getElementById('defense-wave').textContent = '1';
+                    document.getElementById('defense-gold').textContent = '150';
+                    document.getElementById('defense-lives').innerHTML = '<span>❤️</span><span>❤️</span><span>❤️</span><span>❤️</span><span>❤️</span>';
+                    break;
+                case 'stacker': {
+                    const viewport = document.getElementById('stacker-viewport');
+                    if (viewport) {
+                        viewport.style.transform = '';
+                        document.querySelectorAll('.stacker-block, .stacker-moving, .stacker-perfect-text').forEach(b => b.remove());
+                    }
+                    document.getElementById('stacker-start').style.display = 'block';
+                    document.getElementById('stacker-start').textContent = 'START STACKING';
+                    document.getElementById('stacker-height').textContent = '0';
+                    document.getElementById('stacker-height-display').textContent = '0';
+                    document.getElementById('stacker-score').textContent = '0';
+                    break;
+                }
+            }
+        }
+
+        function updateHighScores() {
+            const gs = getGameState();
+            // Sidebar scores
+            document.getElementById('hs-catcher').textContent = gs.highScores.catcher;
+            document.getElementById('hs-sequence').textContent = 'Lvl ' + gs.highScores.sequence;
+            document.getElementById('hs-match').textContent = gs.highScores.match === 999 ? '--' : gs.highScores.match + 's';
+            document.getElementById('hs-clicker').textContent = formatNumber(gs.totalClicks);
+            document.getElementById('hs-fighter').textContent = 'Wave ' + gs.highScores.fighter;
+            document.getElementById('hs-racer').textContent = gs.highScores.racer + 'm';
+            document.getElementById('hs-blaster').textContent = 'Wave ' + gs.highScores.blaster;
+            document.getElementById('hs-defense').textContent = 'Wave ' + gs.highScores.defense;
+            document.getElementById('hs-stacker').textContent = gs.highScores.stacker;
+            // Play section scores
+            const updates = {
+                'play-hs-catcher': gs.highScores.catcher,
+                'play-hs-sequence': gs.highScores.sequence,
+                'play-hs-match': gs.highScores.match === 999 ? '--' : gs.highScores.match + 's',
+                'play-hs-clicker': formatNumber(gs.totalClicks),
+                'play-hs-fighter': gs.highScores.fighter,
+                'play-hs-racer': gs.highScores.racer,
+                'play-hs-blaster': gs.highScores.blaster,
+                'play-hs-defense': gs.highScores.defense,
+                'play-hs-stacker': gs.highScores.stacker
+            };
+            for (const [id, value] of Object.entries(updates)) {
+                const el = document.getElementById(id);
+                if (el) el.textContent = value;
+            }
+        }
+
+        // ============================================
+        // TOKEN CATCHER GAME
+        // ============================================
+
+        let catcherInterval, catcherTimer, catcherScore, catcherTimeLeft;
+        let basketPos = 50;
+        let moveDirection = 0;
+        let moveInterval = null;
+        const tokens = ['🔥', '💰', '⭐', '💎', '🪙'];
+        const scamTokens = ['💀', '🚨', '❌'];
+
+        function startCatcher() {
+            catcherScore = 0;
+            catcherTimeLeft = 30;
+            basketPos = 50;
+            moveDirection = 0;
+            document.getElementById('catcher-score').textContent = '0';
+            document.getElementById('catcher-time').textContent = '30';
+            document.getElementById('catcher-start').style.display = 'none';
+
+            const basket = document.getElementById('catcher-basket');
+            basket.style.left = 'calc(50% - 40px)';
+
+            // Spawn tokens
+            catcherInterval = setInterval(spawnToken, 600);
+
+            // Timer
+            catcherTimer = setInterval(() => {
+                catcherTimeLeft--;
+                document.getElementById('catcher-time').textContent = catcherTimeLeft;
+                if (catcherTimeLeft <= 0) {
+                    endCatcher();
+                }
+            }, 1000);
+
+            // Key controls - continuous movement
+            document.addEventListener('keydown', catcherKeyDown);
+            document.addEventListener('keyup', catcherKeyUp);
+            document.getElementById('catcher-area').addEventListener('touchmove', touchMoveCatcher);
+        }
+
+        function catcherKeyDown(e) {
+            if (e.key === 'ArrowLeft' && moveDirection !== -1) {
+                moveDirection = -1;
+                startContinuousMove();
+            } else if (e.key === 'ArrowRight' && moveDirection !== 1) {
+                moveDirection = 1;
+                startContinuousMove();
+            }
+        }
+
+        function catcherKeyUp(e) {
+            if ((e.key === 'ArrowLeft' && moveDirection === -1) ||
+                (e.key === 'ArrowRight' && moveDirection === 1)) {
+                moveDirection = 0;
+                stopContinuousMove();
+            }
+        }
+
+        function startContinuousMove() {
+            if (moveInterval) clearInterval(moveInterval);
+            // Move immediately on first press
+            moveBasket();
+            // Then continue moving every 16ms (60fps) for smooth movement
+            moveInterval = setInterval(moveBasket, 16);
+        }
+
+        function stopContinuousMove() {
+            if (moveInterval) {
+                clearInterval(moveInterval);
+                moveInterval = null;
+            }
+        }
+
+        function moveBasket() {
+            const step = 2; // Smaller step for smoother movement at 60fps
+            basketPos += moveDirection * step;
+            basketPos = Math.max(5, Math.min(95, basketPos));
+
+            const basket = document.getElementById('catcher-basket');
+            basket.style.left = `calc(${basketPos}% - 40px)`;
+            checkCatch();
+        }
+
+        function spawnToken() {
+            const area = document.getElementById('catcher-area');
+            const token = document.createElement('div');
+            token.className = 'falling-token';
+
+            // 20% chance of scam token
+            const isScam = Math.random() < 0.2;
+            token.textContent = isScam ? scamTokens[Math.floor(Math.random() * scamTokens.length)] : tokens[Math.floor(Math.random() * tokens.length)];
+            token.dataset.scam = isScam;
+
+            const xPos = Math.random() * (area.offsetWidth - 40);
+            token.style.left = xPos + 'px';
+            token.style.animationDuration = (2 + Math.random()) + 's';
+
+            area.appendChild(token);
+
+            // Check for catch
+            token.addEventListener('animationend', () => token.remove());
+        }
+
+        function touchMoveCatcher(e) {
+            e.preventDefault();
+            const area = document.getElementById('catcher-area');
+            const basket = document.getElementById('catcher-basket');
+            const touch = e.touches[0];
+            const rect = area.getBoundingClientRect();
+            basketPos = ((touch.clientX - rect.left) / rect.width) * 100;
+            basketPos = Math.max(5, Math.min(95, basketPos));
+            basket.style.left = `calc(${basketPos}% - 40px)`;
+            checkCatch();
+        }
+
+        function checkCatch() {
+            const basket = document.getElementById('catcher-basket');
+            const basketRect = basket.getBoundingClientRect();
+            const tokens = document.querySelectorAll('.falling-token');
+
+            tokens.forEach(token => {
+                const tokenRect = token.getBoundingClientRect();
+                if (tokenRect.bottom >= basketRect.top &&
+                    tokenRect.top <= basketRect.bottom &&
+                    tokenRect.right >= basketRect.left &&
+                    tokenRect.left <= basketRect.right) {
+
+                    if (token.dataset.scam === 'true') {
+                        catcherScore = Math.max(0, catcherScore - 20);
+                        showCatchEffect(token, '-20', '#ef4444');
+                    } else {
+                        catcherScore += 10;
+                        showCatchEffect(token, '+10', '#22c55e');
+                    }
+                    document.getElementById('catcher-score').textContent = catcherScore;
+                    token.remove();
+                }
+            });
+        }
+
+        function showCatchEffect(element, text, color) {
+            const effect = document.createElement('div');
+            effect.className = 'click-effect';
+            effect.textContent = text;
+            effect.style.color = color;
+            effect.style.left = element.style.left;
+            effect.style.top = element.offsetTop + 'px';
+            document.getElementById('catcher-area').appendChild(effect);
+            setTimeout(() => effect.remove(), 800);
+        }
+
+        function endCatcher() {
+            stopCatcher();
+            const gs = getGameState();
+
+            if (catcherScore > gs.highScores.catcher) {
+                gs.highScores.catcher = catcherScore;
+                saveGameState(gs);
+            }
+
+            // Award XP
+            const xpEarned = Math.min(50, Math.floor(catcherScore / 10) * 5);
+            if (xpEarned > 0) addXP(xpEarned);
+
+            // Check badge
+            if (catcherScore >= 500) {
+                const state = getState();
+                if (!state.badges.includes('catcher')) earnBadge('catcher');
+            }
+
+            updateHighScores();
+            document.getElementById('catcher-start').textContent = `Score: ${catcherScore} (+${xpEarned} XP) - PLAY AGAIN`;
+            document.getElementById('catcher-start').style.display = 'block';
+        }
+
+        function stopCatcher() {
+            clearInterval(catcherInterval);
+            clearInterval(catcherTimer);
+            stopContinuousMove();
+            moveDirection = 0;
+            document.removeEventListener('keydown', catcherKeyDown);
+            document.removeEventListener('keyup', catcherKeyUp);
+            document.querySelectorAll('.falling-token').forEach(t => t.remove());
+        }
+
+        // ============================================
+        // BURN SEQUENCE GAME (Simon Says)
+        // ============================================
+
+        let sequencePattern = [];
+        let playerPattern = [];
+        let sequenceLevel = 1;
+        let sequenceScore = 0;
+        let isShowingSequence = false;
+        let sequenceTimeout;
+        const steps = ['collect', 'swap', 'burn', 'verify'];
+
+        function startSequence() {
+            sequenceLevel = 1;
+            sequenceScore = 0;
+            sequencePattern = [];
+            document.getElementById('sequence-level').textContent = '1';
+            document.getElementById('sequence-score').textContent = '0';
+            document.getElementById('sequence-start').style.display = 'none';
+            nextSequenceRound();
+        }
+
+        function nextSequenceRound() {
+            playerPattern = [];
+            sequencePattern.push(steps[Math.floor(Math.random() * steps.length)]);
+            document.getElementById('sequence-display').textContent = 'Watch carefully...';
+            isShowingSequence = true;
+
+            setTimeout(() => showSequence(0), 500);
+        }
+
+        function showSequence(index) {
+            if (index >= sequencePattern.length) {
+                isShowingSequence = false;
+                document.getElementById('sequence-display').textContent = 'Your turn! Repeat the sequence';
+                return;
+            }
+
+            const step = sequencePattern[index];
+            const btn = document.querySelector(`.sequence-btn[data-step="${step}"]`);
+            btn.classList.add('flash');
+
+            setTimeout(() => {
+                btn.classList.remove('flash');
+                setTimeout(() => showSequence(index + 1), 300);
+            }, 500);
+        }
+
+        function sequenceClick(step) {
+            if (isShowingSequence) return;
+
+            const btn = document.querySelector(`.sequence-btn[data-step="${step}"]`);
+            btn.classList.add('flash');
+            setTimeout(() => btn.classList.remove('flash'), 200);
+
+            playerPattern.push(step);
+            const currentIndex = playerPattern.length - 1;
+
+            if (playerPattern[currentIndex] !== sequencePattern[currentIndex]) {
+                // Wrong!
+                endSequence();
+                return;
+            }
+
+            if (playerPattern.length === sequencePattern.length) {
+                // Correct sequence!
+                sequenceScore += sequenceLevel * 10;
+                sequenceLevel++;
+                document.getElementById('sequence-level').textContent = sequenceLevel;
+                document.getElementById('sequence-score').textContent = sequenceScore;
+                document.getElementById('sequence-display').textContent = 'Correct! Level ' + sequenceLevel;
+
+                setTimeout(nextSequenceRound, 1000);
+            }
+        }
+
+        function endSequence() {
+            document.getElementById('sequence-display').textContent = `Game Over! Level ${sequenceLevel}`;
+
+            const gs = getGameState();
+            if (sequenceLevel > gs.highScores.sequence) {
+                gs.highScores.sequence = sequenceLevel;
+                saveGameState(gs);
+            }
+
+            // Award XP
+            const xpEarned = Math.min(75, sequenceLevel * 5);
+            if (xpEarned > 0) addXP(xpEarned);
+
+            // Check badge
+            if (sequenceLevel >= 10) {
+                const state = getState();
+                if (!state.badges.includes('memory')) earnBadge('memory');
+            }
+
+            updateHighScores();
+            document.getElementById('sequence-start').textContent = `Level ${sequenceLevel} (+${xpEarned} XP) - PLAY AGAIN`;
+            document.getElementById('sequence-start').style.display = 'block';
+        }
+
+        function stopSequence() {
+            clearTimeout(sequenceTimeout);
+            sequencePattern = [];
+            playerPattern = [];
+            isShowingSequence = false;
+        }
+
+        // ============================================
+        // SPEED MATCH GAME
+        // ============================================
+
+        const matchPairs = [
+            { term: '🔥', meaning: 'Burn' },
+            { term: '💰', meaning: 'Fees' },
+            { term: '🔄', meaning: 'Cycle' },
+            { term: '🤖', meaning: 'Daemon' },
+            { term: '🏦', meaning: 'Treasury' },
+            { term: '💱', meaning: 'Swap' },
+            { term: '📉', meaning: 'Deflation' },
+            { term: '🔍', meaning: 'Verify' }
+        ];
+
+        let matchCards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let matchStartTime;
+        let matchTimerInterval;
+
+        function startMatch() {
+            matchedPairs = 0;
+            flippedCards = [];
+            document.getElementById('match-pairs').textContent = '0/8';
+            document.getElementById('match-time').textContent = '0:00';
+            document.getElementById('match-start').style.display = 'none';
+
+            // Create cards array (terms + meanings)
+            matchCards = [];
+            matchPairs.forEach((pair, i) => {
+                matchCards.push({ id: i, type: 'term', content: pair.term, pairId: i });
+                matchCards.push({ id: i + 8, type: 'meaning', content: pair.meaning, pairId: i });
+            });
+
+            // Shuffle
+            matchCards.sort(() => Math.random() - 0.5);
+
+            // Render
+            const grid = document.getElementById('match-grid');
+            grid.innerHTML = matchCards.map((card, idx) => `
+                <div class="match-card" data-index="${idx}" data-pair="${card.pairId}" onclick="flipCard(${idx})">
+                    <span class="card-front">?</span>
+                    <span class="card-back">${card.content}</span>
+                </div>
+            `).join('');
+
+            matchStartTime = Date.now();
+            matchTimerInterval = setInterval(updateMatchTimer, 100);
+        }
+
+        function updateMatchTimer() {
+            const elapsed = Math.floor((Date.now() - matchStartTime) / 1000);
+            const mins = Math.floor(elapsed / 60);
+            const secs = elapsed % 60;
+            document.getElementById('match-time').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function flipCard(index) {
+            const card = document.querySelector(`.match-card[data-index="${index}"]`);
+            if (card.classList.contains('flipped') || card.classList.contains('matched') || flippedCards.length >= 2) return;
+
+            card.classList.add('flipped');
+            flippedCards.push({ index, pairId: matchCards[index].pairId, element: card });
+
+            if (flippedCards.length === 2) {
+                setTimeout(checkMatch, 500);
+            }
+        }
+
+        function checkMatch() {
+            const [card1, card2] = flippedCards;
+
+            if (card1.pairId === card2.pairId) {
+                // Match!
+                card1.element.classList.add('matched');
+                card2.element.classList.add('matched');
+                matchedPairs++;
+                document.getElementById('match-pairs').textContent = `${matchedPairs}/8`;
+
+                if (matchedPairs === 8) {
+                    endMatch();
+                }
+            } else {
+                // No match
+                card1.element.classList.remove('flipped');
+                card2.element.classList.remove('flipped');
+            }
+
+            flippedCards = [];
+        }
+
+        function endMatch() {
+            clearInterval(matchTimerInterval);
+            const elapsed = Math.floor((Date.now() - matchStartTime) / 1000);
+
+            const gs = getGameState();
+            if (elapsed < gs.highScores.match) {
+                gs.highScores.match = elapsed;
+                saveGameState(gs);
+            }
+
+            // Award XP based on time
+            let xpEarned = 60;
+            if (elapsed > 30) xpEarned = 40;
+            if (elapsed > 60) xpEarned = 20;
+            if (elapsed > 90) xpEarned = 10;
+            addXP(xpEarned);
+
+            updateHighScores();
+            document.getElementById('match-start').textContent = `Time: ${elapsed}s (+${xpEarned} XP) - PLAY AGAIN`;
+            document.getElementById('match-start').style.display = 'block';
+        }
+
+        function stopMatch() {
+            clearInterval(matchTimerInterval);
+        }
+
+        // ============================================
+        // BURN CLICKER GAME
+        // ============================================
+
+        let clickerCount = 0;
+        let clickerPower = 1;
+        let clickerMulti = 1;
+        let hasAutoClicker = false;
+        let autoClickerInterval;
+        let frenzyActive = false;
+        let clickerXPAwarded = 0;
+
+        function initClicker() {
+            const gs = getGameState();
+            clickerCount = gs.totalClicks || 0;
+            clickerPower = gs.clickerPower || 1;
+            clickerMulti = gs.clickerMulti || 1;
+            hasAutoClicker = gs.hasAuto || false;
+
+            document.getElementById('clicker-count').textContent = formatNumber(clickerCount);
+            updateUpgradeButtons();
+
+            if (hasAutoClicker && !autoClickerInterval) {
+                autoClickerInterval = setInterval(() => {
+                    addClicks(clickerPower * clickerMulti);
+                }, 1000);
+            }
+        }
+
+        function clickBurn(e) {
+            const power = clickerPower * clickerMulti * (frenzyActive ? 5 : 1);
+            addClicks(power);
+
+            // Click effect
+            const effect = document.createElement('div');
+            effect.className = 'click-effect';
+            effect.textContent = '+' + power;
+            effect.style.left = (e.offsetX || 75) + 'px';
+            effect.style.top = (e.offsetY || 75) + 'px';
+            document.getElementById('clicker-btn').appendChild(effect);
+            setTimeout(() => effect.remove(), 800);
+        }
+
+        function addClicks(amount) {
+            clickerCount += amount;
+            document.getElementById('clicker-count').textContent = formatNumber(clickerCount);
+
+            const gs = getGameState();
+            gs.totalClicks = clickerCount;
+            saveGameState(gs);
+
+            updateUpgradeButtons();
+
+            // Award XP every 100 burns
+            const xpMilestones = Math.floor(clickerCount / 100);
+            if (xpMilestones > clickerXPAwarded && clickerXPAwarded < 10) {
+                addXP(10);
+                clickerXPAwarded = xpMilestones;
+            }
+
+            updateHighScores();
+        }
+
+        function buyUpgrade(type) {
+            const gs = getGameState();
+
+            if (type === 'power' && clickerCount >= 50) {
+                clickerCount -= 50;
+                clickerPower++;
+                gs.clickerPower = clickerPower;
+            }
+            else if (type === 'auto' && clickerCount >= 200 && !hasAutoClicker) {
+                clickerCount -= 200;
+                hasAutoClicker = true;
+                gs.hasAuto = true;
+                autoClickerInterval = setInterval(() => {
+                    addClicks(clickerPower * clickerMulti);
+                }, 1000);
+            }
+            else if (type === 'multi' && clickerCount >= 500 && clickerMulti < 4) {
+                clickerCount -= 500;
+                clickerMulti *= 2;
+                gs.clickerMulti = clickerMulti;
+            }
+            else if (type === 'frenzy' && clickerCount >= 1000 && !frenzyActive) {
+                clickerCount -= 1000;
+                frenzyActive = true;
+                document.getElementById('clicker-btn').style.background = 'radial-gradient(circle at 30% 30%, #fbbf24, #f59e0b, #d97706)';
+                setTimeout(() => {
+                    frenzyActive = false;
+                    document.getElementById('clicker-btn').style.background = '';
+                }, 10000);
+            }
+
+            gs.totalClicks = clickerCount;
+            saveGameState(gs);
+            document.getElementById('clicker-count').textContent = formatNumber(clickerCount);
+            updateUpgradeButtons();
+        }
+
+        function updateUpgradeButtons() {
+            document.getElementById('upgrade-power').disabled = clickerCount < 50;
+            document.getElementById('upgrade-auto').disabled = clickerCount < 200 || hasAutoClicker;
+            document.getElementById('upgrade-multi').disabled = clickerCount < 500 || clickerMulti >= 4;
+            document.getElementById('upgrade-frenzy').disabled = clickerCount < 1000 || frenzyActive;
+
+            if (hasAutoClicker) document.querySelector('#upgrade-auto .up-name').textContent = 'Auto Burner ✓';
+            if (clickerMulti >= 4) document.querySelector('#upgrade-multi .up-name').textContent = `${clickerMulti}x MAX`;
+        }
+
+        // ============================================
+        // BURN FIGHTER GAME (2D Combat)
+        // ============================================
+
+        let fighterActive = false;
+        let fighterWave = 1;
+        let fighterCombo = 0;
+        let fighterPlayerHP = 100;
+        let fighterEnemyHP = 100;
+        let fighterPlayerPos = 50;
+        let fighterEnemyPos = 50;
+        let fighterSpecialReady = true;
+        let fighterJumping = false;
+        let fighterBlocking = false;
+        let fighterFacing = 'right';
+        let fighterInterval;
+
+        function startFighter() {
+            fighterActive = true;
+            fighterWave = 1;
+            fighterCombo = 0;
+            fighterPlayerHP = 100;
+            fighterEnemyHP = 100;
+            fighterPlayerPos = 50;
+            fighterEnemyPos = 50;
+            fighterSpecialReady = true;
+            fighterJumping = false;
+            fighterBlocking = false;
+            fighterFacing = 'right';
+
+            document.getElementById('fighter-wave').textContent = fighterWave;
+            document.getElementById('fighter-combo').textContent = fighterCombo;
+            document.getElementById('fighter-player-health').style.width = '100%';
+            document.getElementById('fighter-enemy-health').style.width = '100%';
+            document.getElementById('fighter-start').style.display = 'none';
+
+            const player = document.getElementById('fighter-player');
+            const enemy = document.getElementById('fighter-enemy');
+            player.textContent = '🐕';
+            player.style.left = '50px';
+            player.style.transform = 'scaleX(1)';
+            enemy.textContent = '🐱';
+            enemy.style.right = '50px';
+            enemy.style.transform = 'scaleX(-1)';
+
+            document.addEventListener('keydown', fighterKeyHandler);
+            document.addEventListener('keyup', fighterKeyUpHandler);
+
+            // Mouse controls
+            const arena = document.getElementById('fighter-arena');
+            arena.addEventListener('mousedown', fighterMouseHandler);
+            arena.addEventListener('contextmenu', e => e.preventDefault());
+
+            // Enemy AI
+            fighterInterval = setInterval(fighterEnemyAI, 1500);
+        }
+
+        function fighterKeyHandler(e) {
+            if (!fighterActive) return;
+            // AZERTY controls: Z=jump, Q=left, D=right, F=block
+            if (e.key === 'q' || e.key === 'Q') fighterMove(-1);
+            if (e.key === 'd' || e.key === 'D') fighterMove(1);
+            if (e.key === 'z' || e.key === 'Z') fighterJump();
+            if (e.key === 'f' || e.key === 'F') fighterBlock();
+        }
+
+        function fighterKeyUpHandler(e) {
+            if (!fighterActive) return;
+            if (e.key === 'f' || e.key === 'F') {
+                fighterBlocking = false;
+                document.getElementById('fighter-player').classList.remove('blocking');
+            }
+        }
+
+        function fighterMouseHandler(e) {
+            if (!fighterActive) return;
+            e.preventDefault();
+            // Update facing before attack to ensure correct direction
+            fighterUpdateFacing();
+            if (e.button === 0) {
+                // Left click = attack in facing direction
+                fighterAttack(fighterFacing);
+            } else if (e.button === 2) {
+                // Right click = special
+                fighterSpecial();
+            }
+        }
+
+        function fighterMove(dir) {
+            if (!fighterActive || fighterBlocking) return;
+            fighterPlayerPos = Math.max(20, Math.min(350, fighterPlayerPos + dir * 30));
+            const player = document.getElementById('fighter-player');
+            player.style.left = fighterPlayerPos + 'px';
+
+            // Update facing direction based on enemy position
+            fighterUpdateFacing();
+        }
+
+        function fighterUpdateFacing() {
+            const player = document.getElementById('fighter-player');
+            const enemy = document.getElementById('fighter-enemy');
+            const enemyX = 500 - fighterEnemyPos;
+
+            // Player faces enemy
+            if (fighterPlayerPos < enemyX) {
+                fighterFacing = 'right';
+                player.style.transform = 'scaleX(1)';
+            } else {
+                fighterFacing = 'left';
+                player.style.transform = 'scaleX(-1)';
+            }
+
+            // Enemy faces player
+            if (enemyX > fighterPlayerPos) {
+                enemy.style.transform = 'scaleX(-1)';
+            } else {
+                enemy.style.transform = 'scaleX(1)';
+            }
+        }
+
+        function fighterJump() {
+            if (!fighterActive || fighterJumping || fighterBlocking) return;
+            fighterJumping = true;
+            const player = document.getElementById('fighter-player');
+            player.classList.add('jumping');
+            setTimeout(() => {
+                player.classList.remove('jumping');
+                fighterJumping = false;
+            }, 500);
+        }
+
+        function fighterBlock() {
+            if (!fighterActive || fighterJumping) return;
+            fighterBlocking = true;
+            document.getElementById('fighter-player').classList.add('blocking');
+        }
+
+        function fighterAttack(direction = 'right') {
+            if (!fighterActive || fighterBlocking) return;
+
+            // Calculate distance between player and enemy
+            const playerCenterX = fighterPlayerPos + 20;
+            const enemyCenterX = 500 - fighterEnemyPos - 20;
+            const dist = Math.abs(playerCenterX - enemyCenterX);
+
+            // Show attack effect in facing direction (toward enemy)
+            const attack = document.createElement('div');
+            attack.className = 'fighter-attack ' + direction;
+            attack.textContent = '💥';
+
+            // Position attack between player and enemy
+            if (direction === 'left') {
+                attack.style.left = (fighterPlayerPos - 25) + 'px';
+            } else {
+                attack.style.left = (fighterPlayerPos + 45) + 'px';
+            }
+            attack.style.bottom = fighterJumping ? '110px' : '55px';
+
+            document.getElementById('fighter-arena').appendChild(attack);
+            setTimeout(() => attack.remove(), 300);
+
+            // Simple hit detection - player always faces enemy, so just check range
+            const hitRange = 200;
+            if (dist < hitRange) {
+                const damage = 12 + Math.floor(Math.random() * 10) + (fighterJumping ? 5 : 0);
+                fighterEnemyHP = Math.max(0, fighterEnemyHP - damage);
+                fighterCombo++;
+                document.getElementById('fighter-combo').textContent = fighterCombo;
+                updateFighterHealth();
+
+                // Show hit effect on enemy
+                const hitMarker = document.createElement('div');
+                hitMarker.className = 'fighter-attack';
+                hitMarker.textContent = '💢';
+                hitMarker.style.left = enemyCenterX + 'px';
+                hitMarker.style.bottom = '75px';
+                document.getElementById('fighter-arena').appendChild(hitMarker);
+                setTimeout(() => hitMarker.remove(), 200);
+
+                if (fighterEnemyHP <= 0) {
+                    fighterNextWave();
+                }
+            }
+        }
+
+        function fighterSpecial() {
+            if (!fighterActive || !fighterSpecialReady || fighterBlocking) return;
+            fighterSpecialReady = false;
+
+            // Calculate distance
+            const playerCenterX = fighterPlayerPos + 20;
+            const enemyCenterX = 500 - fighterEnemyPos - 20;
+            const dist = Math.abs(playerCenterX - enemyCenterX);
+
+            const attack = document.createElement('div');
+            attack.className = 'fighter-attack ' + fighterFacing;
+            attack.textContent = '🔥';
+
+            // Position special attack in facing direction
+            if (fighterFacing === 'left') {
+                attack.style.left = (fighterPlayerPos - 35) + 'px';
+            } else {
+                attack.style.left = (fighterPlayerPos + 50) + 'px';
+            }
+            attack.style.bottom = fighterJumping ? '110px' : '60px';
+            attack.style.fontSize = '48px';
+            document.getElementById('fighter-arena').appendChild(attack);
+            setTimeout(() => attack.remove(), 400);
+
+            // Special has longer range (250px)
+            if (dist < 250) {
+                const damage = 25 + Math.floor(Math.random() * 15);
+                fighterEnemyHP = Math.max(0, fighterEnemyHP - damage);
+                fighterCombo += 3;
+                document.getElementById('fighter-combo').textContent = fighterCombo;
+                updateFighterHealth();
+
+                // Show hit effect on enemy
+                const hitMarker = document.createElement('div');
+                hitMarker.className = 'fighter-attack';
+                hitMarker.textContent = '💥';
+                hitMarker.style.left = enemyCenterX + 'px';
+                hitMarker.style.bottom = '75px';
+                hitMarker.style.fontSize = '32px';
+                document.getElementById('fighter-arena').appendChild(hitMarker);
+                setTimeout(() => hitMarker.remove(), 300);
+
+                if (fighterEnemyHP <= 0) {
+                    fighterNextWave();
+                }
+            }
+
+            setTimeout(() => { fighterSpecialReady = true; }, 3000);
+        }
+
+        function fighterEnemyAI() {
+            if (!fighterActive) return;
+
+            // Move towards player
+            const playerX = fighterPlayerPos;
+            const enemyX = 500 - fighterEnemyPos;
+            if (playerX < enemyX - 100) {
+                fighterEnemyPos = Math.min(450, fighterEnemyPos + 25);
+            } else if (playerX > enemyX + 100) {
+                fighterEnemyPos = Math.max(50, fighterEnemyPos - 25);
+            }
+            document.getElementById('fighter-enemy').style.right = fighterEnemyPos + 'px';
+
+            // Update facing after enemy moves
+            fighterUpdateFacing();
+
+            // Attack if close
+            if (Math.abs(playerX - enemyX) < 120) {
+                // Show enemy attack effect
+                const attack = document.createElement('div');
+                attack.className = 'fighter-attack left';
+                attack.textContent = '😾';
+                attack.style.right = fighterEnemyPos + 'px';
+                attack.style.bottom = '60px';
+                document.getElementById('fighter-arena').appendChild(attack);
+                setTimeout(() => attack.remove(), 300);
+
+                // Check if player is blocking
+                if (fighterBlocking) {
+                    // Blocked! Reduced damage
+                    const damage = Math.floor((5 + fighterWave * 2) * 0.2);
+                    fighterPlayerHP = Math.max(0, fighterPlayerHP - damage);
+                } else if (fighterJumping) {
+                    // Dodged by jumping!
+                } else {
+                    const damage = 5 + fighterWave * 2;
+                    fighterPlayerHP = Math.max(0, fighterPlayerHP - damage);
+                    fighterCombo = 0;
+                    document.getElementById('fighter-combo').textContent = fighterCombo;
+                }
+                updateFighterHealth();
+
+                if (fighterPlayerHP <= 0) {
+                    endFighter();
+                }
+            }
+        }
+
+        function updateFighterHealth() {
+            const playerBar = document.getElementById('fighter-player-health');
+            const enemyBar = document.getElementById('fighter-enemy-health');
+            playerBar.style.width = fighterPlayerHP + '%';
+            enemyBar.style.width = fighterEnemyHP + '%';
+            if (fighterPlayerHP < 30) playerBar.classList.add('low');
+            else playerBar.classList.remove('low');
+        }
+
+        function fighterNextWave() {
+            fighterWave++;
+            fighterEnemyHP = 100 + fighterWave * 20;
+            fighterEnemyPos = 50;  // Reset to right side (style.right = 50px)
+            document.getElementById('fighter-wave').textContent = fighterWave;
+            document.getElementById('fighter-enemy-health').style.width = '100%';
+
+            // Reset enemy position and appearance
+            const enemy = document.getElementById('fighter-enemy');
+            enemy.style.right = fighterEnemyPos + 'px';
+            enemy.style.transform = 'scaleX(-1)';  // Face left (towards player)
+
+            // Change enemy appearance - all cats!
+            const enemies = ['🐱', '😺', '😸', '😼', '🙀'];
+            enemy.textContent = enemies[fighterWave % enemies.length];
+
+            // Update facing directions
+            fighterUpdateFacing();
+        }
+
+        function endFighter() {
+            fighterActive = false;
+            clearInterval(fighterInterval);
+            document.removeEventListener('keydown', fighterKeyHandler);
+            document.removeEventListener('keyup', fighterKeyUpHandler);
+            const arena = document.getElementById('fighter-arena');
+            if (arena) arena.removeEventListener('mousedown', fighterMouseHandler);
+
+            const gs = getGameState();
+            if (fighterWave > gs.highScores.fighter) {
+                gs.highScores.fighter = fighterWave;
+                saveGameState(gs);
+            }
+
+            const xpEarned = Math.min(80, fighterWave * 10 + fighterCombo);
+            if (xpEarned > 0) addXP(xpEarned);
+
+            updateHighScores();
+            document.getElementById('fighter-start').textContent = `Wave ${fighterWave} (+${xpEarned} XP) - FIGHT AGAIN`;
+            document.getElementById('fighter-start').style.display = 'block';
+        }
+
+        // ============================================
+        // TOKEN RACER GAME (Car Game)
+        // ============================================
+
+        let racerActive = false;
+        let racerDistance = 0;
+        let racerCoins = 0;
+        let racerSpeed = 0;
+        let racerCarPos = 50;
+        let racerInterval;
+        let racerSpawnInterval;
+        let racerMoveDir = 0;
+        let racerMoveInterval;
+        let racerSpawnRate = 800;
+
+        function startRacer() {
+            racerActive = true;
+            racerDistance = 0;
+            racerCoins = 0;
+            racerSpeed = 60;
+            racerCarPos = 50;
+            racerMoveDir = 0;
+            racerSpawnRate = 800;
+
+            document.getElementById('racer-distance').textContent = '0m';
+            document.getElementById('racer-coins').textContent = '0';
+            document.getElementById('racer-speed').textContent = '60 km/h';
+            document.getElementById('racer-car').style.left = 'calc(50% - 20px)';
+            document.getElementById('racer-start').style.display = 'none';
+
+            // Clear existing obstacles
+            document.querySelectorAll('.racer-obstacle, .racer-coin').forEach(e => e.remove());
+
+            document.addEventListener('keydown', racerKeyDown);
+            document.addEventListener('keyup', racerKeyUp);
+
+            racerInterval = setInterval(racerUpdate, 50);
+            racerSpawnInterval = setInterval(racerSpawn, racerSpawnRate);
+        }
+
+        function racerKeyDown(e) {
+            if (!racerActive) return;
+            if (e.key === 'ArrowLeft' && racerMoveDir !== -1) {
+                racerMoveDir = -1;
+                if (!racerMoveInterval) racerMoveInterval = setInterval(racerMoveCar, 16);
+            }
+            if (e.key === 'ArrowRight' && racerMoveDir !== 1) {
+                racerMoveDir = 1;
+                if (!racerMoveInterval) racerMoveInterval = setInterval(racerMoveCar, 16);
+            }
+        }
+
+        function racerKeyUp(e) {
+            if ((e.key === 'ArrowLeft' && racerMoveDir === -1) || (e.key === 'ArrowRight' && racerMoveDir === 1)) {
+                racerMoveDir = 0;
+                clearInterval(racerMoveInterval);
+                racerMoveInterval = null;
+            }
+        }
+
+        function racerMoveCar() {
+            const moveSpeed = 1.5 + racerSpeed / 100;
+            // Keep car within road boundaries (road is 200px wide, centered)
+            // Road spans roughly 35% to 65% of the container
+            racerCarPos = Math.max(36, Math.min(64, racerCarPos + racerMoveDir * moveSpeed));
+            document.getElementById('racer-car').style.left = `calc(${racerCarPos}% - 20px)`;
+        }
+
+        function racerUpdate() {
+            if (!racerActive) return;
+
+            // Progressive speed increase (more noticeable acceleration)
+            racerSpeed = Math.min(400, racerSpeed + 0.4);
+            racerDistance += Math.floor(racerSpeed / 20);
+
+            document.getElementById('racer-distance').textContent = racerDistance + 'm';
+            document.getElementById('racer-speed').textContent = Math.floor(racerSpeed) + ' km/h';
+
+            // Update spawn rate based on speed
+            const newSpawnRate = Math.max(300, 800 - racerSpeed * 2);
+            if (Math.abs(newSpawnRate - racerSpawnRate) > 50) {
+                racerSpawnRate = newSpawnRate;
+                clearInterval(racerSpawnInterval);
+                racerSpawnInterval = setInterval(racerSpawn, racerSpawnRate);
+            }
+
+            // Check collisions
+            racerCheckCollisions();
+        }
+
+        function racerSpawn() {
+            if (!racerActive) return;
+            const track = document.getElementById('racer-track');
+            const isObstacle = Math.random() < 0.35;
+            const item = document.createElement('div');
+            item.className = isObstacle ? 'racer-obstacle' : 'racer-coin';
+            item.textContent = isObstacle ? (Math.random() < 0.5 ? '🚨' : '💀') : '🪙';
+            item.dataset.type = isObstacle ? 'obstacle' : 'coin';
+
+            const xPos = 30 + Math.random() * 40;
+            item.style.left = `calc(${xPos}% - 14px)`;
+
+            // Faster animation as speed increases
+            const animDuration = Math.max(0.6, 2.5 - racerSpeed / 120);
+            item.style.animationDuration = animDuration + 's';
+
+            track.appendChild(item);
+            item.addEventListener('animationend', () => item.remove());
+        }
+
+        function racerCheckCollisions() {
+            const car = document.getElementById('racer-car');
+            const carRect = car.getBoundingClientRect();
+
+            // Shrink hitbox by margin (10px on each side)
+            const margin = 10;
+            const carHitbox = {
+                left: carRect.left + margin,
+                right: carRect.right - margin,
+                top: carRect.top + margin,
+                bottom: carRect.bottom - margin
+            };
+
+            document.querySelectorAll('.racer-obstacle, .racer-coin').forEach(item => {
+                const itemRect = item.getBoundingClientRect();
+                // Also shrink obstacle hitbox
+                const itemMargin = item.dataset.type === 'obstacle' ? 8 : 0;
+                const itemHitbox = {
+                    left: itemRect.left + itemMargin,
+                    right: itemRect.right - itemMargin,
+                    top: itemRect.top + itemMargin,
+                    bottom: itemRect.bottom - itemMargin
+                };
+
+                if (carHitbox.left < itemHitbox.right && carHitbox.right > itemHitbox.left &&
+                    carHitbox.top < itemHitbox.bottom && carHitbox.bottom > itemHitbox.top) {
+
+                    if (item.dataset.type === 'obstacle') {
+                        endRacer();
+                    } else {
+                        racerCoins += 10;
+                        document.getElementById('racer-coins').textContent = racerCoins;
+                        item.remove();
+                    }
+                }
+            });
+        }
+
+        function endRacer() {
+            racerActive = false;
+            clearInterval(racerInterval);
+            clearInterval(racerSpawnInterval);
+            clearInterval(racerMoveInterval);
+            racerMoveInterval = null;
+            document.removeEventListener('keydown', racerKeyDown);
+            document.removeEventListener('keyup', racerKeyUp);
+
+            const gs = getGameState();
+            if (racerDistance > gs.highScores.racer) {
+                gs.highScores.racer = racerDistance;
+                saveGameState(gs);
+            }
+
+            const xpEarned = Math.min(70, Math.floor(racerDistance / 100) * 5 + racerCoins / 2);
+            if (xpEarned > 0) addXP(xpEarned);
+
+            updateHighScores();
+            document.getElementById('racer-start').textContent = `${racerDistance}m (+${Math.floor(xpEarned)} XP) - RACE AGAIN`;
+            document.getElementById('racer-start').style.display = 'block';
+        }
+
+        // ============================================
+        // SCAM BLASTER GAME (Shooting)
+        // ============================================
+
+        let blasterActive = false;
+        let blasterScore = 0;
+        let blasterWave = 1;
+        let blasterTargets = 0;
+        let blasterMisses = 0;
+        let blasterSpawnInterval;
+
+        function startBlaster() {
+            blasterActive = true;
+            blasterScore = 0;
+            blasterWave = 1;
+            blasterTargets = 0;
+            blasterMisses = 0;
+            blasterMultiplier = 1;
+
+            document.getElementById('blaster-score').textContent = '0';
+            document.getElementById('blaster-wave').textContent = '1';
+            document.getElementById('blaster-wave-display').textContent = '1';
+            document.getElementById('blaster-start').style.display = 'none';
+
+            document.querySelectorAll('.blaster-target').forEach(t => t.remove());
+
+            blasterSpawnTargets();
+            blasterSpawnInterval = setInterval(blasterCheckWave, 500);
+        }
+
+        let blasterMultiplier = 1;
+
+        function blasterSpawnTargets() {
+            const arena = document.getElementById('blaster-arena');
+            const count = 3 + blasterWave * 2;
+
+            for (let i = 0; i < count; i++) {
+                setTimeout(() => {
+                    if (!blasterActive) return;
+                    const target = document.createElement('div');
+                    target.className = 'blaster-target';
+
+                    // 3 types: skull (danger), flame (multiplier), rug (points)
+                    const rand = Math.random();
+                    let type;
+                    if (rand < 0.25) {
+                        type = 'skull';
+                        target.textContent = '💀';
+                    } else if (rand < 0.45) {
+                        type = 'flame';
+                        target.textContent = '🔥';
+                    } else {
+                        type = 'rug';
+                        target.textContent = '🚨';
+                    }
+                    target.dataset.type = type;
+
+                    target.style.left = (20 + Math.random() * 60) + '%';
+                    target.style.top = (20 + Math.random() * 60) + '%';
+                    target.style.animationDelay = (Math.random() * 0.5) + 's';
+
+                    target.onclick = (e) => {
+                        e.stopPropagation();
+                        blasterHitTarget(target);
+                    };
+
+                    arena.appendChild(target);
+                    blasterTargets++;
+
+                    // Auto-escape after time - rugs that escape = miss
+                    setTimeout(() => {
+                        if (target.parentNode && blasterActive) {
+                            if (target.dataset.type === 'rug') {
+                                blasterMisses++;
+                                if (blasterMisses >= 5) endBlaster();
+                            }
+                            target.remove();
+                            blasterTargets--;
+                        }
+                    }, 3000 - blasterWave * 200);
+                }, i * 300);
+            }
+        }
+
+        function blasterShoot(e) {
+            if (!blasterActive) return;
+            // Show explosion at click point
+            const arena = document.getElementById('blaster-arena');
+            const rect = arena.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const explosion = document.createElement('div');
+            explosion.className = 'blaster-explosion';
+            explosion.textContent = '💨';
+            explosion.style.left = x + 'px';
+            explosion.style.top = y + 'px';
+            arena.appendChild(explosion);
+            setTimeout(() => explosion.remove(), 400);
+        }
+
+        function blasterHitTarget(target) {
+            if (!blasterActive) return;
+            const type = target.dataset.type;
+
+            const explosion = document.createElement('div');
+            explosion.className = 'blaster-explosion';
+            explosion.style.left = target.style.left;
+            explosion.style.top = target.style.top;
+            target.parentNode.appendChild(explosion);
+
+            if (type === 'skull') {
+                // Skull = GAME OVER!
+                explosion.textContent = '💀💥';
+                explosion.style.fontSize = '48px';
+                setTimeout(() => explosion.remove(), 600);
+                target.remove();
+                blasterTargets--;
+                endBlaster();
+                return;
+            } else if (type === 'flame') {
+                // Flame = multiplier boost
+                explosion.textContent = '🔥x2';
+                blasterMultiplier = Math.min(8, blasterMultiplier + 1);
+                document.getElementById('blaster-score').textContent = blasterScore + ' (x' + blasterMultiplier + ')';
+            } else {
+                // Rug = normal points
+                explosion.textContent = '💥';
+                const points = 10 * blasterWave * blasterMultiplier;
+                blasterScore += points;
+                document.getElementById('blaster-score').textContent = blasterScore + (blasterMultiplier > 1 ? ' (x' + blasterMultiplier + ')' : '');
+            }
+
+            setTimeout(() => explosion.remove(), 400);
+            target.remove();
+            blasterTargets--;
+        }
+
+        function blasterCheckWave() {
+            if (!blasterActive) return;
+            const rugTargets = document.querySelectorAll('.blaster-target[data-type="rug"]');
+            const remainingTargets = document.querySelectorAll('.blaster-target');
+            // Advance wave when all rugs are eliminated
+            if (rugTargets.length === 0 && remainingTargets.length <= 2) {
+                blasterWave++;
+                document.getElementById('blaster-wave').textContent = blasterWave;
+                document.getElementById('blaster-wave-display').textContent = blasterWave;
+                // Clear remaining targets
+                remainingTargets.forEach(t => t.remove());
+                blasterTargets = 0;
+                blasterSpawnTargets();
+            }
+        }
+
+        function endBlaster() {
+            blasterActive = false;
+            clearInterval(blasterSpawnInterval);
+            document.querySelectorAll('.blaster-target').forEach(t => t.remove());
+
+            const gs = getGameState();
+            if (blasterWave > gs.highScores.blaster) {
+                gs.highScores.blaster = blasterWave;
+                saveGameState(gs);
+            }
+
+            const xpEarned = Math.min(65, blasterWave * 8 + Math.floor(blasterScore / 50));
+            if (xpEarned > 0) addXP(xpEarned);
+
+            updateHighScores();
+            document.getElementById('blaster-start').textContent = `Wave ${blasterWave} (+${xpEarned} XP) - BLAST AGAIN`;
+            document.getElementById('blaster-start').style.display = 'block';
+        }
+
+        // ============================================
+        // TREASURY DEFENSE GAME (Strategy)
+        // ============================================
+
+        let defenseActive = false;
+        let defensePrepPhase = false;
+        let defenseWave = 1;
+        let defenseGold = 150;
+        let defenseLives = 5;
+        let defenseSelectedTower = 'fire';
+        let defenseTowers = [];
+        let defenseEnemies = [];
+        let defenseInterval;
+        let defensePrepTimer = null;
+        const defenseGrid = Array(48).fill(null);
+        // Grid 8x6: indices 0-7 (row1), 8-15 (row2), etc.
+        let defensePath = [];
+        const towerCosts = { fire: 40, ice: 60, lightning: 80 };
+        const towerDamage = { fire: 25, ice: 15, lightning: 40 };
+
+        // Generate a random path from left edge to treasury (bottom-right)
+        function generateDefensePath() {
+            const path = [];
+            const cols = 8, rows = 6;
+
+            // Start from a random row on the left edge
+            let row = Math.floor(Math.random() * rows);
+            let col = 0;
+            path.push(row * cols + col);
+
+            // Move towards the treasury at position 47 (row 5, col 7)
+            while (col < 7 || row < 5) {
+                const possibleMoves = [];
+
+                // Prefer moving right
+                if (col < 7) {
+                    possibleMoves.push({ r: row, c: col + 1, weight: 3 });
+                }
+                // Can move down if not at bottom
+                if (row < 5 && col > 0) {
+                    possibleMoves.push({ r: row + 1, c: col, weight: 1 });
+                }
+                // Can move up if not at top and we're past the first column
+                if (row > 0 && col > 0 && col < 6) {
+                    possibleMoves.push({ r: row - 1, c: col, weight: 1 });
+                }
+
+                // If we're at the right edge, must go down to treasury
+                if (col === 7 && row < 5) {
+                    possibleMoves.length = 0;
+                    possibleMoves.push({ r: row + 1, c: col, weight: 1 });
+                }
+
+                // Pick a move (weighted random)
+                const totalWeight = possibleMoves.reduce((sum, m) => sum + m.weight, 0);
+                let rand = Math.random() * totalWeight;
+                let chosen = possibleMoves[0];
+                for (const move of possibleMoves) {
+                    rand -= move.weight;
+                    if (rand <= 0) {
+                        chosen = move;
+                        break;
+                    }
+                }
+
+                row = chosen.r;
+                col = chosen.c;
+                const cellIndex = row * cols + col;
+
+                // Avoid revisiting cells
+                if (!path.includes(cellIndex)) {
+                    path.push(cellIndex);
+                }
+
+                // Safety check
+                if (path.length > 20) break;
+            }
+
+            // Ensure treasury is the last cell
+            if (path[path.length - 1] !== 47) {
+                path.push(47);
+            }
+
+            return path;
+        }
+
+        function initDefenseField() {
+            // Generate a new random path each game
+            defensePath = generateDefensePath();
+            const startCell = defensePath[0];
+
+            const field = document.getElementById('defense-field');
+            field.innerHTML = '';
+            for (let i = 0; i < 48; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'defense-cell';
+                if (defensePath.includes(i)) cell.classList.add('path');
+                if (i === 47) {
+                    cell.classList.add('treasury');
+                    cell.textContent = '🏦';
+                }
+                if (i === startCell) {
+                    cell.classList.add('start');
+                    cell.textContent = '🚪';
+                }
+                cell.dataset.index = i;
+                cell.onclick = () => placeTower(i);
+                field.appendChild(cell);
+            }
+        }
+
+        function selectTower(type) {
+            defenseSelectedTower = type;
+            document.querySelectorAll('.defense-tower-btn').forEach(b => b.classList.remove('selected'));
+            document.getElementById('tower-' + type).classList.add('selected');
+        }
+
+        function placeTower(index) {
+            // Can place during prep phase or active phase
+            if (!defensePrepPhase && !defenseActive) return;
+            if (defensePath.includes(index) || defenseGrid[index]) return;
+            const cost = towerCosts[defenseSelectedTower];
+            if (defenseGold < cost) return;
+
+            defenseGold -= cost;
+            document.getElementById('defense-gold').textContent = defenseGold;
+
+            const cell = document.querySelector(`.defense-cell[data-index="${index}"]`);
+            cell.classList.add('tower');
+            cell.textContent = defenseSelectedTower === 'fire' ? '🔥' : defenseSelectedTower === 'ice' ? '❄️' : '⚡';
+
+            defenseGrid[index] = { type: defenseSelectedTower, damage: towerDamage[defenseSelectedTower] };
+            defenseTowers.push({ index, type: defenseSelectedTower });
+        }
+
+        function startDefensePrep() {
+            if (defenseActive || defensePrepPhase) return;
+            defensePrepPhase = true;
+            let countdown = 10;
+            document.getElementById('defense-start').textContent = `PREP: ${countdown}s - Place towers!`;
+            document.getElementById('defense-start').disabled = true;
+
+            defensePrepTimer = setInterval(() => {
+                countdown--;
+                if (countdown <= 0) {
+                    clearInterval(defensePrepTimer);
+                    defensePrepPhase = false;
+                    startDefenseWave();
+                } else {
+                    document.getElementById('defense-start').textContent = `PREP: ${countdown}s - Place towers!`;
+                }
+            }, 1000);
+        }
+
+        function startDefenseWave() {
+            defenseActive = true;
+            document.getElementById('defense-start').textContent = 'WAVE ' + defenseWave + ' IN PROGRESS...';
+
+            // Spawn enemies with delay
+            const enemyCount = 3 + defenseWave;
+            for (let i = 0; i < enemyCount; i++) {
+                setTimeout(() => {
+                    if (!defenseActive) return;
+                    spawnDefenseEnemy();
+                }, i * 1200);
+            }
+
+            defenseInterval = setInterval(defenseUpdate, 150);
+        }
+
+        function spawnDefenseEnemy() {
+            const field = document.getElementById('defense-field');
+            const enemy = document.createElement('div');
+            enemy.className = 'defense-enemy';
+            enemy.textContent = ['💀', '👹', '🚨'][Math.floor(Math.random() * 3)];
+            enemy.dataset.hp = 80 + defenseWave * 15;
+            enemy.dataset.maxHp = enemy.dataset.hp;
+            enemy.dataset.pathIndex = 0;
+            enemy.dataset.slowTimer = 0;
+
+            positionEnemyOnPath(enemy, 0, field);
+            field.appendChild(enemy);
+            defenseEnemies.push(enemy);
+        }
+
+        function positionEnemyOnPath(enemy, pathIdx, field) {
+            const fieldRect = field.getBoundingClientRect();
+            const cellIndex = defensePath[pathIdx];
+            const cell = field.children[cellIndex];
+            if (!cell) return;
+            const cellRect = cell.getBoundingClientRect();
+            enemy.style.left = (cellRect.left - fieldRect.left + cellRect.width / 2 - 12) + 'px';
+            enemy.style.top = (cellRect.top - fieldRect.top + cellRect.height / 2 - 12) + 'px';
+        }
+
+        function defenseUpdate() {
+            if (!defenseActive) return;
+            const field = document.getElementById('defense-field');
+
+            // Move enemies along path
+            defenseEnemies.forEach((enemy, idx) => {
+                if (!enemy.parentNode) return;
+
+                // Check if slowed
+                let slowTimer = parseInt(enemy.dataset.slowTimer) || 0;
+                if (slowTimer > 0) {
+                    enemy.dataset.slowTimer = slowTimer - 1;
+                    if (slowTimer % 2 === 0) return; // Skip every other update when slowed
+                }
+
+                let pathIdx = parseInt(enemy.dataset.pathIndex);
+                if (pathIdx < defensePath.length - 1) {
+                    pathIdx++;
+                    enemy.dataset.pathIndex = pathIdx;
+                    positionEnemyOnPath(enemy, pathIdx, field);
+                } else {
+                    // Reached treasury
+                    enemy.remove();
+                    defenseEnemies.splice(idx, 1);
+                    defenseLives--;
+                    updateDefenseLives();
+                    if (defenseLives <= 0) endDefense();
+                }
+            });
+
+            // Tower attacks with visual effects
+            const now = Date.now();
+            const fieldRect = field.getBoundingClientRect();
+            defenseTowers.forEach(tower => {
+                // Check cooldown (faster for lightning)
+                const cooldown = tower.type === 'lightning' ? 300 : 600;
+                if (tower.lastShot && now - tower.lastShot < cooldown) return;
+
+                const towerCell = field.children[tower.index];
+                if (!towerCell) return;
+                const towerRect = towerCell.getBoundingClientRect();
+                const towerX = towerRect.left - fieldRect.left + towerRect.width / 2;
+                const towerY = towerRect.top - fieldRect.top + towerRect.height / 2;
+
+                // Find closest enemy in range (increased range)
+                let closestEnemy = null;
+                let closestDist = Infinity;
+                const range = tower.type === 'lightning' ? 100 : 80;
+
+                defenseEnemies.forEach(enemy => {
+                    if (!enemy.parentNode) return;
+                    const enemyRect = enemy.getBoundingClientRect();
+                    const enemyX = enemyRect.left - fieldRect.left + enemyRect.width / 2;
+                    const enemyY = enemyRect.top - fieldRect.top + enemyRect.height / 2;
+                    const dist = Math.hypot(towerX - enemyX, towerY - enemyY);
+
+                    if (dist < range && dist < closestDist) {
+                        closestDist = dist;
+                        closestEnemy = { el: enemy, x: enemyX, y: enemyY };
+                    }
+                });
+
+                if (closestEnemy) {
+                    tower.lastShot = now;
+                    const towerData = defenseGrid[tower.index];
+
+                    // Create projectile
+                    const projectile = document.createElement('div');
+                    projectile.className = 'defense-projectile ' + tower.type;
+                    projectile.textContent = tower.type === 'fire' ? '🔥' : tower.type === 'ice' ? '❄️' : '⚡';
+                    projectile.style.left = closestEnemy.x + 'px';
+                    projectile.style.top = closestEnemy.y + 'px';
+                    field.appendChild(projectile);
+                    setTimeout(() => projectile.remove(), 300);
+
+                    // Deal damage
+                    let hp = parseInt(closestEnemy.el.dataset.hp) - towerData.damage;
+                    closestEnemy.el.dataset.hp = hp;
+
+                    // Show damage number
+                    const dmgText = document.createElement('div');
+                    dmgText.className = 'defense-damage';
+                    dmgText.textContent = '-' + towerData.damage;
+                    dmgText.style.left = closestEnemy.x + 'px';
+                    dmgText.style.top = closestEnemy.y + 'px';
+                    field.appendChild(dmgText);
+                    setTimeout(() => dmgText.remove(), 600);
+
+                    // Ice tower slows enemy
+                    if (tower.type === 'ice') {
+                        closestEnemy.el.dataset.slowTimer = 10;
+                        closestEnemy.el.style.filter = 'hue-rotate(180deg)';
+                        setTimeout(() => {
+                            if (closestEnemy.el.parentNode) {
+                                closestEnemy.el.style.filter = '';
+                            }
+                        }, 1500);
+                    }
+
+                    if (hp <= 0) {
+                        closestEnemy.el.remove();
+                        defenseEnemies = defenseEnemies.filter(e => e !== closestEnemy.el);
+                        defenseGold += 15 + defenseWave * 3;
+                        document.getElementById('defense-gold').textContent = defenseGold;
+                    }
+                }
+            });
+
+            // Check wave complete
+            if (defenseEnemies.length === 0 && document.querySelectorAll('.defense-enemy').length === 0) {
+                defenseActive = false;
+                clearInterval(defenseInterval);
+                defenseWave++;
+                // Bonus gold for completing wave
+                defenseGold += 50 + defenseWave * 10;
+                document.getElementById('defense-gold').textContent = defenseGold;
+                document.getElementById('defense-wave').textContent = defenseWave;
+                document.getElementById('defense-start').textContent = 'PREP WAVE ' + defenseWave;
+                document.getElementById('defense-start').disabled = false;
+            }
+        }
+
+        function updateDefenseLives() {
+            const livesEl = document.getElementById('defense-lives');
+            livesEl.innerHTML = '';
+            for (let i = 0; i < 5; i++) {
+                const span = document.createElement('span');
+                span.textContent = i < defenseLives ? '❤️' : '🖤';
+                livesEl.appendChild(span);
+            }
+        }
+
+        function endDefense() {
+            defenseActive = false;
+            defensePrepPhase = false;
+            clearInterval(defenseInterval);
+            clearInterval(defensePrepTimer);
+            defenseEnemies.forEach(e => e.remove());
+            defenseEnemies = [];
+
+            const gs = getGameState();
+            if (defenseWave > gs.highScores.defense) {
+                gs.highScores.defense = defenseWave;
+                saveGameState(gs);
+            }
+
+            const xpEarned = Math.min(90, defenseWave * 12);
+            if (xpEarned > 0) addXP(xpEarned);
+
+            updateHighScores();
+            document.getElementById('defense-start').textContent = `Wave ${defenseWave} (+${xpEarned} XP) - RESTART`;
+            document.getElementById('defense-start').disabled = false;
+            document.getElementById('defense-start').onclick = () => {
+                defenseWave = 1;
+                defenseGold = 150;
+                defenseLives = 5;
+                defenseTowers = [];
+                defenseGrid.fill(null);
+                document.getElementById('defense-wave').textContent = '1';
+                document.getElementById('defense-gold').textContent = '150';
+                updateDefenseLives();
+                initDefenseField();
+                document.getElementById('defense-start').textContent = 'START PREP';
+                document.getElementById('defense-start').onclick = startDefensePrep;
+            };
+        }
+
+        // ============================================
+        // TOKEN STACKER GAME (Build)
+        // ============================================
+
+        let stackerActive = false;
+        let stackerHeight = 0;
+        let stackerScore = 0;
+        let stackerBlocks = [];
+        let stackerMovingBlock = null;
+        let stackerDirection = 1;
+        let stackerSpeed = 3;
+        let stackerBlockWidth = 80;
+        let stackerInterval;
+
+        let stackerViewportOffset = 0;
+
+        function startStacker() {
+            stackerActive = true;
+            stackerHeight = 0;
+            stackerScore = 0;
+            stackerBlocks = [];
+            stackerBlockWidth = 80;
+            stackerSpeed = 3;
+            stackerViewportOffset = 0;
+
+            document.getElementById('stacker-height').textContent = '0';
+            document.getElementById('stacker-height-display').textContent = '0';
+            document.getElementById('stacker-score').textContent = '0';
+            document.getElementById('stacker-start').style.display = 'none';
+
+            // Reset viewport
+            const viewport = document.getElementById('stacker-viewport');
+            viewport.style.transform = 'translateY(0)';
+
+            // Clear blocks
+            document.querySelectorAll('.stacker-block, .stacker-moving, .stacker-perfect-text').forEach(b => b.remove());
+
+            document.addEventListener('keydown', stackerKeyHandler);
+            spawnStackerBlock();
+        }
+
+        function stackerKeyHandler(e) {
+            if (e.code === 'Space' && stackerActive) {
+                e.preventDefault();
+                stackerDrop();
+            }
+        }
+
+        function spawnStackerBlock() {
+            const viewport = document.getElementById('stacker-viewport');
+            const block = document.createElement('div');
+            block.className = 'stacker-moving';
+            block.style.width = stackerBlockWidth + 'px';
+            block.style.left = '0px';
+            block.textContent = '🔥';
+
+            // Position at landing height (on top of the current tower)
+            const landingHeight = 20 + stackerHeight * 32;
+            block.style.bottom = landingHeight + 'px';
+
+            viewport.appendChild(block);
+            stackerMovingBlock = block;
+            stackerDirection = 1;
+
+            stackerInterval = setInterval(moveStackerBlock, 16);
+        }
+
+        function moveStackerBlock() {
+            if (!stackerMovingBlock) return;
+            let left = parseFloat(stackerMovingBlock.style.left);
+            const maxLeft = document.getElementById('stacker-viewport').offsetWidth - stackerBlockWidth;
+
+            left += stackerDirection * stackerSpeed;
+            if (left >= maxLeft) { left = maxLeft; stackerDirection = -1; }
+            if (left <= 0) { left = 0; stackerDirection = 1; }
+
+            stackerMovingBlock.style.left = left + 'px';
+        }
+
+        function stackerDrop() {
+            if (!stackerActive || !stackerMovingBlock) return;
+            clearInterval(stackerInterval);
+
+            const area = document.getElementById('stacker-area');
+            const viewport = document.getElementById('stacker-viewport');
+            const areaWidth = area.offsetWidth;
+            const blockLeft = parseFloat(stackerMovingBlock.style.left);
+            const blockWidth = stackerBlockWidth;
+
+            let newWidth = blockWidth;
+            let newLeft = blockLeft;
+            let isPerfect = false;
+
+            if (stackerHeight === 0) {
+                // First block - center it
+                const centerLeft = (areaWidth - 80) / 2;
+                if (Math.abs(blockLeft - centerLeft) < 5) {
+                    isPerfect = true;
+                    newLeft = centerLeft;
+                }
+            } else {
+                // Compare with previous block
+                const prevBlock = stackerBlocks[stackerBlocks.length - 1];
+                const overlap = Math.min(blockLeft + blockWidth, prevBlock.left + prevBlock.width) -
+                               Math.max(blockLeft, prevBlock.left);
+
+                if (overlap <= 0) {
+                    // Miss!
+                    stackerMovingBlock.remove();
+                    endStacker();
+                    return;
+                }
+
+                newWidth = overlap;
+                newLeft = Math.max(blockLeft, prevBlock.left);
+                isPerfect = overlap >= blockWidth - 2;
+            }
+
+            // Create placed block in viewport
+            const placedBlock = document.createElement('div');
+            placedBlock.className = 'stacker-block placed' + (isPerfect ? ' perfect' : '');
+            placedBlock.style.width = newWidth + 'px';
+            placedBlock.style.left = newLeft + 'px';
+            placedBlock.style.bottom = (20 + stackerHeight * 32) + 'px';
+            placedBlock.textContent = '🔥';
+            viewport.appendChild(placedBlock);
+
+            stackerBlocks.push({ left: newLeft, width: newWidth });
+            stackerMovingBlock.remove();
+            stackerMovingBlock = null;
+
+            stackerHeight++;
+            stackerScore += isPerfect ? 20 : 10;
+            stackerBlockWidth = newWidth;
+            stackerSpeed = Math.min(8, 3 + stackerHeight * 0.3);
+
+            document.getElementById('stacker-height').textContent = stackerHeight;
+            document.getElementById('stacker-height-display').textContent = stackerHeight;
+            document.getElementById('stacker-score').textContent = stackerScore;
+
+            if (isPerfect) {
+                const text = document.createElement('div');
+                text.className = 'stacker-perfect-text';
+                text.textContent = 'PERFECT!';
+                text.style.top = (320 - stackerHeight * 32) + 'px';
+                area.appendChild(text);
+                setTimeout(() => text.remove(), 800);
+                stackerBlockWidth = Math.min(80, stackerBlockWidth + 5);
+            }
+
+            // Check if too narrow
+            if (stackerBlockWidth < 10) {
+                endStacker();
+                return;
+            }
+
+            // Scroll viewport to follow the tower growth starting at level 7
+            if (stackerHeight >= 7) {
+                stackerViewportOffset = (stackerHeight - 6) * 32;
+                viewport.style.transform = `translateY(${stackerViewportOffset}px)`;
+            }
+
+            spawnStackerBlock();
+        }
+
+        function endStacker() {
+            stackerActive = false;
+            clearInterval(stackerInterval);
+            document.removeEventListener('keydown', stackerKeyHandler);
+            document.getElementById('stacker-viewport').style.transform = '';
+
+            const gs = getGameState();
+            if (stackerHeight > gs.highScores.stacker) {
+                gs.highScores.stacker = stackerHeight;
+                saveGameState(gs);
+            }
+
+            const xpEarned = Math.min(55, stackerHeight * 3 + Math.floor(stackerScore / 10));
+            if (xpEarned > 0) addXP(xpEarned);
+
+            updateHighScores();
+            document.getElementById('stacker-start').textContent = `${stackerHeight} floors (+${xpEarned} XP) - STACK AGAIN`;
+            document.getElementById('stacker-start').style.display = 'block';
+        }
+
+        // ============================================
+        // DAILY STREAK
+        // ============================================
+
+        function updateStreak() {
+            const gs = getGameState();
+            const today = new Date().toDateString();
+            const yesterday = new Date(Date.now() - 86400000).toDateString();
+
+            if (gs.lastPlayDate === today) {
+                // Already played today
+            } else if (gs.lastPlayDate === yesterday) {
+                // Streak continues
+                gs.streak = Math.min(7, gs.streak + 1);
+                gs.lastPlayDate = today;
+                saveGameState(gs);
+            } else if (gs.lastPlayDate) {
+                // Streak broken
+                gs.streak = 1;
+                gs.lastPlayDate = today;
+                saveGameState(gs);
+            } else {
+                // First time
+                gs.streak = 1;
+                gs.lastPlayDate = today;
+                saveGameState(gs);
+            }
+
+            // Update UI
+            const streakDays = document.querySelectorAll('.streak-day');
+            streakDays.forEach((day, i) => {
+                day.classList.remove('active', 'today');
+                if (i < gs.streak) day.classList.add('active');
+                if (i === gs.streak - 1) day.classList.add('today');
+            });
+        }
+
+        // ============================================
         // INITIALIZATION
         // ============================================
 
@@ -2175,6 +5957,10 @@
             updateBadges();
             updateLeaderboard();
             calculateBurn();
+            updateHighScores();
+            updateStreak();
+            initClicker();
+            initDefenseField();
 
             // Go to current level
             goToLevel(state.currentLevel);
@@ -2190,6 +5976,13 @@
                 document.getElementById('completion-banner').style.display = 'block';
                 document.getElementById('level-5-actions').style.display = 'none';
             }
+
+            // Catch check interval for Token Catcher
+            setInterval(() => {
+                if (document.getElementById('game-catcher').classList.contains('active')) {
+                    checkCatch();
+                }
+            }, 50);
         });
     </script>
 </body>
