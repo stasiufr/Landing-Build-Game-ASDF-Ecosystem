@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skills Marketplace | ASDF Ecosystem</title>
+    <meta name="description" content="Learn from experts, share your skills, compete in weekly challenges. Creation over extraction. The ASDF Skills Marketplace.">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="ASDF Skills - Creation over Extraction">
+    <meta property="og:description" content="Marketplace de compétences pour l'écosystème ASDF. Apprends, enseigne, gagne.">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <!-- Security -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ============================================
+           ASDF SKILLS MARKETPLACE
+           Fire-themed, Creation over Extraction
+           ============================================ */
+
+        :root {
+            /* Fire Palette */
+            --bg-void: #0a0a0f;
+            --bg-dark: #0c0c0c;
+            --bg-charred: #2a1005;
+            --bg-burnt: #451a03;
+            --border-rust: #7c2d12;
+            --border-orange: #9a3412;
+            --accent-fire: #ea580c;
+            --accent-bright: #fb923c;
+            --accent-ember: #f97316;
+            --text-cream: #ffedd5;
+            --text-muted: #a8a29e;
+            --green: #22c55e;
+            --green-light: #4ade80;
+            --purple: #a855f7;
+            --blue: #3b82f6;
+            --red: #ef4444;
+            --gold: #fbbf24;
+            --silver: #9ca3af;
+            --bronze: #d97706;
+
+            /* Typography */
+            --font-display: 'Comic Neue', cursive;
+            --font-mono: 'JetBrains Mono', monospace;
+
+            /* Spacing */
+            --container-max: 1200px;
+            --radius: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-mono);
+            background: var(--bg-void);
+            color: var(--text-cream);
+            line-height: 1.7;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-charred); }
+        ::-webkit-scrollbar-thumb { background: var(--border-rust); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-fire); }
+
+        /* Focus styles */
+        :focus-visible {
+            outline: 2px solid var(--accent-fire);
+            outline-offset: 2px;
+        }
+
+        .container {
+            max-width: var(--container-max);
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* ============================================
+           NAVIGATION
+           ============================================ */
+
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 12px 24px;
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 2px solid var(--border-rust);
+        }
+
+        .nav-content {
+            max-width: var(--container-max);
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--text-cream);
+        }
+
+        .nav-logo-icon {
+            font-size: 24px;
+        }
+
+        .nav-logo-text {
+            font-family: var(--font-display);
+            font-size: 20px;
+            font-weight: 700;
+            text-shadow: 2px 2px 0 var(--accent-fire);
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-cream);
+            background: rgba(234, 88, 12, 0.1);
+        }
+
+        .nav-links a.active {
+            color: var(--accent-fire);
+            background: rgba(234, 88, 12, 0.15);
+        }
+
+        /* ============================================
+           BUTTONS
+           ============================================ */
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            font-family: var(--font-mono);
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            border: 2px solid var(--border-rust);
+            border-radius: var(--radius);
+            background: var(--bg-burnt);
+            color: var(--text-cream);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 4px 4px 0 var(--border-rust);
+        }
+
+        .btn:hover {
+            background: var(--accent-fire);
+            border-color: var(--accent-fire);
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0 var(--border-rust);
+        }
+
+        .btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0 var(--border-rust);
+        }
+
+        .btn-primary {
+            background: var(--accent-fire);
+            border-color: var(--accent-bright);
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, var(--gold), var(--bronze));
+            border-color: var(--gold);
+            color: #000;
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 12px;
+            box-shadow: 2px 2px 0 var(--border-rust);
+        }
+
+        .btn-sm:hover {
+            box-shadow: 4px 4px 0 var(--border-rust);
+        }
+
+        /* ============================================
+           CHALLENGE HERO
+           ============================================ */
+
+        .challenge-hero {
+            margin-top: 80px;
+            padding: 60px 0 40px;
+            background: linear-gradient(180deg, var(--bg-charred) 0%, var(--bg-void) 100%);
+            border-bottom: 2px solid var(--border-rust);
+        }
+
+        .challenge-card {
+            background: linear-gradient(135deg, var(--bg-burnt), rgba(251, 191, 36, 0.05));
+            border: 3px solid var(--gold);
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .challenge-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(251, 191, 36, 0.1) 0%, transparent 50%);
+            animation: pulse-glow 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.1); }
+        }
+
+        .challenge-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--gold);
+            color: #000;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            border-radius: 100px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .challenge-badge .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--green);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .challenge-title {
+            font-family: var(--font-display);
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-cream);
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .challenge-theme {
+            font-size: 20px;
+            color: var(--gold);
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .challenge-stats {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .challenge-stat {
+            text-align: center;
+        }
+
+        .challenge-stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-cream);
+        }
+
+        .challenge-stat-value.gold {
+            color: var(--gold);
+        }
+
+        .challenge-stat-value.green {
+            color: var(--green);
+        }
+
+        .challenge-stat-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .challenge-countdown {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--accent-bright);
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .challenge-actions {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ============================================
+           CATEGORIES FILTER
+           ============================================ */
+
+        .categories-section {
+            padding: 40px 0 20px;
+        }
+
+        .categories-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .categories-filter {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 32px;
+        }
+
+        .category-pill {
+            padding: 10px 20px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+            background: var(--bg-charred);
+            border: 2px solid var(--border-rust);
+            border-radius: 100px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .category-pill:hover {
+            color: var(--text-cream);
+            border-color: var(--accent-fire);
+        }
+
+        .category-pill.active {
+            color: #000;
+            background: var(--accent-fire);
+            border-color: var(--accent-fire);
+        }
+
+        /* ============================================
+           CREATORS GRID
+           ============================================ */
+
+        .creators-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 60px;
+        }
+
+        .creator-card {
+            background: var(--bg-charred);
+            border: 2px solid var(--border-rust);
+            border-radius: var(--radius);
+            padding: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .creator-card:hover {
+            border-color: var(--accent-fire);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(234, 88, 12, 0.2);
+        }
+
+        .creator-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .creator-avatar {
+            width: 60px;
+            height: 60px;
+            background: var(--bg-burnt);
+            border: 2px solid var(--border-rust);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+
+        .creator-info {
+            flex: 1;
+        }
+
+        .creator-name {
+            font-family: var(--font-display);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-cream);
+            margin-bottom: 4px;
+        }
+
+        .creator-category {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            background: rgba(234, 88, 12, 0.15);
+            border-radius: 100px;
+            font-size: 11px;
+            color: var(--accent-bright);
+            text-transform: uppercase;
+        }
+
+        .creator-bio {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .creator-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .creator-rating {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            color: var(--gold);
+        }
+
+        .creator-rating .stars {
+            letter-spacing: -2px;
+        }
+
+        /* ============================================
+           HALL OF FAME
+           ============================================ */
+
+        .hall-of-fame {
+            padding: 60px 0;
+            background: var(--bg-charred);
+            border-top: 2px solid var(--border-rust);
+            border-bottom: 2px solid var(--border-rust);
+        }
+
+        .hall-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .hall-header h2 {
+            font-family: var(--font-display);
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .hall-header p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .hall-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .hall-entry {
+            background: var(--bg-burnt);
+            border: 2px solid var(--border-rust);
+            border-radius: var(--radius);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .hall-entry:hover {
+            border-color: var(--gold);
+        }
+
+        .hall-week {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--gold), var(--bronze));
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .hall-week-label {
+            font-size: 9px;
+            text-transform: uppercase;
+        }
+
+        .hall-week-num {
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .hall-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .hall-winner {
+            font-weight: 600;
+            color: var(--text-cream);
+            margin-bottom: 4px;
+        }
+
+        .hall-challenge {
+            font-size: 12px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .hall-trophy {
+            font-size: 24px;
+        }
+
+        /* ============================================
+           HOW IT WORKS
+           ============================================ */
+
+        .how-it-works {
+            padding: 60px 0;
+        }
+
+        .how-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .how-header h2 {
+            font-family: var(--font-display);
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .how-header p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .how-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 32px;
+            margin-bottom: 48px;
+        }
+
+        .how-card {
+            background: var(--bg-charred);
+            border: 2px solid var(--border-rust);
+            border-radius: var(--radius);
+            padding: 32px;
+            text-align: center;
+        }
+
+        .how-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .how-card h3 {
+            font-family: var(--font-display);
+            font-size: 20px;
+            margin-bottom: 12px;
+            color: var(--accent-bright);
+        }
+
+        .how-card p {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .economy-box {
+            max-width: 600px;
+            margin: 0 auto;
+            background: var(--bg-burnt);
+            border: 2px solid var(--accent-fire);
+            border-radius: var(--radius);
+            padding: 32px;
+            text-align: center;
+        }
+
+        .economy-box h3 {
+            font-family: var(--font-display);
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: var(--accent-bright);
+        }
+
+        .economy-split {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .economy-item {
+            text-align: center;
+        }
+
+        .economy-pct {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .economy-pct.creator { color: var(--green); }
+        .economy-pct.burn { color: var(--accent-fire); }
+        .economy-pct.treasury { color: var(--purple); }
+
+        .economy-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .economy-note {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* ============================================
+           CTA SECTION
+           ============================================ */
+
+        .cta-section {
+            padding: 60px 0;
+            background: linear-gradient(180deg, var(--bg-void) 0%, var(--bg-charred) 100%);
+            border-top: 2px solid var(--border-rust);
+            text-align: center;
+        }
+
+        .cta-section h2 {
+            font-family: var(--font-display);
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .cta-section p {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 32px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        /* ============================================
+           FOOTER
+           ============================================ */
+
+        .footer {
+            padding: 40px 0;
+            background: var(--bg-dark);
+            border-top: 2px solid var(--border-rust);
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: var(--font-display);
+            font-size: 16px;
+            color: var(--text-cream);
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .footer-links a {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent-fire);
+        }
+
+        .footer-note {
+            width: 100%;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-rust);
+        }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .challenge-card {
+                padding: 24px;
+            }
+
+            .challenge-title {
+                font-size: 24px;
+            }
+
+            .challenge-theme {
+                font-size: 16px;
+            }
+
+            .challenge-stats {
+                gap: 16px;
+            }
+
+            .challenge-stat-value {
+                font-size: 18px;
+            }
+
+            .challenge-actions {
+                flex-direction: column;
+            }
+
+            .challenge-actions .btn {
+                width: 100%;
+            }
+
+            .creators-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .categories-filter {
+                justify-content: flex-start;
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                padding-bottom: 8px;
+            }
+
+            .category-pill {
+                flex-shrink: 0;
+            }
+
+            .how-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .economy-split {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .footer-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+
+        /* ============================================
+           UTILITIES
+           ============================================ */
+
+        .hidden {
+            display: none !important;
+        }
+
+        .text-fire {
+            color: var(--accent-fire);
+        }
+
+        .text-gold {
+            color: var(--gold);
+        }
+
+        .text-muted {
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <!-- ============================================
+         NAVIGATION
+         ============================================ -->
+    <nav class="nav">
+        <div class="nav-content">
+            <a href="index.html" class="nav-logo">
+                <span class="nav-logo-icon">🔥</span>
+                <span class="nav-logo-text">ASDFASDFA</span>
+            </a>
+
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="learn.html">Learn</a></li>
+                <li><a href="games.html">Games</a></li>
+                <li><a href="skills.html" class="active">Skills</a></li>
+                <li><a href="build.html">Build</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- ============================================
+         CHALLENGE HERO
+         ============================================ -->
+    <section class="challenge-hero">
+        <div class="container">
+            <div class="challenge-card">
+                <div class="challenge-badge">
+                    <span class="pulse-dot"></span>
+                    <span>🏆 Weekly Challenge — LIVE</span>
+                </div>
+
+                <h1 class="challenge-title">Creation over Extraction</h1>
+                <p class="challenge-theme">"Best Beginner Tutorial in Your Skill"</p>
+
+                <div class="challenge-stats">
+                    <div class="challenge-stat">
+                        <div class="challenge-stat-value gold">50,000</div>
+                        <div class="challenge-stat-label">$asdfasdfa Prize</div>
+                    </div>
+                    <div class="challenge-stat">
+                        <div class="challenge-stat-value">23</div>
+                        <div class="challenge-stat-label">Entries</div>
+                    </div>
+                    <div class="challenge-stat">
+                        <div class="challenge-stat-value green">156</div>
+                        <div class="challenge-stat-label">Votes</div>
+                    </div>
+                </div>
+
+                <div class="challenge-countdown">
+                    ⏱️ Ends in <strong id="countdown">5d 12h 34m</strong>
+                </div>
+
+                <div class="challenge-actions">
+                    <a href="https://forms.google.com/your-form" target="_blank" class="btn btn-gold">
+                        📤 Submit Entry
+                    </a>
+                    <a href="#entries" class="btn">
+                        🗳️ View & Vote
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         CATEGORIES & CREATORS
+         ============================================ -->
+    <section class="categories-section">
+        <div class="container">
+            <div class="categories-header">
+                <h2 class="section-title">🎯 Find Your Expert</h2>
+            </div>
+
+            <div class="categories-filter">
+                <button class="category-pill active" data-category="all">All</button>
+                <button class="category-pill" data-category="gaming">🎮 Gaming</button>
+                <button class="category-pill" data-category="strategy">♟️ Strategy</button>
+                <button class="category-pill" data-category="tech">💻 Tech</button>
+                <button class="category-pill" data-category="cooking">🍳 Cooking</button>
+                <button class="category-pill" data-category="building">🔨 Building</button>
+                <button class="category-pill" data-category="fitness">🏋️ Fitness</button>
+            </div>
+
+            <div class="creators-grid" id="creators-grid">
+                <!-- Creator Card 1 -->
+                <div class="creator-card" data-category="strategy">
+                    <div class="creator-header">
+                        <div class="creator-avatar">♟️</div>
+                        <div class="creator-info">
+                            <div class="creator-name">ChessMaster</div>
+                            <span class="creator-category">Strategy</span>
+                        </div>
+                    </div>
+                    <p class="creator-bio">2200 ELO player. Coaching beginners to intermediate for 5 years. Specializing in opening theory and endgames.</p>
+                    <div class="creator-footer">
+                        <div class="creator-rating">
+                            <span class="stars">⭐⭐⭐⭐⭐</span>
+                            <span>4.9</span>
+                        </div>
+                        <a href="https://twitter.com/example" target="_blank" class="btn btn-sm">View →</a>
+                    </div>
+                </div>
+
+                <!-- Creator Card 2 -->
+                <div class="creator-card" data-category="tech">
+                    <div class="creator-header">
+                        <div class="creator-avatar">💻</div>
+                        <div class="creator-info">
+                            <div class="creator-name">CodeWizard</div>
+                            <span class="creator-category">Tech</span>
+                        </div>
+                    </div>
+                    <p class="creator-bio">Full-stack dev, Solana specialist. Teaching Web3 development from zero to deployed smart contracts.</p>
+                    <div class="creator-footer">
+                        <div class="creator-rating">
+                            <span class="stars">⭐⭐⭐⭐⭐</span>
+                            <span>4.7</span>
+                        </div>
+                        <a href="https://twitter.com/example" target="_blank" class="btn btn-sm">View →</a>
+                    </div>
+                </div>
+
+                <!-- Creator Card 3 -->
+                <div class="creator-card" data-category="cooking">
+                    <div class="creator-header">
+                        <div class="creator-avatar">🍳</div>
+                        <div class="creator-info">
+                            <div class="creator-name">ChefCrypto</div>
+                            <span class="creator-category">Cooking</span>
+                        </div>
+                    </div>
+                    <p class="creator-bio">Quick recipes for busy devs. Healthy meals in under 30 minutes. Meal prep systems that actually work.</p>
+                    <div class="creator-footer">
+                        <div class="creator-rating">
+                            <span class="stars">⭐⭐⭐⭐⭐</span>
+                            <span>4.8</span>
+                        </div>
+                        <a href="https://twitter.com/example" target="_blank" class="btn btn-sm">View →</a>
+                    </div>
+                </div>
+
+                <!-- Creator Card 4 -->
+                <div class="creator-card" data-category="building">
+                    <div class="creator-header">
+                        <div class="creator-avatar">🔨</div>
+                        <div class="creator-info">
+                            <div class="creator-name">BuilderOG</div>
+                            <span class="creator-category">Building</span>
+                        </div>
+                    </div>
+                    <p class="creator-bio">Off-grid living expert. DIY construction, permaculture design, solar setups. Build your autonomy.</p>
+                    <div class="creator-footer">
+                        <div class="creator-rating">
+                            <span class="stars">⭐⭐⭐⭐</span>
+                            <span>4.6</span>
+                        </div>
+                        <a href="https://twitter.com/example" target="_blank" class="btn btn-sm">View →</a>
+                    </div>
+                </div>
+
+                <!-- Creator Card 5 -->
+                <div class="creator-card" data-category="fitness">
+                    <div class="creator-header">
+                        <div class="creator-avatar">🏋️</div>
+                        <div class="creator-info">
+                            <div class="creator-name">FitDev</div>
+                            <span class="creator-category">Fitness</span>
+                        </div>
+                    </div>
+                    <p class="creator-bio">Fitness routines for people who code 12h/day. Fix your posture, build strength, no gym required.</p>
+                    <div class="creator-footer">
+                        <div class="creator-rating">
+                            <span class="stars">⭐⭐⭐⭐⭐</span>
+                            <span>4.8</span>
+                        </div>
+                        <a href="https://twitter.com/example" target="_blank" class="btn btn-sm">View →</a>
+                    </div>
+                </div>
+
+                <!-- Creator Card 6 -->
+                <div class="creator-card" data-category="gaming">
+                    <div class="creator-header">
+                        <div class="creator-avatar">🎮</div>
+                        <div class="creator-info">
+                            <div class="creator-name">ProGamer</div>
+                            <span class="creator-category">Gaming</span>
+                        </div>
+                    </div>
+                    <p class="creator-bio">Ex-pro Valorant player. VOD reviews, aim training, game sense coaching. From Iron to Diamond.</p>
+                    <div class="creator-footer">
+                        <div class="creator-rating">
+                            <span class="stars">⭐⭐⭐⭐⭐</span>
+                            <span>4.9</span>
+                        </div>
+                        <a href="https://twitter.com/example" target="_blank" class="btn btn-sm">View →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         HALL OF FAME
+         ============================================ -->
+    <section class="hall-of-fame" id="hall-of-fame">
+        <div class="container">
+            <div class="hall-header">
+                <h2>🏆 Hall of Fame</h2>
+                <p>Past challenge winners — proven creators</p>
+            </div>
+
+            <div class="hall-grid">
+                <div class="hall-entry">
+                    <div class="hall-week">
+                        <span class="hall-week-label">Week</span>
+                        <span class="hall-week-num">3</span>
+                    </div>
+                    <div class="hall-info">
+                        <div class="hall-winner">@ChessMaster</div>
+                        <div class="hall-challenge">"Best Opening Guide for Beginners"</div>
+                    </div>
+                    <div class="hall-trophy">🥇</div>
+                </div>
+
+                <div class="hall-entry">
+                    <div class="hall-week">
+                        <span class="hall-week-label">Week</span>
+                        <span class="hall-week-num">2</span>
+                    </div>
+                    <div class="hall-info">
+                        <div class="hall-winner">@CodeWizard</div>
+                        <div class="hall-challenge">"Deploy Your First Smart Contract"</div>
+                    </div>
+                    <div class="hall-trophy">🥇</div>
+                </div>
+
+                <div class="hall-entry">
+                    <div class="hall-week">
+                        <span class="hall-week-label">Week</span>
+                        <span class="hall-week-num">1</span>
+                    </div>
+                    <div class="hall-info">
+                        <div class="hall-winner">@FitDev</div>
+                        <div class="hall-challenge">"15-Min Routine for Desk Workers"</div>
+                    </div>
+                    <div class="hall-trophy">🥇</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         HOW IT WORKS
+         ============================================ -->
+    <section class="how-it-works" id="how">
+        <div class="container">
+            <div class="how-header">
+                <h2>How It Works</h2>
+                <p>Creation over Extraction — aligned incentives for everyone</p>
+            </div>
+
+            <div class="how-grid">
+                <div class="how-card">
+                    <div class="how-icon">🎓</div>
+                    <h3>For Learners</h3>
+                    <p>Find experts in any skill. Pay directly with $asdfasdfa. No middleman taking 50%. Get real value from real people.</p>
+                </div>
+
+                <div class="how-card">
+                    <div class="how-icon">🎯</div>
+                    <h3>For Creators</h3>
+                    <p>Share your expertise, get paid fairly. Win weekly challenges for visibility and prizes. Build your reputation on-chain.</p>
+                </div>
+
+                <div class="how-card">
+                    <div class="how-icon">🔥</div>
+                    <h3>For Holders</h3>
+                    <p>Every transaction burns tokens. More creators = more activity = more burns. The ecosystem grows, you benefit.</p>
+                </div>
+            </div>
+
+            <div class="economy-box">
+                <h3>💰 Transaction Split</h3>
+                <div class="economy-split">
+                    <div class="economy-item">
+                        <div class="economy-pct creator">95%</div>
+                        <div class="economy-label">→ Creator</div>
+                    </div>
+                    <div class="economy-item">
+                        <div class="economy-pct burn">3%</div>
+                        <div class="economy-label">→ Burn 🔥</div>
+                    </div>
+                    <div class="economy-item">
+                        <div class="economy-pct treasury">2%</div>
+                        <div class="economy-label">→ Treasury</div>
+                    </div>
+                </div>
+                <p class="economy-note">Creators keep almost everything. Burns benefit all holders. Treasury funds development.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         CTA SECTION
+         ============================================ -->
+    <section class="cta-section">
+        <div class="container">
+            <h2>🔥 Ready to Create?</h2>
+            <p>Join the Skills Marketplace. Share what you know, learn what you need, earn $asdfasdfa.</p>
+
+            <div class="cta-buttons">
+                <a href="https://forms.google.com/creator-signup" target="_blank" class="btn btn-primary">
+                    Become a Creator
+                </a>
+                <a href="https://t.me/asdfasdfa" target="_blank" class="btn">
+                    Join Community
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         FOOTER
+         ============================================ -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <span>🔥</span>
+                    <span>ASDF Skills</span>
+                </div>
+
+                <div class="footer-links">
+                    <a href="index.html">Home</a>
+                    <a href="learn.html">Learn</a>
+                    <a href="games.html">Games</a>
+                    <a href="build.html">Build</a>
+                    <a href="https://github.com/zeyxx/asdf-burn-engine" target="_blank">GitHub</a>
+                    <a href="https://twitter.com/asdfasdfa" target="_blank">Twitter</a>
+                </div>
+            </div>
+
+            <div class="footer-note">
+                Creation over Extraction. Open source. Verifiable on-chain. THIS IS FINE. 🔥
+            </div>
+        </div>
+    </footer>
+
+    <!-- ============================================
+         JAVASCRIPT
+         ============================================ -->
+    <script>
+        // ============================================
+        // CATEGORY FILTER
+        // ============================================
+        const categoryPills = document.querySelectorAll('.category-pill');
+        const creatorCards = document.querySelectorAll('.creator-card');
+
+        categoryPills.forEach(pill => {
+            pill.addEventListener('click', () => {
+                // Update active pill
+                categoryPills.forEach(p => p.classList.remove('active'));
+                pill.classList.add('active');
+
+                const category = pill.dataset.category;
+
+                // Filter cards
+                creatorCards.forEach(card => {
+                    if (category === 'all' || card.dataset.category === category) {
+                        card.classList.remove('hidden');
+                    } else {
+                        card.classList.add('hidden');
+                    }
+                });
+            });
+        });
+
+        // ============================================
+        // COUNTDOWN TIMER
+        // ============================================
+        function updateCountdown() {
+            // Set end date (example: 5 days from now)
+            const endDate = new Date();
+            endDate.setDate(endDate.getDate() + 5);
+            endDate.setHours(23, 59, 59);
+
+            function update() {
+                const now = new Date();
+                const diff = endDate - now;
+
+                if (diff <= 0) {
+                    document.getElementById('countdown').textContent = 'Challenge Ended';
+                    return;
+                }
+
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+                document.getElementById('countdown').textContent = `${days}d ${hours}h ${minutes}m`;
+            }
+
+            update();
+            setInterval(update, 60000); // Update every minute
+        }
+
+        // ============================================
+        // INIT
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCountdown();
+        });
+    </script>
+</body>
+</html>
