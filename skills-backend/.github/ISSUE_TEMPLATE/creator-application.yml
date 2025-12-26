@@ -1,0 +1,121 @@
+name: "Creator Application"
+description: "Apply to become a verified creator on ASDF Skills"
+title: "[Creator] "
+labels: ["creator-application", "pending-review"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Become an ASDF Skills Creator
+
+        Join our community of skilled creators! Verified creators get:
+        - Profile visibility in the Skills Marketplace
+        - Eligibility for featured placement
+        - Access to exclusive challenges
+        - Direct connection with learners
+
+        **Review Process:** Applications are reviewed within 48-72 hours.
+
+  - type: input
+    id: display_name
+    attributes:
+      label: Display Name
+      description: How you want to be known on the platform
+      placeholder: "ChessMaster"
+    validations:
+      required: true
+
+  - type: input
+    id: wallet
+    attributes:
+      label: Solana Wallet
+      description: Your wallet address (used as your unique identifier)
+      placeholder: "ABC123..."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: primary_category
+    attributes:
+      label: Primary Category
+      description: Your main area of expertise
+      options:
+        - Gaming
+        - Strategy
+        - Tech
+        - Cooking
+        - Building
+        - Fitness
+    validations:
+      required: true
+
+  - type: textarea
+    id: bio
+    attributes:
+      label: Bio
+      description: Tell us about your expertise and experience (max 500 characters)
+      placeholder: |
+        I'm a 2200 ELO chess player with 5 years of coaching experience...
+    validations:
+      required: true
+
+  - type: input
+    id: twitter
+    attributes:
+      label: Twitter/X
+      description: Your Twitter handle (optional but recommended)
+      placeholder: "@username"
+
+  - type: input
+    id: github
+    attributes:
+      label: GitHub
+      description: Your GitHub username (optional)
+      placeholder: "username"
+
+  - type: input
+    id: portfolio_url
+    attributes:
+      label: Portfolio/Proof of Work
+      description: Link to your best work (YouTube channel, blog, portfolio site, etc.)
+      placeholder: "https://..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: Why do you want to join?
+      description: What will you bring to the ASDF Skills community?
+      placeholder: |
+        I want to share my knowledge about...
+
+        I can help beginners learn...
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Confirmation
+      description: Please confirm the following
+      options:
+        - label: I will create high-quality, original content
+          required: true
+        - label: I agree to the community guidelines and code of conduct
+          required: true
+        - label: I understand that verification can be revoked for violations
+          required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+
+        **What happens next?**
+        1. Your application will be reviewed by our team
+        2. We may reach out via GitHub comments for additional info
+        3. Once approved, you'll receive the `creator-verified` label
+        4. Your profile will appear in the Skills Marketplace
+
+        Questions? Join our [Telegram community](https://t.me/asdfasdfa)!

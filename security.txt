@@ -1,0 +1,14 @@
+# Security Policy for ASDF Ecosystem
+# See https://securitytxt.org/ for more information
+# Canonical location: /.well-known/security.txt
+
+# Contact information for security researchers
+# TODO: Replace with actual security contact before production
+Contact: mailto:security@your-domain.com
+Contact: https://github.com/stasiufr/Landing-Page-ASDF-Ecosystem/security/advisories/new
+
+# Preferred languages for security reports
+Preferred-Languages: en, fr
+
+# Expiration date (should be updated regularly)
+Expires: 2025-12-31T23:59:59.000Z

@@ -1,0 +1,5627 @@
+/**
+ * ASDF Games - Game of the Week Platform
+ * Security: Externalized from inline to comply with CSP
+ */
+
+'use strict';
+
+// ============================================
+// SECURITY UTILITIES
+// ============================================
+
+/**
+ * Sanitize string for safe HTML rendering
+ * Prevents XSS attacks when using innerHTML
+ */
+function sanitizeHTML(str) {
+    if (typeof str !== 'string') return str;
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+/**
+ * Sanitize an object's string values recursively
+ */
+function sanitizeObject(obj) {
+    if (typeof obj === 'string') return sanitizeHTML(obj);
+    if (Array.isArray(obj)) return obj.map(sanitizeObject);
+    if (obj && typeof obj === 'object') {
+        const result = {};
+        for (const key in obj) {
+            if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                result[key] = sanitizeObject(obj[key]);
+            }
+        }
+        return result;
+    }
+    return obj;
+}
+
+// ============================================
+// INPUT VALIDATION UTILITIES
+// ============================================
+
+/**
+ * Validate numeric input with bounds checking
+ * @param {string|number} value - Input value to validate
+ * @param {Object} options - Validation options
+ * @returns {Object} - { valid: boolean, value: number|null, error: string|null }
+ */
+function validateNumericInput(value, options = {}) {
+    const {
+        min = 0,
+        max = Number.MAX_SAFE_INTEGER,
+        allowDecimals = false,
+        fieldName = 'Value'
+    } = options;
+
+    // Handle string input
+    let numValue;
+    if (typeof value === 'string') {
+        const trimmed = value.trim();
+        if (trimmed === '') {
+            return { valid: false, value: null, error: `${fieldName} is required` };
+        }
+        numValue = allowDecimals ? parseFloat(trimmed) : parseInt(trimmed, 10);
+    } else {
+        numValue = value;
+    }
+
+    // Check if it's a valid number
+    if (!Number.isFinite(numValue)) {
+        return { valid: false, value: null, error: `${fieldName} must be a valid number` };
+    }
+
+    // Check for NaN and Infinity
+    if (Number.isNaN(numValue) || !Number.isFinite(numValue)) {
+        return { valid: false, value: null, error: `${fieldName} contains an invalid value` };
+    }
+
+    // Check minimum
+    if (numValue < min) {
+        return { valid: false, value: null, error: `${fieldName} must be at least ${min.toLocaleString()}` };
+    }
+
+    // Check maximum
+    if (numValue > max) {
+        return { valid: false, value: null, error: `${fieldName} must be at most ${max.toLocaleString()}` };
+    }
+
+    // Check for integer if decimals not allowed
+    if (!allowDecimals && !Number.isInteger(numValue)) {
+        return { valid: false, value: null, error: `${fieldName} must be a whole number` };
+    }
+
+    return { valid: true, value: numValue, error: null };
+}
+
+/**
+ * Validate wallet address format (Solana base58)
+ * @param {string} address - Wallet address to validate
+ * @returns {boolean}
+ */
+function isValidWalletAddress(address) {
+    if (typeof address !== 'string') return false;
+    // Solana addresses are 32-44 characters, base58 encoded
+    return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(address);
+}
+
+/**
+ * Validate transaction signature format (Solana)
+ * @param {string} signature - Transaction signature to validate
+ * @returns {boolean}
+ */
+function isValidTransactionSignature(signature) {
+    if (typeof signature !== 'string') return false;
+    // Solana signatures are 88 characters, base58 encoded
+    return /^[1-9A-HJ-NP-Za-km-z]{87,88}$/.test(signature);
+}
+
+/**
+ * Validate game ID
+ * @param {string} gameId - Game ID to validate
+ * @returns {boolean}
+ */
+function isValidGameId(gameId) {
+    const validGameIds = [
+        'burnrunner', 'scamblaster', 'hodlhero', 'cryptoheist',
+        'rugpull', 'whalewatch', 'stakestacker', 'dexdash',
+        'burnorhold', 'pumparena'
+    ];
+    return typeof gameId === 'string' && validGameIds.includes(gameId.toLowerCase());
+}
+
+// ============================================
+// RATE LIMITING FOR RPC CALLS
+// ============================================
+
+const RateLimiter = {
+    calls: new Map(),
+    maxCalls: 5,
+    windowMs: 60000, // 1 minute
+
+    canMakeCall(endpoint) {
+        const now = Date.now();
+        const callTimes = this.calls.get(endpoint) || [];
+
+        // Remove old calls outside the window
+        const recentCalls = callTimes.filter(time => now - time < this.windowMs);
+
+        if (recentCalls.length >= this.maxCalls) {
+            console.warn(`Rate limit exceeded for ${endpoint}`);
+            return false;
+        }
+
+        recentCalls.push(now);
+        this.calls.set(endpoint, recentCalls);
+        return true;
+    },
+
+    reset(endpoint) {
+        this.calls.delete(endpoint);
+    }
+};
+
+// ============================================
+// CONFIGURATION
+// ============================================
+
+const CONFIG = {
+    // Development mode - set to false for production with real payments
+    DEV_MODE: window.location.hostname === 'localhost',
+
+    // Token configuration - $ASDFASDFA on Solana
+    ASDF_TOKEN_MINT: '9zB5wRarXMj86MymwLumSKA1Dx35zPqqKfcZtK1Spump',
+    TOKEN_DECIMALS: 6, // pump.fun tokens use 6 decimals
+    MIN_HOLDER_BALANCE: 1000000, // 1M tokens
+
+    // Payment wallets
+    TREASURY_WALLET: '5VUuiKmR4zt1bfHNTTpPMGB2r7tjNo4YFL1WqKC7ZRwa', // Receives ticket payments (SOL)
+    ESCROW_WALLET: 'AR3Rcr8o4iZwGwTUG5LEx7uhcenCCZNrbgkLrjVC1v6y',   // Holds betting escrow (tokens)
+
+    // API endpoints
+    API_BASE: window.location.hostname === 'localhost'
+        ? 'http://localhost:3001/api'
+        : 'https://api.asdf-games.com/api',
+
+    // Use devnet for development, mainnet for production
+    SOLANA_RPC: window.location.hostname === 'localhost'
+        ? 'https://api.devnet.solana.com'
+        : 'https://api.mainnet-beta.solana.com',
+
+    // Rotation epoch (Monday 00:00 UTC)
+    ROTATION_EPOCH: new Date('2024-01-01T00:00:00Z'),
+    CYCLE_WEEKS: 9
+};
+
+// ============================================
+// SOLANA PAYMENT SYSTEM
+// ============================================
+
+const SolanaPayment = {
+    connection: null,
+
+    /**
+     * Initialize Solana connection
+     */
+    getConnection() {
+        if (!this.connection) {
+            // Use Solana Web3.js from CDN or bundled
+            if (typeof solanaWeb3 === 'undefined') {
+                console.error('Solana Web3.js not loaded');
+                return null;
+            }
+            this.connection = new solanaWeb3.Connection(CONFIG.SOLANA_RPC, 'confirmed');
+        }
+        return this.connection;
+    },
+
+    /**
+     * Get Phantom provider
+     */
+    getProvider() {
+        if (typeof window.phantom?.solana !== 'undefined') {
+            return window.phantom.solana;
+        }
+        if (typeof window.solana !== 'undefined' && window.solana.isPhantom) {
+            return window.solana;
+        }
+        return null;
+    },
+
+    /**
+     * Transfer SOL to treasury (for ticket purchases)
+     * @param {number} amountSOL - Amount in SOL
+     * @returns {Promise<string>} Transaction signature
+     */
+    async transferSOL(amountSOL) {
+        const provider = this.getProvider();
+        if (!provider || !provider.publicKey) {
+            throw new Error('Wallet not connected');
+        }
+
+        const connection = this.getConnection();
+        if (!connection) {
+            throw new Error('Solana connection failed');
+        }
+
+        // Validate treasury address
+        if (!CONFIG.TREASURY_WALLET || CONFIG.TREASURY_WALLET === 'YOUR_TREASURY_WALLET_ADDRESS_HERE') {
+            throw new Error('Treasury wallet not configured');
+        }
+
+        try {
+            const fromPubkey = provider.publicKey;
+            const toPubkey = new solanaWeb3.PublicKey(CONFIG.TREASURY_WALLET);
+
+            // Convert SOL to lamports (1 SOL = 1,000,000,000 lamports)
+            const lamports = Math.round(amountSOL * solanaWeb3.LAMPORTS_PER_SOL);
+
+            // Get recent blockhash
+            const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('finalized');
+
+            // Create transaction
+            const transaction = new solanaWeb3.Transaction({
+                recentBlockhash: blockhash,
+                feePayer: fromPubkey
+            });
+
+            // Add transfer instruction
+            transaction.add(
+                solanaWeb3.SystemProgram.transfer({
+                    fromPubkey: fromPubkey,
+                    toPubkey: toPubkey,
+                    lamports: lamports
+                })
+            );
+
+            // Sign and send transaction
+            const { signature } = await provider.signAndSendTransaction(transaction);
+
+            // Wait for confirmation
+            const confirmation = await connection.confirmTransaction({
+                signature,
+                blockhash,
+                lastValidBlockHeight
+            }, 'confirmed');
+
+            if (confirmation.value.err) {
+                throw new Error('Transaction failed: ' + JSON.stringify(confirmation.value.err));
+            }
+
+            console.log('SOL transfer confirmed:', signature);
+            return signature;
+
+        } catch (error) {
+            console.error('SOL transfer error:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Transfer SPL tokens (for betting)
+     * @param {number} amount - Amount in token units (not raw)
+     * @param {string} destinationWallet - Recipient wallet address
+     * @returns {Promise<string>} Transaction signature
+     */
+    async transferTokens(amount, destinationWallet = CONFIG.ESCROW_WALLET) {
+        const provider = this.getProvider();
+        if (!provider || !provider.publicKey) {
+            throw new Error('Wallet not connected');
+        }
+
+        const connection = this.getConnection();
+        if (!connection) {
+            throw new Error('Solana connection failed');
+        }
+
+        // Validate addresses
+        if (!CONFIG.ASDF_TOKEN_MINT || CONFIG.ASDF_TOKEN_MINT === 'YOUR_TOKEN_MINT_ADDRESS_HERE') {
+            throw new Error('Token mint not configured');
+        }
+        if (!destinationWallet || destinationWallet === 'YOUR_ESCROW_WALLET_ADDRESS_HERE') {
+            throw new Error('Destination wallet not configured');
+        }
+
+        try {
+            const fromPubkey = provider.publicKey;
+            const mintPubkey = new solanaWeb3.PublicKey(CONFIG.ASDF_TOKEN_MINT);
+            const toPubkey = new solanaWeb3.PublicKey(destinationWallet);
+
+            // Convert to raw amount with decimals
+            const rawAmount = BigInt(Math.round(amount * Math.pow(10, CONFIG.TOKEN_DECIMALS)));
+
+            // Get or create associated token accounts
+            const fromTokenAccount = await this.getAssociatedTokenAddress(fromPubkey, mintPubkey);
+            const toTokenAccount = await this.getAssociatedTokenAddress(toPubkey, mintPubkey);
+
+            // Get recent blockhash
+            const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('finalized');
+
+            // Create transaction
+            const transaction = new solanaWeb3.Transaction({
+                recentBlockhash: blockhash,
+                feePayer: fromPubkey
+            });
+
+            // Check if destination token account exists, if not create it
+            const toAccountInfo = await connection.getAccountInfo(toTokenAccount);
+            if (!toAccountInfo) {
+                transaction.add(
+                    this.createAssociatedTokenAccountInstruction(
+                        fromPubkey,  // payer
+                        toTokenAccount,
+                        toPubkey,    // owner
+                        mintPubkey
+                    )
+                );
+            }
+
+            // Add transfer instruction
+            transaction.add(
+                this.createTransferInstruction(
+                    fromTokenAccount,
+                    toTokenAccount,
+                    fromPubkey,
+                    rawAmount
+                )
+            );
+
+            // Sign and send transaction
+            const { signature } = await provider.signAndSendTransaction(transaction);
+
+            // Wait for confirmation
+            const confirmation = await connection.confirmTransaction({
+                signature,
+                blockhash,
+                lastValidBlockHeight
+            }, 'confirmed');
+
+            if (confirmation.value.err) {
+                throw new Error('Transaction failed: ' + JSON.stringify(confirmation.value.err));
+            }
+
+            console.log('Token transfer confirmed:', signature);
+            return signature;
+
+        } catch (error) {
+            console.error('Token transfer error:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Get Associated Token Address (ATA)
+     */
+    async getAssociatedTokenAddress(walletAddress, mintAddress) {
+        const TOKEN_PROGRAM_ID = new solanaWeb3.PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
+        const ASSOCIATED_TOKEN_PROGRAM_ID = new solanaWeb3.PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL');
+
+        const [address] = await solanaWeb3.PublicKey.findProgramAddress(
+            [
+                walletAddress.toBuffer(),
+                TOKEN_PROGRAM_ID.toBuffer(),
+                mintAddress.toBuffer()
+            ],
+            ASSOCIATED_TOKEN_PROGRAM_ID
+        );
+        return address;
+    },
+
+    /**
+     * Create Associated Token Account instruction
+     */
+    createAssociatedTokenAccountInstruction(payer, associatedToken, owner, mint) {
+        const TOKEN_PROGRAM_ID = new solanaWeb3.PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
+        const ASSOCIATED_TOKEN_PROGRAM_ID = new solanaWeb3.PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL');
+
+        const keys = [
+            { pubkey: payer, isSigner: true, isWritable: true },
+            { pubkey: associatedToken, isSigner: false, isWritable: true },
+            { pubkey: owner, isSigner: false, isWritable: false },
+            { pubkey: mint, isSigner: false, isWritable: false },
+            { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false },
+            { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+        ];
+
+        return new solanaWeb3.TransactionInstruction({
+            keys,
+            programId: ASSOCIATED_TOKEN_PROGRAM_ID,
+            data: Buffer.alloc(0)
+        });
+    },
+
+    /**
+     * Create SPL Token transfer instruction
+     */
+    createTransferInstruction(source, destination, owner, amount) {
+        const TOKEN_PROGRAM_ID = new solanaWeb3.PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
+
+        const keys = [
+            { pubkey: source, isSigner: false, isWritable: true },
+            { pubkey: destination, isSigner: false, isWritable: true },
+            { pubkey: owner, isSigner: true, isWritable: false }
+        ];
+
+        // Transfer instruction data: 3 (transfer instruction) + amount as u64
+        const data = Buffer.alloc(9);
+        data.writeUInt8(3, 0); // Transfer instruction
+        data.writeBigUInt64LE(amount, 1);
+
+        return new solanaWeb3.TransactionInstruction({
+            keys,
+            programId: TOKEN_PROGRAM_ID,
+            data
+        });
+    },
+
+    /**
+     * Get SOL balance
+     */
+    async getSOLBalance(walletAddress) {
+        const connection = this.getConnection();
+        if (!connection) return 0;
+
+        try {
+            const pubkey = new solanaWeb3.PublicKey(walletAddress);
+            const balance = await connection.getBalance(pubkey);
+            return balance / solanaWeb3.LAMPORTS_PER_SOL;
+        } catch (error) {
+            console.error('Failed to get SOL balance:', error);
+            return 0;
+        }
+    },
+
+    /**
+     * Get token balance
+     */
+    async getTokenBalance(walletAddress) {
+        const connection = this.getConnection();
+        if (!connection) return 0;
+
+        if (!CONFIG.ASDF_TOKEN_MINT || CONFIG.ASDF_TOKEN_MINT === 'YOUR_TOKEN_MINT_ADDRESS_HERE') {
+            return 0;
+        }
+
+        try {
+            const pubkey = new solanaWeb3.PublicKey(walletAddress);
+            const mintPubkey = new solanaWeb3.PublicKey(CONFIG.ASDF_TOKEN_MINT);
+            const tokenAccount = await this.getAssociatedTokenAddress(pubkey, mintPubkey);
+
+            const accountInfo = await connection.getTokenAccountBalance(tokenAccount);
+            return parseFloat(accountInfo.value.uiAmount || 0);
+        } catch (error) {
+            console.error('Failed to get token balance:', error);
+            return 0;
+        }
+    },
+
+    /**
+     * Verify a transaction exists and is confirmed
+     */
+    async verifyTransaction(signature, expectedAmount = null, expectedType = 'sol') {
+        const connection = this.getConnection();
+        if (!connection) {
+            return { verified: false, error: 'Connection failed' };
+        }
+
+        try {
+            const tx = await connection.getTransaction(signature, {
+                commitment: 'confirmed',
+                maxSupportedTransactionVersion: 0
+            });
+
+            if (!tx) {
+                return { verified: false, error: 'Transaction not found' };
+            }
+
+            if (tx.meta?.err) {
+                return { verified: false, error: 'Transaction failed on chain' };
+            }
+
+            return {
+                verified: true,
+                slot: tx.slot,
+                blockTime: tx.blockTime,
+                fee: tx.meta?.fee
+            };
+        } catch (error) {
+            return { verified: false, error: error.message };
+        }
+    }
+};
+
+// ============================================
+// API CLIENT
+// ============================================
+
+const ApiClient = {
+    /**
+     * Get authentication headers with wallet signature
+     */
+    async getAuthHeaders() {
+        if (!appState.wallet) {
+            return {};
+        }
+
+        // Create a message to sign
+        const message = `ASDF Games Auth: ${Date.now()}`;
+
+        try {
+            const provider = getPhantomProvider();
+            if (!provider) {
+                return { 'X-Wallet-Address': appState.wallet };
+            }
+
+            // Request signature from wallet
+            const encodedMessage = new TextEncoder().encode(message);
+            const signedMessage = await provider.signMessage(encodedMessage, 'utf8');
+
+            // Convert signature to base58
+            const signature = btoa(String.fromCharCode(...signedMessage.signature));
+
+            return {
+                'X-Wallet-Address': appState.wallet,
+                'X-Message': message,
+                'X-Signature': signature
+            };
+        } catch (error) {
+            console.warn('Could not sign message:', error);
+            return { 'X-Wallet-Address': appState.wallet };
+        }
+    },
+
+    /**
+     * Make an API request
+     */
+    async request(endpoint, options = {}) {
+        const url = `${CONFIG.API_BASE}${endpoint}`;
+
+        // Rate limiting
+        if (!RateLimiter.canMakeCall(endpoint)) {
+            throw new Error('Rate limit exceeded. Please wait.');
+        }
+
+        const headers = {
+            'Content-Type': 'application/json',
+            ...options.headers
+        };
+
+        // Add auth headers if needed
+        if (options.auth !== false && appState.wallet) {
+            const authHeaders = await this.getAuthHeaders();
+            Object.assign(headers, authHeaders);
+        }
+
+        try {
+            const response = await fetch(url, {
+                ...options,
+                headers
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || data.error || 'API request failed');
+            }
+
+            return data;
+        } catch (error) {
+            console.error(`API Error [${endpoint}]:`, error);
+            throw error;
+        }
+    },
+
+    // Score endpoints
+    async submitScore(gameId, score, isCompetitive = false, sessionData = null) {
+        return this.request('/scores/submit', {
+            method: 'POST',
+            body: JSON.stringify({ gameId, score, isCompetitive, sessionData })
+        });
+    },
+
+    async getBestScore(gameId) {
+        return this.request(`/scores/best/${gameId}`);
+    },
+
+    async getAllBestScores() {
+        return this.request('/scores/all');
+    },
+
+    async getWeeklyLeaderboard(gameId, limit = 10) {
+        return this.request(`/scores/leaderboard/weekly/${gameId}?limit=${limit}`, { auth: false });
+    },
+
+    async getCycleLeaderboard(limit = 10) {
+        return this.request(`/scores/leaderboard/cycle?limit=${limit}`, { auth: false });
+    },
+
+    // Ticket endpoints
+    async getTicketTypes() {
+        return this.request('/tickets/types', { auth: false });
+    },
+
+    async purchaseTicket(ticketType, transactionSignature) {
+        return this.request('/tickets/purchase', {
+            method: 'POST',
+            body: JSON.stringify({ ticketType, transactionSignature })
+        });
+    },
+
+    async getActiveTicket() {
+        return this.request('/tickets/active');
+    },
+
+    async verifyTicketAccess() {
+        return this.request('/tickets/verify');
+    },
+
+    // Betting endpoints
+    async getBettingConfig() {
+        return this.request('/betting/config', { auth: false });
+    },
+
+    async placeBet(betAmount, transactionSignature = null) {
+        return this.request('/betting/place', {
+            method: 'POST',
+            body: JSON.stringify({ betAmount, transactionSignature })
+        });
+    },
+
+    async settleBet(betId, finalScore, sessionHash = null) {
+        return this.request('/betting/settle', {
+            method: 'POST',
+            body: JSON.stringify({ betId, finalScore, sessionHash })
+        });
+    },
+
+    async getPendingBet() {
+        return this.request('/betting/pending');
+    },
+
+    async getBettingStats() {
+        return this.request('/betting/stats');
+    },
+
+    // User endpoints
+    async getUserProfile() {
+        return this.request('/users/me');
+    },
+
+    async refreshBalance() {
+        return this.request('/users/refresh-balance', { method: 'POST' });
+    },
+
+    async getAirdropSlots() {
+        return this.request('/users/airdrop-slots');
+    },
+
+    async getPeriodInfo() {
+        return this.request('/users/period', { auth: false });
+    }
+};
+
+        // ============================================
+        // GAMES DEFINITION
+        // ============================================
+
+        const GAMES = [
+            {
+                id: 'burnrunner',
+                name: 'Burn Runner',
+                icon: '🔥',
+                type: 'Endless Runner',
+                description: 'Run through the blockchain, collect tokens, avoid obstacles. Every token collected gets burned!'
+            },
+            {
+                id: 'scamblaster',
+                name: 'Scam Blaster',
+                icon: '🔫',
+                type: 'Shooter',
+                description: 'Shoot down scam tokens and rug projects before they hit your wallet!'
+            },
+            {
+                id: 'hodlhero',
+                name: 'Hold Hero',
+                icon: '💎',
+                type: 'Tower Defense',
+                description: 'Protect your wallet from waves of FUD and scammers. Hold the line!'
+            },
+            {
+                id: 'cryptoheist',
+                name: 'Crypto Heist',
+                icon: '🦹',
+                type: 'Action',
+                description: 'Navigate the crypto underworld! Steal tokens, evade the SEC, and escape with your loot!'
+            },
+            {
+                id: 'rugpull',
+                name: 'Rug Pull Escape',
+                icon: '🏃',
+                type: 'Reaction Game',
+                description: 'Spot the warning signs and withdraw before the rug gets pulled!'
+            },
+            {
+                id: 'whalewatch',
+                name: 'Whale Watch',
+                icon: '🐋',
+                type: 'Pattern Memory',
+                description: 'Track whale movements and predict their next trade patterns.'
+            },
+            {
+                id: 'stakestacker',
+                name: 'Stake Stacker',
+                icon: '📦',
+                type: 'Puzzle',
+                description: 'Stack and arrange staking blocks for maximum APY rewards.'
+            },
+            {
+                id: 'dexdash',
+                name: 'DEX Dash',
+                icon: '🏁',
+                type: 'Racing',
+                description: 'Race across DEX platforms. Fastest route to the best swap wins!'
+            },
+            {
+                id: 'burnorhold',
+                name: 'Token Archer',
+                icon: '🏹',
+                type: 'Turn-based',
+                description: 'Take turns shooting arrows at your enemy! Aim with drag, release to fire. Defeat the enemy to win!'
+            }
+        ];
+
+        // ============================================
+        // STATE MANAGEMENT
+        // ============================================
+
+        const STORAGE_KEY = 'asdf_gotw_v1';
+
+        let appState = {
+            wallet: null,
+            isHolder: false,
+            balance: 0,
+            tickets: 0,
+            practiceScores: {},
+            competitiveScores: {}
+        };
+
+        // Validate state schema to prevent tampering
+        function validateStateSchema(data) {
+            if (typeof data !== 'object' || data === null) return false;
+            if (data.wallet !== null && typeof data.wallet !== 'string') return false;
+            if (typeof data.isHolder !== 'boolean') return false;
+            if (typeof data.balance !== 'number' || !Number.isFinite(data.balance) || data.balance < 0) return false;
+            if (typeof data.tickets !== 'number' || !Number.isInteger(data.tickets) || data.tickets < 0) return false;
+            if (typeof data.practiceScores !== 'object' || data.practiceScores === null) return false;
+            if (typeof data.competitiveScores !== 'object' || data.competitiveScores === null) return false;
+            // Validate score objects - only allow valid game IDs with numeric scores
+            for (const [key, value] of Object.entries(data.practiceScores)) {
+                if (!VALID_GAME_IDS.has(key) || typeof value !== 'number' || !Number.isFinite(value)) return false;
+            }
+            for (const [key, value] of Object.entries(data.competitiveScores)) {
+                if (!VALID_GAME_IDS.has(key) || typeof value !== 'number' || !Number.isFinite(value)) return false;
+            }
+            return true;
+        }
+
+        function loadState() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    // Only merge if schema is valid, otherwise keep defaults
+                    if (validateStateSchema({ ...appState, ...parsed })) {
+                        appState = { ...appState, ...parsed };
+                    } else {
+                        console.warn('Invalid state schema, using defaults');
+                        localStorage.removeItem(STORAGE_KEY);
+                    }
+                }
+            } catch (e) {
+                console.warn('Failed to load state:', e);
+                localStorage.removeItem(STORAGE_KEY);
+            }
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+            } catch (e) {
+                console.warn('Failed to save state:', e);
+            }
+        }
+
+        // ============================================
+        // WALLET CONNECTION (PHANTOM)
+        // ============================================
+
+        async function handleWalletClick() {
+            if (appState.wallet) {
+                await disconnectWallet();
+            } else {
+                await connectWallet();
+            }
+        }
+
+        async function connectWallet() {
+            try {
+                // Check if Phantom is installed
+                const provider = getPhantomProvider();
+                if (!provider) {
+                    alert('Please install Phantom wallet to connect.\n\nhttps://phantom.app/');
+                    return;
+                }
+
+                // Connect to Phantom
+                const response = await provider.connect();
+                const publicKey = response.publicKey.toString();
+
+                appState.wallet = publicKey;
+                saveState();
+
+                // Update UI immediately
+                updateWalletUI(publicKey);
+
+                // Check token balance
+                await checkTokenBalance(publicKey);
+
+            } catch (error) {
+                console.error('Wallet connection failed:', error);
+                if (error.code === 4001) {
+                    // User rejected
+                    return;
+                }
+                alert('Failed to connect wallet. Please try again.');
+            }
+        }
+
+        async function disconnectWallet() {
+            try {
+                const provider = getPhantomProvider();
+                if (provider) {
+                    await provider.disconnect();
+                }
+            } catch (e) {
+                console.warn('Disconnect error:', e);
+            }
+
+            appState.wallet = null;
+            appState.isHolder = false;
+            appState.balance = 0;
+            saveState();
+
+            updateWalletUI(null);
+            updateAccessUI();
+            renderGamesGrid();
+        }
+
+        function getPhantomProvider() {
+            if ('phantom' in window) {
+                const provider = window.phantom?.solana;
+                if (provider?.isPhantom) {
+                    return provider;
+                }
+            }
+            return null;
+        }
+
+        // Validate Solana public key format (base58, 32-44 chars)
+        function isValidSolanaAddress(address) {
+            if (typeof address !== 'string') return false;
+            if (address.length < 32 || address.length > 44) return false;
+            // Base58 alphabet check (no 0, O, I, l)
+            return /^[1-9A-HJ-NP-Za-km-z]+$/.test(address);
+        }
+
+        async function checkTokenBalance(publicKey) {
+            try {
+                // Security: Validate publicKey format before RPC call
+                if (!isValidSolanaAddress(publicKey)) {
+                    console.warn('Invalid Solana address format');
+                    return;
+                }
+
+                // Security: Rate limiting to prevent RPC abuse
+                if (!RateLimiter.canMakeCall('solana-rpc')) {
+                    console.warn('Rate limited - please wait before checking balance again');
+                    return;
+                }
+
+                // This is a simplified check - in production, you'd use proper SPL token balance checking
+                // Using Solana RPC to get token accounts
+
+                const response = await fetch(CONFIG.SOLANA_RPC, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jsonrpc: '2.0',
+                        id: 1,
+                        method: 'getTokenAccountsByOwner',
+                        params: [
+                            publicKey,
+                            { mint: CONFIG.ASDF_TOKEN_MINT },
+                            { encoding: 'jsonParsed' }
+                        ]
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.result?.value?.length > 0) {
+                    const tokenAccount = data.result.value[0];
+                    const balance = tokenAccount.account.data.parsed.info.tokenAmount.uiAmount || 0;
+
+                    appState.balance = balance;
+                    appState.isHolder = balance >= CONFIG.MIN_HOLDER_BALANCE;
+                } else {
+                    appState.balance = 0;
+                    appState.isHolder = false;
+                }
+
+                saveState();
+                updateAccessUI();
+                renderGamesGrid();
+
+            } catch (error) {
+                console.error('Failed to check token balance:', error);
+                // For demo purposes, you might want to set isHolder = true to test the UI
+                // appState.isHolder = true;
+                updateAccessUI();
+                renderGamesGrid();
+            }
+        }
+
+        function updateWalletUI(publicKey) {
+            const btn = document.getElementById('wallet-btn');
+            const btnText = document.getElementById('wallet-btn-text');
+            const badge = document.getElementById('user-badge');
+
+            if (publicKey && typeof publicKey === 'string' && publicKey.length >= 8) {
+                btn.classList.add('connected');
+                // Security: Use DOM API instead of innerHTML to prevent XSS
+                btnText.textContent = '';
+                const addrSpan = document.createElement('span');
+                addrSpan.className = 'wallet-address';
+                addrSpan.textContent = `${publicKey.slice(0, 4)}...${publicKey.slice(-4)}`;
+                btnText.appendChild(addrSpan);
+                badge.className = appState.isHolder ? 'holder-badge' : 'visitor-badge';
+                badge.textContent = appState.isHolder ? 'HOLDER' : 'CONNECTED';
+            } else {
+                btn.classList.remove('connected');
+                btnText.textContent = 'Connect Wallet';
+                badge.className = 'visitor-badge';
+                badge.textContent = 'VISITOR';
+            }
+        }
+
+        function updateAccessUI() {
+            const accessAll = document.getElementById('access-all');
+            const accessTickets = document.getElementById('access-tickets');
+
+            // Check if holder or test mode
+            const hasFullAccess = appState.isHolder || testMode;
+
+            if (hasFullAccess) {
+                accessAll.classList.remove('locked');
+                accessAll.classList.add('unlocked');
+                accessAll.querySelector('strong').textContent = testMode ? 'Test Mode' : 'Unlocked';
+
+                accessTickets.classList.remove('locked');
+                accessTickets.classList.add('unlocked');
+                accessTickets.querySelector('strong').textContent = 'Available';
+            } else {
+                accessAll.classList.add('locked');
+                accessAll.classList.remove('unlocked');
+                accessAll.querySelector('strong').textContent = 'Holders Only';
+
+                accessTickets.classList.add('locked');
+                accessTickets.classList.remove('unlocked');
+                accessTickets.querySelector('strong').textContent = 'Holders Only';
+            }
+
+            // Update ticket display
+            updateTicketUI();
+        }
+
+        // ============================================
+        // ROTATION SYSTEM
+        // ============================================
+
+        function getCurrentWeekIndex() {
+            const now = Date.now();
+            const epochMs = CONFIG.ROTATION_EPOCH.getTime();
+            const weekMs = 7 * 24 * 60 * 60 * 1000;
+            const weeksSinceEpoch = Math.floor((now - epochMs) / weekMs);
+            return weeksSinceEpoch % CONFIG.CYCLE_WEEKS;
+        }
+
+        function getCurrentGame() {
+            return GAMES[getCurrentWeekIndex()];
+        }
+
+        function getNextRotationTime() {
+            const now = new Date();
+            const dayOfWeek = now.getUTCDay();
+            const daysUntilMonday = dayOfWeek === 0 ? 1 : (8 - dayOfWeek);
+
+            const nextMonday = new Date(now);
+            nextMonday.setUTCDate(now.getUTCDate() + daysUntilMonday);
+            nextMonday.setUTCHours(0, 0, 0, 0);
+
+            return nextMonday;
+        }
+
+        function updateCountdown() {
+            const now = Date.now();
+            const target = getNextRotationTime().getTime();
+            const diff = Math.max(0, target - now);
+
+            const days = Math.floor(diff / (24 * 60 * 60 * 1000));
+            const hours = Math.floor((diff % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+            const mins = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000));
+            const secs = Math.floor((diff % (60 * 1000)) / 1000);
+
+            document.getElementById('countdown-days').textContent = days;
+            document.getElementById('countdown-hours').textContent = hours.toString().padStart(2, '0');
+            document.getElementById('countdown-mins').textContent = mins.toString().padStart(2, '0');
+            document.getElementById('countdown-secs').textContent = secs.toString().padStart(2, '0');
+        }
+
+        function getNextAirdropTime() {
+            const now = new Date();
+            const currentWeek = getCurrentWeekIndex();
+            const weeksUntilCycleEnd = CONFIG.CYCLE_WEEKS - currentWeek;
+            const nextCycleEnd = getNextRotationTime();
+            nextCycleEnd.setUTCDate(nextCycleEnd.getUTCDate() + (weeksUntilCycleEnd - 1) * 7);
+            return nextCycleEnd;
+        }
+
+        function updateAirdropCountdown() {
+            const now = Date.now();
+            const target = getNextAirdropTime().getTime();
+            const diff = Math.max(0, target - now);
+
+            const weeks = Math.floor(diff / (7 * 24 * 60 * 60 * 1000));
+            const days = Math.floor((diff % (7 * 24 * 60 * 60 * 1000)) / (24 * 60 * 60 * 1000));
+            const hours = Math.floor((diff % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+
+            document.getElementById('airdrop-weeks').textContent = weeks;
+            document.getElementById('airdrop-days').textContent = days;
+            document.getElementById('airdrop-hours').textContent = hours;
+        }
+
+        // ============================================
+        // GAMES GRID
+        // ============================================
+
+        function renderGamesGrid() {
+            const grid = document.getElementById('games-grid');
+            const currentGame = getCurrentGame();
+
+            grid.innerHTML = GAMES.map(game => {
+                const isFeatured = game.id === currentGame.id;
+                // Unlock all games if testMode is enabled
+                const isLocked = !testMode && !isFeatured && !appState.isHolder;
+                const highScore = appState.practiceScores[game.id] || 0;
+
+                return `
+                    <div class="game-card ${isFeatured ? 'featured' : ''} ${isLocked ? 'locked' : ''}" data-game="${game.id}">
+                        <div class="game-icon">${game.icon}</div>
+                        <h3 class="game-name">${escapeHtml(game.name)}</h3>
+                        <p class="game-type">${escapeHtml(game.type)}</p>
+                        <div class="game-highscore">
+                            Best: ${highScore}
+                        </div>
+                        <button class="btn game-play-btn" onclick="openGame('${game.id}')" ${isLocked ? 'disabled' : ''}>
+                            ${isLocked ? 'Locked' : 'Play'}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateFeaturedGame() {
+            const game = getCurrentGame();
+            document.getElementById('featured-game-icon').textContent = game.icon;
+            document.getElementById('featured-game-name').textContent = game.name;
+            document.getElementById('featured-game-desc').textContent = game.description;
+        }
+
+        // ============================================
+        // LEADERBOARD
+        // ============================================
+
+        // Airdrop slots per rank
+        const AIRDROP_SLOTS = { 1: 5, 2: 2, 3: 1 };
+
+        async function renderLeaderboards() {
+            const currentGame = getCurrentGame();
+
+            // Show loading state
+            const weeklyEl = document.getElementById('weekly-leaderboard');
+            const cycleEl = document.getElementById('cycle-leaderboard');
+
+            if (weeklyEl) weeklyEl.innerHTML = '<div class="leaderboard-loading">Loading...</div>';
+            if (cycleEl) cycleEl.innerHTML = '<div class="leaderboard-loading">Loading...</div>';
+
+            try {
+                // Fetch both leaderboards in parallel
+                const [weeklyResponse, cycleResponse] = await Promise.all([
+                    ApiClient.getWeeklyLeaderboard(currentGame.id, 10).catch(() => ({ leaderboard: [] })),
+                    ApiClient.getCycleLeaderboard(10).catch(() => ({ leaderboard: [] }))
+                ]);
+
+                const weeklyData = weeklyResponse.leaderboard || [];
+                const cycleData = cycleResponse.leaderboard || [];
+
+                // Render leaderboards
+                if (weeklyEl) {
+                    weeklyEl.innerHTML = weeklyData.length > 0
+                        ? renderWeeklyLeaderboard(weeklyData)
+                        : '<div class="leaderboard-empty">No scores yet this week. Be the first!</div>';
+                }
+
+                if (cycleEl) {
+                    cycleEl.innerHTML = cycleData.length > 0
+                        ? renderCycleLeaderboard(cycleData)
+                        : '<div class="leaderboard-empty">No airdrop slots earned yet.</div>';
+                }
+            } catch (error) {
+                console.error('Failed to load leaderboards:', error);
+
+                // Show fallback mock data
+                const mockWeeklyData = [
+                    { rank: 1, player: 'Connect to see...', score: 0 }
+                ];
+                const mockCycleData = [
+                    { rank: 1, player: 'Connect to see...', slots: 0 }
+                ];
+
+                if (weeklyEl) weeklyEl.innerHTML = renderWeeklyLeaderboard(mockWeeklyData);
+                if (cycleEl) cycleEl.innerHTML = renderCycleLeaderboard(mockCycleData);
+            }
+        }
+
+        function renderWeeklyLeaderboard(data) {
+            return data.map(entry => {
+                const rankClass = entry.rank === 1 ? 'gold' : entry.rank === 2 ? 'silver' : entry.rank === 3 ? 'bronze' : '';
+                const isYou = appState.wallet && entry.player.includes(appState.wallet.slice(0, 4));
+                const slots = AIRDROP_SLOTS[entry.rank] || 0;
+                const slotBadge = slots > 0 ? `<span style="color: var(--gold); font-size: 11px; margin-left: 8px;">+${slots} slots</span>` : '';
+
+                return `
+                    <div class="leaderboard-item ${isYou ? 'you' : ''}">
+                        <div class="leaderboard-rank ${rankClass}">${entry.rank}</div>
+                        <div class="leaderboard-player" style="flex: 1;">
+                            ${isYou ? ' You' : escapeHtml(entry.player)}
+                            ${slotBadge}
+                        </div>
+                        <div class="leaderboard-score">${entry.score.toLocaleString()}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderCycleLeaderboard(data) {
+            return data.map(entry => {
+                const rankClass = entry.rank === 1 ? 'gold' : entry.rank === 2 ? 'silver' : entry.rank === 3 ? 'bronze' : '';
+                const isYou = appState.wallet && entry.player.includes(appState.wallet.slice(0, 4));
+
+                return `
+                    <div class="leaderboard-item ${isYou ? 'you' : ''}">
+                        <div class="leaderboard-rank ${rankClass}">${entry.rank}</div>
+                        <div class="leaderboard-player">${isYou ? ' You' : escapeHtml(entry.player)}</div>
+                        <div class="leaderboard-score" style="color: var(--gold);">${entry.slots} slots</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function switchLeaderboard(type, filter) {
+            // TODO: Implement tab switching and API calls
+        }
+
+        // ============================================
+        // GAME MODALS
+        // ============================================
+
+        function generateGameModals() {
+            const container = document.getElementById('game-modals');
+
+            container.innerHTML = GAMES.map(game => `
+                <div class="game-modal" id="modal-${game.id}">
+                    <div class="game-modal-content">
+                        <div class="game-modal-header">
+                            <h2 class="game-modal-title">
+                                <span>${game.icon}</span>
+                                <span>${escapeHtml(game.name)}</span>
+                            </h2>
+                            <button class="game-modal-close" onclick="closeGame('${game.id}')">&times;</button>
+                        </div>
+                        <div class="game-modal-body">
+                            <div class="game-arena" id="arena-${game.id}">
+                                <div class="game-start-overlay" id="overlay-${game.id}">
+                                    <div class="game-instructions">
+                                        <h3>${escapeHtml(game.name)}</h3>
+                                        <p>${escapeHtml(game.description)}</p>
+                                    </div>
+                                    <button class="btn btn-primary" onclick="startGame('${game.id}')">
+                                        START GAME
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="game-controls">
+                            <div class="game-stats">
+                                <div class="game-stat">
+                                    <div class="game-stat-value" id="score-${game.id}">0</div>
+                                    <div class="game-stat-label">Score</div>
+                                </div>
+                                <div class="game-stat">
+                                    <div class="game-stat-value" id="best-${game.id}">${appState.practiceScores[game.id] || 0}</div>
+                                    <div class="game-stat-label">Best</div>
+                                </div>
+                                <div class="game-stat" id="timer-stat-${game.id}" style="display: none;">
+                                    <div class="game-stat-value" id="timer-${game.id}">--:--</div>
+                                    <div class="game-stat-label">Time Left</div>
+                                </div>
+                            </div>
+                            <div class="game-mode-toggle">
+                                <button class="mode-btn" onclick="restartGame('${game.id}')" title="Restart Game">Restart</button>
+                                <button class="mode-btn active" id="practice-btn-${game.id}">Practice</button>
+                                <button class="mode-btn" id="competitive-btn-${game.id}" onclick="toggleCompetitive('${game.id}')">
+                                    Competitive
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openGame(gameId) {
+            // Validate gameId against whitelist
+            if (!isValidGameId(gameId)) return;
+            const game = GAMES.find(g => g.id === gameId);
+            if (!game) return;
+
+            const currentGame = getCurrentGame();
+            const isFeatured = game.id === currentGame.id;
+
+            // Check access - testMode bypasses all restrictions
+            if (!testMode && !isFeatured && !appState.isHolder) {
+                alert('This game is locked. Connect your wallet and hold 1M+ $asdfasdfa to unlock all games!');
+                return;
+            }
+
+            document.getElementById(`modal-${gameId}`).classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeGame(gameId) {
+            // Validate gameId to prevent DOM injection
+            if (!isValidGameId(gameId)) return;
+
+            const modal = document.getElementById(`modal-${gameId}`);
+            if (modal) modal.classList.remove('active');
+            document.body.style.overflow = '';
+
+            // Reset game overlay if exists
+            const overlay = document.getElementById(`overlay-${gameId}`);
+            if (overlay) overlay.classList.remove('hidden');
+
+            // Clear the arena
+            const arena = document.getElementById(`arena-${gameId}`);
+            if (arena) arena.innerHTML = '';
+
+            stopGame(gameId);
+        }
+
+        function playFeaturedGame() {
+            const game = getCurrentGame();
+            openGame(game.id);
+        }
+
+        function scrollToGames() {
+            document.getElementById('games-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // ============================================
+        // RESTART GAME FUNCTION
+        // ============================================
+
+        function restartGame(gameId) {
+            // Validate gameId
+            if (!isValidGameId(gameId)) return;
+
+            stopGame(gameId);
+            document.getElementById(`score-${gameId}`).textContent = '0';
+
+            // Remove game over overlay if exists
+            const gameOver = document.getElementById(`gameover-${gameId}`);
+            if (gameOver) gameOver.remove();
+
+            // Clear the arena completely before restarting
+            const arena = document.getElementById(`arena-${gameId}`);
+            if (arena) arena.innerHTML = '';
+
+            // Restart the game
+            startGame(gameId);
+        }
+
+        // ============================================
+        // TEST MODE - Unlock all games for testing
+        // ============================================
+
+        let testMode = false;
+
+        function toggleTestMode() {
+            testMode = !testMode;
+            const btn = document.getElementById('test-mode-btn');
+            if (testMode) {
+                btn.textContent = 'TEST MODE: ON';
+                btn.style.background = 'var(--green)';
+                btn.style.borderColor = 'var(--green-light)';
+            } else {
+                btn.textContent = 'TEST MODE: OFF';
+                btn.style.background = 'var(--bg-burnt)';
+                btn.style.borderColor = 'var(--border-rust)';
+            }
+            renderGamesGrid();
+            updateAccessUI();
+        }
+
+        // ============================================
+        // TICKET SYSTEM
+        // ============================================
+
+        const TICKET_TYPES = {
+            standard: {
+                name: 'Standard Ticket',
+                priceSOL: 0.1, // Price in SOL
+                duration: 4 * 60 * 60 * 1000, // 4 hours real time
+                type: 'realtime',
+                description: '4 hours of competitive play (real time)',
+                icon: ''
+            },
+            premium: {
+                name: 'Premium Ticket',
+                priceSOL: 0.5,
+                duration: 24 * 60 * 60 * 1000, // 24 hours
+                type: 'realtime',
+                description: '24 hours of competitive access',
+                icon: ''
+            },
+            donator: {
+                name: 'Donator Ticket',
+                priceSOL: 2.0,
+                duration: 7 * 24 * 60 * 60 * 1000, // Full week
+                type: 'weekly',
+                description: 'Full week access + 1/3 chance for bonus airdrop slot',
+                icon: '',
+                bonusChance: 0.333
+            }
+        };
+
+        function openBuyTickets() {
+            document.getElementById('ticket-modal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeTicketModal() {
+            document.getElementById('ticket-modal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        async function buyTicket(type) {
+            const ticket = TICKET_TYPES[type];
+            if (!ticket) return;
+
+            // Check wallet connection
+            if (!appState.wallet) {
+                alert('Please connect your wallet first!');
+                return;
+            }
+
+            const provider = getPhantomProvider();
+            if (!provider) {
+                alert('Phantom wallet not found!');
+                return;
+            }
+
+            // Check if Solana Web3 is loaded
+            if (typeof solanaWeb3 === 'undefined') {
+                alert('Solana Web3 not loaded. Please refresh the page.');
+                return;
+            }
+
+            try {
+                // Show loading state
+                const buyBtn = document.querySelector(`[onclick="buyTicket('${type}')"]`);
+                if (buyBtn) {
+                    buyBtn.disabled = true;
+                    buyBtn.textContent = 'Processing...';
+                }
+
+                // Confirm purchase with user
+                const confirmed = confirm(
+                    `Purchase ${ticket.name}\n\n` +
+                    `Price: ${ticket.priceSOL} SOL\n` +
+                    `Duration: ${ticket.description}\n\n` +
+                    `Click OK to proceed with payment.`
+                );
+
+                if (!confirmed) {
+                    throw new Error('Payment cancelled');
+                }
+
+                // Update button to show transaction status
+                if (buyBtn) {
+                    buyBtn.textContent = 'Awaiting wallet...';
+                }
+
+                // Execute payment (real or simulated based on DEV_MODE)
+                let transactionSignature;
+
+                if (CONFIG.DEV_MODE) {
+                    // Development mode - simulated payment
+                    console.log('[DEV MODE] Simulating payment for', type);
+                    transactionSignature = await simulatePayment(type, ticket);
+                    if (!transactionSignature) {
+                        throw new Error('Payment cancelled');
+                    }
+                } else {
+                    // Production mode - Real SOL payment
+                    try {
+                        transactionSignature = await SolanaPayment.transferSOL(ticket.priceSOL);
+                    } catch (paymentError) {
+                        // Check if user rejected the transaction
+                        if (paymentError.message.includes('User rejected') ||
+                            paymentError.message.includes('cancelled')) {
+                            throw new Error('Transaction cancelled by user');
+                        }
+                        throw paymentError;
+                    }
+                }
+
+                if (buyBtn) {
+                    buyBtn.textContent = 'Confirming...';
+                }
+
+                // Submit to API with transaction signature
+                const result = await ApiClient.purchaseTicket(type, transactionSignature);
+
+                if (result.success) {
+                    // Update local state
+                    appState.activeTicket = {
+                        type: type,
+                        expiresAt: new Date(result.ticket.expiresAt).getTime(),
+                        remainingTime: new Date(result.ticket.expiresAt).getTime() - Date.now(),
+                        isActive: false
+                    };
+                    saveState();
+                    closeTicketModal();
+
+                    if (type === 'donator') {
+                        // Check for bonus slot
+                        if (result.ticket.bonusSlot) {
+                            openPackAnimation(true); // Won bonus
+                        } else {
+                            openPackAnimation(false); // No bonus
+                        }
+                    } else {
+                        updateTicketUI();
+                        alert(`${result.message}\n\nTransaction: ${transactionSignature.slice(0, 20)}...`);
+                    }
+                }
+            } catch (error) {
+                console.error('Ticket purchase failed:', error);
+                alert(`Purchase failed: ${error.message}`);
+            } finally {
+                // Reset button
+                const buyBtn = document.querySelector(`[onclick="buyTicket('${type}')"]`);
+                if (buyBtn) {
+                    buyBtn.disabled = false;
+                    buyBtn.textContent = `Buy ${ticket.name}`;
+                }
+            }
+        }
+
+        // Development mode check - used for testing when wallets aren't configured
+        function isDevelopmentMode() {
+            return CONFIG.TREASURY_WALLET === 'YOUR_TREASURY_WALLET_ADDRESS_HERE' ||
+                   CONFIG.ASDF_TOKEN_MINT === 'YOUR_TOKEN_MINT_ADDRESS_HERE' ||
+                   window.location.hostname === 'localhost';
+        }
+
+        // Simulate payment for development/testing (fallback when real payments not configured)
+        async function simulatePayment(type, ticket) {
+            console.warn('DEVELOPMENT MODE: Simulating payment. Configure wallet addresses for production.');
+
+            const confirmed = confirm(
+                `[DEV MODE] Simulated Payment\n\n` +
+                `Ticket: ${ticket.name}\n` +
+                `Price: ${ticket.priceSOL} SOL\n\n` +
+                `Note: Configure TREASURY_WALLET and ASDF_TOKEN_MINT for real payments.\n\n` +
+                `Click OK to simulate successful payment.`
+            );
+
+            if (!confirmed) return null;
+
+            // Generate mock transaction signature
+            const mockSig = Array.from({ length: 88 }, () =>
+                '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'[Math.floor(Math.random() * 58)]
+            ).join('');
+
+            return mockSig;
+        }
+
+        function updateTicketUI() {
+            const ticketInfo = document.getElementById('ticket-info');
+            const ticketBar = document.getElementById('tickets-bar');
+
+            if (appState.activeTicket) {
+                const ticket = appState.activeTicket;
+                const ticketType = TICKET_TYPES[ticket.type];
+
+                ticketBar.style.display = 'flex';
+
+                if (ticket.type === 'standard') {
+                    // Real-time countdown
+                    const remaining = Math.max(0, ticket.expiresAt - Date.now());
+                    if (remaining <= 0) {
+                        appState.activeTicket = null;
+                        saveState();
+                        updateTicketUI();
+                        return;
+                    }
+                    const mins = Math.floor(remaining / 60000);
+                    const secs = Math.floor((remaining % 60000) / 1000);
+                    document.getElementById('ticket-count').innerHTML = `<span style="color: var(--gold);">${ticketType.icon} ${mins}:${secs.toString().padStart(2, '0')}</span>`;
+                } else if (ticket.type === 'premium') {
+                    const mins = Math.floor(ticket.remainingTime / 60000);
+                    document.getElementById('ticket-count').innerHTML = `<span style="color: var(--purple);">${ticketType.icon} ${mins} min left</span>`;
+                } else if (ticket.type === 'donator') {
+                    const days = Math.floor((ticket.expiresAt - Date.now()) / (24 * 60 * 60 * 1000));
+                    document.getElementById('ticket-count').innerHTML = `<span style="color: var(--gold);">${ticketType.icon} ${days}d left</span>`;
+                }
+            } else {
+                document.getElementById('ticket-count').textContent = 'No active ticket';
+            }
+        }
+
+        // Timer for standard ticket (real-time)
+        setInterval(() => {
+            if (appState.activeTicket && appState.activeTicket.type === 'standard') {
+                updateTicketUI();
+            }
+        }, 1000);
+
+        // Timer for premium ticket (only when playing)
+        let premiumTimerInterval = null;
+
+        function startPremiumTimer(gameId) {
+            if (appState.activeTicket && appState.activeTicket.type === 'premium') {
+                appState.activeTicket.isActive = true;
+                document.getElementById(`timer-stat-${gameId}`).style.display = 'block';
+
+                premiumTimerInterval = setInterval(() => {
+                    if (appState.activeTicket && appState.activeTicket.remainingTime > 0) {
+                        appState.activeTicket.remainingTime -= 1000;
+                        const mins = Math.floor(appState.activeTicket.remainingTime / 60000);
+                        const secs = Math.floor((appState.activeTicket.remainingTime % 60000) / 1000);
+                        document.getElementById(`timer-${gameId}`).textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+
+                        if (appState.activeTicket.remainingTime <= 0) {
+                            appState.activeTicket = null;
+                            saveState();
+                            clearInterval(premiumTimerInterval);
+                            alert('Your premium ticket has expired!');
+                        }
+                    }
+                }, 1000);
+            }
+        }
+
+        function stopPremiumTimer(gameId) {
+            if (premiumTimerInterval) {
+                clearInterval(premiumTimerInterval);
+                premiumTimerInterval = null;
+            }
+            if (appState.activeTicket) {
+                appState.activeTicket.isActive = false;
+                saveState();
+            }
+            const timerStat = document.getElementById(`timer-stat-${gameId}`);
+            if (timerStat) timerStat.style.display = 'none';
+        }
+
+        // ============================================
+        // PACK OPENING ANIMATION (Donator Bonus)
+        // ============================================
+
+        function openPackAnimation() {
+            const modal = document.getElementById('pack-modal');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+
+            const packCard = document.getElementById('pack-card');
+            const packResult = document.getElementById('pack-result');
+            const packMessage = document.getElementById('pack-message');
+
+            packCard.style.display = 'block';
+            packResult.style.display = 'none';
+            packCard.classList.remove('flip');
+
+            // Click to reveal
+            packCard.onclick = () => {
+                packCard.classList.add('flip');
+
+                setTimeout(() => {
+                    packCard.style.display = 'none';
+                    packResult.style.display = 'flex';
+
+                    // 1/3 chance of winning bonus slot
+                    const won = Math.random() < TICKET_TYPES.donator.bonusChance;
+
+                    if (won) {
+                        packResult.innerHTML = `
+                            <div class="pack-win">
+                                <div style="font-size: 80px; animation: bounce 0.5s infinite;">🎉</div>
+                                <h2 style="color: var(--gold); font-family: var(--font-display);">WINNER!</h2>
+                                <p>You won +1 BONUS AIRDROP SLOT!</p>
+                                <p style="color: var(--text-muted); font-size: 12px;">This slot is added to your weekly earnings</p>
+                            </div>
+                        `;
+                        appState.bonusAirdropSlots = (appState.bonusAirdropSlots || 0) + 1;
+                        saveState();
+                    } else {
+                        packResult.innerHTML = `
+                            <div class="pack-lose">
+                                <div style="font-size: 80px;">😔</div>
+                                <h2 style="color: var(--text-muted); font-family: var(--font-display);">No Bonus</h2>
+                                <p>Better luck next time!</p>
+                                <p style="color: var(--text-muted); font-size: 12px;">You still have full week competitive access</p>
+                            </div>
+                        `;
+                    }
+                }, 600);
+            };
+        }
+
+        function closePackModal() {
+            document.getElementById('pack-modal').classList.remove('active');
+            document.body.style.overflow = '';
+            updateTicketUI();
+        }
+
+        function toggleCompetitive(gameId) {
+            // Check if has active ticket or test mode
+            if (!appState.activeTicket && !testMode) {
+                openBuyTickets();
+                return;
+            }
+
+            // Toggle button states
+            const practiceBtn = document.getElementById(`practice-btn-${gameId}`);
+            const competitiveBtn = document.getElementById(`competitive-btn-${gameId}`);
+
+            if (competitiveBtn.classList.contains('active')) {
+                competitiveBtn.classList.remove('active');
+                practiceBtn.classList.add('active');
+                stopPremiumTimer(gameId);
+            } else {
+                practiceBtn.classList.remove('active');
+                competitiveBtn.classList.add('active');
+                if (appState.activeTicket && appState.activeTicket.type === 'premium') {
+                    startPremiumTimer(gameId);
+                }
+            }
+        }
+
+        function hasCompetitiveAccess() {
+            if (testMode) return true;
+            if (!appState.activeTicket) return false;
+
+            const ticket = appState.activeTicket;
+            if (ticket.type === 'standard') {
+                return ticket.expiresAt > Date.now();
+            } else if (ticket.type === 'premium') {
+                return ticket.remainingTime > 0;
+            } else if (ticket.type === 'donator') {
+                return ticket.expiresAt > Date.now();
+            }
+            return false;
+        }
+
+        // ============================================
+        // GAME LOGIC (PLACEHOLDER - TO BE IMPLEMENTED)
+        // ============================================
+
+        let activeGames = {};
+
+        function startGame(gameId) {
+            // Validate gameId against whitelist before DOM access
+            if (!isValidGameId(gameId)) return;
+
+            const overlay = document.getElementById(`overlay-${gameId}`);
+            if (overlay) overlay.classList.add('hidden');
+
+            // Small delay to ensure arena is rendered and has dimensions
+            requestAnimationFrame(() => {
+                // Initialize game based on type
+                initializeGame(gameId);
+            });
+        }
+
+        function initializeGame(gameId) {
+            switch(gameId) {
+                case 'burnrunner':
+                    startBurnRunner(gameId);
+                    break;
+                case 'scamblaster':
+                    startScamBlaster(gameId);
+                    break;
+                case 'hodlhero':
+                    startHodlHero(gameId);
+                    break;
+                case 'cryptoheist':
+                    startCryptoHeist(gameId);
+                    break;
+                case 'pumparena':
+                    startPumpArena(gameId);
+                    break;
+                case 'rugpull':
+                    startRugPull(gameId);
+                    break;
+                case 'whalewatch':
+                    startWhaleWatch(gameId);
+                    break;
+                case 'stakestacker':
+                    startStakeStacker(gameId);
+                    break;
+                case 'dexdash':
+                    startDexDash(gameId);
+                    break;
+                case 'burnorhold':
+                    startBurnOrHold(gameId);
+                    break;
+                default:
+                    // Game not implemented - silently ignore
+            }
+        }
+
+        function stopGame(gameId) {
+            if (activeGames[gameId]) {
+                // Clear interval
+                if (activeGames[gameId].interval) {
+                    clearInterval(activeGames[gameId].interval);
+                }
+                // Call cleanup if exists
+                if (activeGames[gameId].cleanup) {
+                    activeGames[gameId].cleanup();
+                }
+                delete activeGames[gameId];
+            }
+        }
+
+        function updateScore(gameId, score) {
+            const scoreEl = document.getElementById(`score-${gameId}`);
+            if (scoreEl) scoreEl.textContent = score;
+
+            // Update best if needed
+            if (score > (appState.practiceScores[gameId] || 0)) {
+                appState.practiceScores[gameId] = score;
+                const bestEl = document.getElementById(`best-${gameId}`);
+                if (bestEl) bestEl.textContent = score;
+                saveState();
+            }
+        }
+
+        async function endGame(gameId, finalScore) {
+            // Security: Validate gameId before use
+            if (!isValidGameId(gameId)) return;
+
+            // Sanitize score to prevent injection
+            const safeScore = sanitizeNumber(finalScore, 0, 999999999, 0);
+
+            updateScore(gameId, safeScore);
+            stopGame(gameId);
+
+            // Check if this was a competitive game
+            const isCompetitive = activeGameModes[gameId] === 'competitive';
+
+            // Submit score to API
+            let apiResult = null;
+            let submitError = null;
+
+            if (appState.wallet) {
+                try {
+                    apiResult = await ApiClient.submitScore(gameId, safeScore, isCompetitive);
+
+                    // Update local best scores
+                    if (apiResult.isNewBest) {
+                        appState.practiceScores[gameId] = apiResult.bestScore;
+                        saveState();
+                        document.getElementById(`best-${gameId}`).textContent = apiResult.bestScore;
+                    }
+                } catch (error) {
+                    console.error('Failed to submit score:', error);
+                    submitError = error.message;
+
+                    // Still update local score if API fails
+                    if (safeScore > (appState.practiceScores[gameId] || 0)) {
+                        appState.practiceScores[gameId] = safeScore;
+                        saveState();
+                    }
+                }
+            } else {
+                // Offline mode - just save locally
+                if (safeScore > (appState.practiceScores[gameId] || 0)) {
+                    appState.practiceScores[gameId] = safeScore;
+                    saveState();
+                }
+            }
+
+            // Show game over screen using DOM API (no innerHTML with variables)
+            const arena = document.getElementById(`arena-${gameId}`);
+            if (arena) {
+                const gameOverDiv = document.createElement('div');
+                gameOverDiv.id = `gameover-${gameId}`;
+                gameOverDiv.style.cssText = `
+                    position: absolute;
+                    top: 0; left: 0; right: 0; bottom: 0;
+                    background: rgba(0,0,0,0.85);
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 15px;
+                    z-index: 1000;
+                `;
+
+                // Create elements safely with DOM API
+                const titleDiv = document.createElement('div');
+                titleDiv.style.cssText = 'font-size: 32px; font-weight: bold; color: var(--accent-bright);';
+                titleDiv.textContent = 'GAME OVER';
+
+                const scoreDiv = document.createElement('div');
+                scoreDiv.style.cssText = 'font-size: 24px; color: var(--gold);';
+                scoreDiv.textContent = `Score: ${safeScore.toLocaleString()}`;
+
+                // Show if it's a new best
+                if (apiResult?.isNewBest) {
+                    const newBestDiv = document.createElement('div');
+                    newBestDiv.style.cssText = 'font-size: 18px; color: var(--green); animation: pulse 0.5s infinite;';
+                    newBestDiv.textContent = '🎉 NEW BEST SCORE!';
+                    gameOverDiv.appendChild(titleDiv);
+                    gameOverDiv.appendChild(newBestDiv);
+                } else {
+                    gameOverDiv.appendChild(titleDiv);
+                }
+
+                gameOverDiv.appendChild(scoreDiv);
+
+                // Show rank if competitive
+                if (isCompetitive && apiResult?.rank) {
+                    const rankDiv = document.createElement('div');
+                    rankDiv.style.cssText = 'font-size: 16px; color: var(--purple);';
+                    rankDiv.textContent = `Weekly Rank: #${apiResult.rank}`;
+                    gameOverDiv.appendChild(rankDiv);
+                }
+
+                // Show error if any
+                if (submitError) {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.style.cssText = 'font-size: 12px; color: var(--text-muted);';
+                    errorDiv.textContent = `(Score saved locally - ${submitError})`;
+                    gameOverDiv.appendChild(errorDiv);
+                }
+
+                const restartBtn = document.createElement('button');
+                restartBtn.className = 'btn btn-primary';
+                restartBtn.style.marginTop = '10px';
+                restartBtn.textContent = 'PLAY AGAIN';
+                // Security: Use event listener instead of onclick attribute
+                restartBtn.addEventListener('click', () => restartGame(gameId));
+
+                gameOverDiv.appendChild(restartBtn);
+                arena.appendChild(gameOverDiv);
+            }
+        }
+
+        // Track game modes (practice vs competitive)
+        const activeGameModes = {};
+
+        // ============================================
+        // GAME IMPLEMENTATIONS - BURN RUNNER
+        // ============================================
+
+        function startBurnRunner(gameId) {
+            const arena = document.getElementById(`arena-${gameId}`);
+            let score = 0;
+            let playerY = 0;
+            let velocityY = 0;
+            let obstacles = [];
+            let tokens = [];
+            let powerups = [];
+            let decorations = [];
+            let gameSpeed = 6;
+            let isOnGround = true;
+            let canDoubleJump = true;
+            let hasDoubleJumped = false;
+            let isInvincible = false;
+            let gameOver = false;
+            let frameCount = 0;
+
+            const GROUND_HEIGHT = 70;
+            const GRAVITY = 1.0;
+            const JUMP_FORCE = -16;
+            const DOUBLE_JUMP_FORCE = -14;
+            const PLAYER_SIZE = 50;
+
+            arena.innerHTML = `
+                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; background: linear-gradient(180deg, #1a0a00 0%, #2d1810 50%, #4a2c17 100%);">
+                    <div id="bg-fires-${gameId}" style="position: absolute; top: 0; left: 0; right: 0; bottom: ${GROUND_HEIGHT}px; pointer-events: none; opacity: 0.3;"></div>
+                    <div id="decorations-${gameId}" style="position: absolute; top: 0; left: 0; right: 0; bottom: ${GROUND_HEIGHT}px;"></div>
+                    <div id="obstacles-${gameId}" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0;"></div>
+                    <div id="tokens-${gameId}" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0;"></div>
+                    <div id="powerups-${gameId}" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0;"></div>
+
+                    <!-- Player - Dog facing right -->
+                    <div id="runner-${gameId}" style="position: absolute; bottom: ${GROUND_HEIGHT}px; left: 80px; z-index: 10;">
+                        <div id="runner-sprite-${gameId}" style="font-size: ${PLAYER_SIZE}px; transform: scaleX(-1); filter: drop-shadow(0 0 10px rgba(255, 100, 0, 0.8));">🐕</div>
+                    </div>
+
+                    <!-- Ground -->
+                    <div style="position: absolute; bottom: 0; left: 0; right: 0; height: ${GROUND_HEIGHT}px; background: linear-gradient(180deg, #8B4513 0%, #654321 50%, #3d2817 100%); border-top: 4px solid #ea580c;">
+                        <div style="position: absolute; top: 4px; left: 0; right: 0; height: 20px; background: repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(234, 88, 12, 0.3) 40px, rgba(234, 88, 12, 0.3) 42px);"></div>
+                    </div>
+
+                    <!-- HUD -->
+                    <div style="position: absolute; top: 10px; left: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
+                        <div style="background: rgba(0,0,0,0.7); padding: 8px 15px; border-radius: 8px; border: 2px solid #ea580c;">
+                            <span style="color: #fbbf24;">🔥 THIS IS FINE 🔥</span>
+                        </div>
+                        <div id="jump-indicator-${gameId}" style="background: rgba(0,0,0,0.7); padding: 8px 15px; border-radius: 8px; border: 2px solid var(--green);">
+                            <span style="color: var(--green);">⬆️⬆️ DOUBLE JUMP</span>
+                        </div>
+                    </div>
+
+                    <!-- Invincibility indicator -->
+                    <div id="invincible-indicator-${gameId}" style="display: none; position: absolute; top: 50px; left: 10px; background: rgba(0,0,0,0.7); padding: 8px 15px; border-radius: 8px; border: 2px solid var(--gold); animation: pulse 0.3s infinite alternate;">
+                        <span style="color: var(--gold);">👻 INVISIBLE!</span>
+                    </div>
+
+                    <!-- Controls hint -->
+                    <div style="position: absolute; bottom: ${GROUND_HEIGHT + 10}px; left: 10px; font-size: 11px; color: rgba(255,255,255,0.5);">
+                        SPACE/CLICK = Jump (x2) | 👻 = 3s Invisibility
+                    </div>
+                </div>
+            `;
+
+            const runner = document.getElementById(`runner-${gameId}`);
+            const runnerSprite = document.getElementById(`runner-sprite-${gameId}`);
+            const obstaclesContainer = document.getElementById(`obstacles-${gameId}`);
+            const tokensContainer = document.getElementById(`tokens-${gameId}`);
+            const powerupsContainer = document.getElementById(`powerups-${gameId}`);
+            const decorationsContainer = document.getElementById(`decorations-${gameId}`);
+            const bgFires = document.getElementById(`bg-fires-${gameId}`);
+            const jumpIndicator = document.getElementById(`jump-indicator-${gameId}`);
+            const invincibleIndicator = document.getElementById(`invincible-indicator-${gameId}`);
+
+            // Background fires
+            for (let i = 0; i < 8; i++) {
+                const fire = document.createElement('div');
+                fire.style.cssText = `position: absolute; bottom: 0; left: ${i * 15}%; font-size: ${30 + Math.random() * 20}px; opacity: ${0.3 + Math.random() * 0.4};`;
+                fire.textContent = '🔥';
+                fire.dataset.speed = (0.5 + Math.random() * 0.5).toString();
+                fire.dataset.x = (i * 15).toString();
+                bgFires.appendChild(fire);
+            }
+
+            // Jump handler with DOUBLE JUMP
+            const jumpHandler = (e) => {
+                if (gameOver) return;
+                if (e.type === 'keydown' && e.code !== 'Space') return;
+                e.preventDefault();
+
+                if (isOnGround) {
+                    velocityY = JUMP_FORCE;
+                    isOnGround = false;
+                    hasDoubleJumped = false;
+                    jumpIndicator.style.borderColor = 'var(--green)';
+                    jumpIndicator.querySelector('span').style.color = 'var(--green)';
+                } else if (!hasDoubleJumped && canDoubleJump) {
+                    // DOUBLE JUMP!
+                    velocityY = DOUBLE_JUMP_FORCE;
+                    hasDoubleJumped = true;
+                    jumpIndicator.style.borderColor = 'var(--text-muted)';
+                    jumpIndicator.querySelector('span').style.color = 'var(--text-muted)';
+                    // Visual effect
+                    const doubleJumpEffect = document.createElement('div');
+                    doubleJumpEffect.style.cssText = `position: absolute; left: 80px; bottom: ${GROUND_HEIGHT + (-playerY)}px; font-size: 24px; opacity: 0.8; animation: fadeUp 0.5s forwards; pointer-events: none;`;
+                    doubleJumpEffect.textContent = '💨';
+                    arena.querySelector('div').appendChild(doubleJumpEffect);
+                    setTimeout(() => doubleJumpEffect.remove(), 500);
+                }
+            };
+
+            document.addEventListener('keydown', jumpHandler);
+            arena.addEventListener('click', jumpHandler);
+
+            activeGames[gameId] = {
+                interval: setInterval(() => {
+                    if (gameOver) return;
+                    frameCount++;
+
+                    // Physics
+                    velocityY += GRAVITY;
+                    playerY += velocityY;
+
+                    if (playerY >= 0) {
+                        playerY = 0;
+                        velocityY = 0;
+                        isOnGround = true;
+                        hasDoubleJumped = false;
+                        jumpIndicator.style.borderColor = 'var(--green)';
+                        jumpIndicator.querySelector('span').style.color = 'var(--green)';
+                    }
+
+                    runner.style.bottom = (GROUND_HEIGHT + playerY * -1) + 'px';
+
+                    // Animation
+                    let transformStr = 'scaleX(-1)';
+                    if (!isOnGround) {
+                        transformStr += velocityY < 0 ? ' scaleY(1.2)' : ' scaleY(0.85)';
+                    }
+                    if (isInvincible) {
+                        transformStr += ` opacity: 0.5`;
+                        runnerSprite.style.filter = 'drop-shadow(0 0 20px rgba(255, 215, 0, 0.9)) brightness(1.5)';
+                    } else {
+                        runnerSprite.style.filter = 'drop-shadow(0 0 10px rgba(255, 100, 0, 0.8))';
+                    }
+                    runnerSprite.style.transform = transformStr;
+
+                    // Spawn decorations
+                    if (frameCount % 60 === 0) {
+                        const deco = document.createElement('div');
+                        const decoTypes = ['🏚️', '🔥', '💨', '🏗️', '🌋'];
+                        const decoY = 20 + Math.random() * 100;
+                        deco.style.cssText = `position: absolute; bottom: ${decoY}px; right: -60px; font-size: ${25 + Math.random() * 20}px; opacity: 0.6; pointer-events: none;`;
+                        deco.textContent = decoTypes[Math.floor(Math.random() * decoTypes.length)];
+                        decorationsContainer.appendChild(deco);
+                        decorations.push({ el: deco, x: arena.offsetWidth + 60 });
+                    }
+
+                    // Spawn obstacles
+                    if (Math.random() < 0.025) {
+                        const obstacle = document.createElement('div');
+                        const obsTypes = [
+                            { emoji: '🧱', height: 40 },
+                            { emoji: '📦', height: 45 },
+                            { emoji: '🪨', height: 35 },
+                            { emoji: '💀', height: 40 },
+                            { emoji: '🚧', height: 50 }
+                        ];
+                        const obsType = obsTypes[Math.floor(Math.random() * obsTypes.length)];
+                        obstacle.style.cssText = `position: absolute; bottom: ${GROUND_HEIGHT}px; right: -50px; font-size: 40px; z-index: 5;`;
+                        obstacle.textContent = obsType.emoji;
+                        obstaclesContainer.appendChild(obstacle);
+                        obstacles.push({ el: obstacle, x: arena.offsetWidth, height: obsType.height });
+                    }
+
+                    // Spawn tokens
+                    if (Math.random() < 0.04) {
+                        const token = document.createElement('div');
+                        const heights = [GROUND_HEIGHT + 20, GROUND_HEIGHT + 80, GROUND_HEIGHT + 140];
+                        const tokenY = heights[Math.floor(Math.random() * heights.length)];
+                        token.style.cssText = `position: absolute; bottom: ${tokenY}px; right: -40px; font-size: 28px; z-index: 5; animation: tokenFloat 0.5s ease-in-out infinite alternate;`;
+                        token.textContent = Math.random() > 0.8 ? '💎' : '🪙';
+                        token.dataset.value = token.textContent === '💎' ? '50' : '10';
+                        tokensContainer.appendChild(token);
+                        tokens.push({ el: token, x: arena.offsetWidth, y: tokenY });
+                    }
+
+                    // Spawn INVISIBILITY powerup (rare)
+                    if (Math.random() < 0.005) {
+                        const powerup = document.createElement('div');
+                        const powerupY = GROUND_HEIGHT + 60 + Math.random() * 80;
+                        powerup.style.cssText = `position: absolute; bottom: ${powerupY}px; right: -40px; font-size: 32px; z-index: 5; animation: powerupGlow 0.5s ease-in-out infinite alternate;`;
+                        powerup.textContent = '👻';
+                        powerupsContainer.appendChild(powerup);
+                        powerups.push({ el: powerup, x: arena.offsetWidth, y: powerupY });
+                    }
+
+                    // Move decorations
+                    decorations = decorations.filter(deco => {
+                        deco.x -= gameSpeed * 0.4;
+                        deco.el.style.right = (arena.offsetWidth - deco.x) + 'px';
+                        if (deco.x < -80) { deco.el.remove(); return false; }
+                        return true;
+                    });
+
+                    // Move background fires
+                    bgFires.querySelectorAll('div').forEach(fire => {
+                        let x = parseFloat(fire.dataset.x) - parseFloat(fire.dataset.speed);
+                        if (x < -10) x = 110;
+                        fire.dataset.x = x.toString();
+                        fire.style.left = x + '%';
+                    });
+
+                    // Move obstacles and check collision
+                    const runnerRect = runner.getBoundingClientRect();
+                    obstacles = obstacles.filter(obs => {
+                        obs.x -= gameSpeed;
+                        obs.el.style.right = (arena.offsetWidth - obs.x) + 'px';
+
+                        if (!isInvincible) {
+                            const obsRect = obs.el.getBoundingClientRect();
+                            const hitboxShrink = 12;
+                            if (runnerRect.left + hitboxShrink < obsRect.right - hitboxShrink &&
+                                runnerRect.right - hitboxShrink > obsRect.left + hitboxShrink &&
+                                runnerRect.bottom - hitboxShrink > obsRect.top + hitboxShrink &&
+                                runnerRect.top + hitboxShrink < obsRect.bottom) {
+                                gameOver = true;
+                                runnerSprite.textContent = '💥';
+                                setTimeout(() => {
+                                    document.removeEventListener('keydown', jumpHandler);
+                                    arena.removeEventListener('click', jumpHandler);
+                                    endGame(gameId, score);
+                                }, 500);
+                                return false;
+                            }
+                        }
+
+                        if (obs.x < -60) {
+                            obs.el.remove();
+                            score += 5;
+                            updateScore(gameId, score);
+                            return false;
+                        }
+                        return true;
+                    });
+
+                    // Move tokens
+                    tokens = tokens.filter(tok => {
+                        tok.x -= gameSpeed;
+                        tok.el.style.right = (arena.offsetWidth - tok.x) + 'px';
+
+                        const tokRect = tok.el.getBoundingClientRect();
+                        if (runnerRect.left < tokRect.right && runnerRect.right > tokRect.left &&
+                            runnerRect.bottom > tokRect.top && runnerRect.top < tokRect.bottom) {
+                            score += parseInt(tok.el.dataset.value);
+                            updateScore(gameId, score);
+                            tok.el.style.transition = 'all 0.2s';
+                            tok.el.style.transform = 'scale(1.5)';
+                            tok.el.style.opacity = '0';
+                            setTimeout(() => tok.el.remove(), 200);
+                            return false;
+                        }
+                        if (tok.x < -50) { tok.el.remove(); return false; }
+                        return true;
+                    });
+
+                    // Move powerups and check collection
+                    powerups = powerups.filter(pw => {
+                        pw.x -= gameSpeed;
+                        pw.el.style.right = (arena.offsetWidth - pw.x) + 'px';
+
+                        const pwRect = pw.el.getBoundingClientRect();
+                        if (runnerRect.left < pwRect.right && runnerRect.right > pwRect.left &&
+                            runnerRect.bottom > pwRect.top && runnerRect.top < pwRect.bottom) {
+                            // ACTIVATE INVISIBILITY!
+                            isInvincible = true;
+                            invincibleIndicator.style.display = 'block';
+                            pw.el.remove();
+                            score += 25;
+                            updateScore(gameId, score);
+                            // Disable after 3 seconds
+                            setTimeout(() => {
+                                isInvincible = false;
+                                invincibleIndicator.style.display = 'none';
+                            }, 3000);
+                            return false;
+                        }
+                        if (pw.x < -50) { pw.el.remove(); return false; }
+                        return true;
+                    });
+
+                    // Increase speed
+                    gameSpeed = Math.min(18, 6 + Math.floor(score / 30) * 0.8);
+
+                }, 25),
+                cleanup: () => {
+                    document.removeEventListener('keydown', jumpHandler);
+                    arena.removeEventListener('click', jumpHandler);
+                }
+            };
+
+            // Animations
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes tokenFloat { from { transform: translateY(0); } to { transform: translateY(-8px); } }
+                @keyframes fadeUp { from { opacity: 0.8; transform: translateY(0); } to { opacity: 0; transform: translateY(-30px); } }
+                @keyframes powerupGlow { from { transform: scale(1); filter: drop-shadow(0 0 10px gold); } to { transform: scale(1.2); filter: drop-shadow(0 0 20px gold); } }
+                @keyframes pulse { from { opacity: 0.8; } to { opacity: 1; } }
+            `;
+            arena.appendChild(style);
+        }
+
+        // ============================================
+        // GAME 2: SCAM BLASTER - Shooter (Based on learn.html)
+        // ============================================
+
+        function startScamBlaster(gameId) {
+            const arena = document.getElementById(`arena-${gameId}`);
+            let score = 0;
+            let wave = 1;
+            let multiplier = 1;
+            let misses = 0;
+            let gameActive = true;
+            let targetsCount = 0;
+
+            arena.innerHTML = `
+                <div id="scam-arena-${gameId}" style="position: relative; width: 100%; height: 100%; min-height: 350px; overflow: hidden; cursor: crosshair; background: radial-gradient(ellipse at center, #1a1a3a 0%, #0a0a1a 100%);">
+                    <!-- HUD -->
+                    <div style="position: absolute; top: 10px; left: 10px; display: flex; gap: 15px; z-index: 100; flex-wrap: wrap;">
+                        <div style="background: rgba(0,0,0,0.8); padding: 8px 16px; border-radius: 8px; border: 2px solid var(--gold);">
+                            Wave: <span id="scam-wave-${gameId}" style="color: var(--gold); font-weight: bold;">1</span>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.8); padding: 8px 16px; border-radius: 8px; border: 2px solid var(--accent-fire);">
+                            x<span id="scam-multi-${gameId}" style="color: var(--accent-fire); font-weight: bold;">1</span>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.8); padding: 8px 16px; border-radius: 8px; border: 2px solid var(--red);">
+                            Miss: <span id="scam-misses-${gameId}" style="color: var(--red);">0/5</span>
+                        </div>
+                    </div>
+
+                    <!-- Wave indicator (disappears after 1s) -->
+                    <div id="scam-wave-display-${gameId}" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 12px 30px; background: rgba(168, 85, 247, 0.5); border: 2px solid #a855f7; border-radius: 20px; font-size: 24px; font-weight: bold; color: #a855f7; z-index: 200; transition: opacity 0.3s;">
+                        WAVE <span id="scam-wave-num-${gameId}">1</span>
+                    </div>
+
+                    <!-- Instructions (left side) -->
+                    <div style="position: absolute; bottom: 10px; left: 10px; font-size: 10px; color: var(--text-muted); z-index: 100; background: rgba(0,0,0,0.6); padding: 6px 10px; border-radius: 8px; line-height: 1.4;">
+                        🚨 Points<br>🔥 Multi<br>💀 Éviter
+                    </div>
+                </div>
+            `;
+
+            const scamArena = document.getElementById(`scam-arena-${gameId}`);
+
+            // Add CSS for animations
+            const style = document.createElement('style');
+            style.textContent = `
+                .scam-target-${gameId} {
+                    position: absolute;
+                    font-size: 36px;
+                    cursor: crosshair;
+                    transition: transform 0.1s ease;
+                    animation: scamFloat${gameId} 2s ease-in-out infinite;
+                    z-index: 50;
+                }
+                .scam-target-${gameId}:hover { transform: scale(1.2); }
+                @keyframes scamFloat${gameId} {
+                    0%, 100% { transform: translateY(0); }
+                    50% { transform: translateY(-10px); }
+                }
+                .scam-explosion-${gameId} {
+                    position: absolute;
+                    font-size: 48px;
+                    animation: scamExplode${gameId} 0.4s ease-out forwards;
+                    pointer-events: none;
+                    z-index: 100;
+                }
+                @keyframes scamExplode${gameId} {
+                    0% { transform: scale(0.5); opacity: 1; }
+                    100% { transform: scale(2); opacity: 0; }
+                }
+            `;
+            arena.appendChild(style);
+
+            function spawnTargets() {
+                if (!gameActive) return;
+                const count = 3 + wave * 2;
+
+                for (let i = 0; i < count; i++) {
+                    setTimeout(() => {
+                        if (!gameActive) return;
+
+                        const target = document.createElement('div');
+                        target.className = `scam-target-${gameId}`;
+
+                        // 3 types: skull (danger), flame (multiplier), rug (points)
+                        const rand = Math.random();
+                        let type;
+                        if (rand < 0.25) {
+                            type = 'skull';
+                            target.textContent = '💀';
+                        } else if (rand < 0.45) {
+                            type = 'flame';
+                            target.textContent = '🔥';
+                        } else {
+                            type = 'rug';
+                            target.textContent = '🚨';
+                        }
+                        target.dataset.type = type;
+
+                        target.style.left = (20 + Math.random() * 60) + '%';
+                        target.style.top = (20 + Math.random() * 60) + '%';
+                        target.style.animationDelay = (Math.random() * 0.5) + 's';
+
+                        target.onclick = (e) => {
+                            e.stopPropagation();
+                            hitTarget(target);
+                        };
+
+                        scamArena.appendChild(target);
+                        targetsCount++;
+
+                        // Auto-escape after time - rugs that escape = miss
+                        setTimeout(() => {
+                            if (target.parentNode && gameActive) {
+                                if (target.dataset.type === 'rug') {
+                                    misses++;
+                                    document.getElementById(`scam-misses-${gameId}`).textContent = `${misses}/5`;
+                                    if (misses >= 5) {
+                                        gameActive = false;
+                                        endGame(gameId, score);
+                                    }
+                                }
+                                target.remove();
+                                targetsCount--;
+                            }
+                        }, 3000 - wave * 200);
+                    }, i * 300);
+                }
+            }
+
+            function shoot(e) {
+                if (!gameActive) return;
+                const rect = scamArena.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                const explosion = document.createElement('div');
+                explosion.className = `scam-explosion-${gameId}`;
+                explosion.textContent = '💨';
+                explosion.style.left = x + 'px';
+                explosion.style.top = y + 'px';
+                scamArena.appendChild(explosion);
+                setTimeout(() => explosion.remove(), 400);
+            }
+
+            function hitTarget(target) {
+                if (!gameActive) return;
+                const type = target.dataset.type;
+
+                const explosion = document.createElement('div');
+                explosion.className = `scam-explosion-${gameId}`;
+                explosion.style.left = target.style.left;
+                explosion.style.top = target.style.top;
+                scamArena.appendChild(explosion);
+
+                if (type === 'skull') {
+                    // Skull = GAME OVER!
+                    explosion.textContent = '💀💥';
+                    explosion.style.fontSize = '48px';
+                    setTimeout(() => explosion.remove(), 600);
+                    target.remove();
+                    targetsCount--;
+                    gameActive = false;
+                    endGame(gameId, score);
+                    return;
+                } else if (type === 'flame') {
+                    // Flame = multiplier boost
+                    explosion.textContent = '🔥x2';
+                    multiplier = Math.min(8, multiplier + 1);
+                    document.getElementById(`scam-multi-${gameId}`).textContent = multiplier;
+                } else {
+                    // Rug = normal points
+                    explosion.textContent = '💥';
+                    const points = 10 * wave * multiplier;
+                    score += points;
+                    updateScore(gameId, score);
+                }
+
+                setTimeout(() => explosion.remove(), 400);
+                target.remove();
+                targetsCount--;
+            }
+
+            function showWaveIndicator() {
+                const waveDisplay = document.getElementById(`scam-wave-display-${gameId}`);
+                if (waveDisplay) {
+                    waveDisplay.style.opacity = '1';
+                    waveDisplay.style.display = 'block';
+                    setTimeout(() => {
+                        waveDisplay.style.opacity = '0';
+                        setTimeout(() => { waveDisplay.style.display = 'none'; }, 300);
+                    }, 1000);
+                }
+            }
+
+            function checkWave() {
+                if (!gameActive) return;
+                const rugTargets = scamArena.querySelectorAll(`.scam-target-${gameId}[data-type="rug"]`);
+                const remainingTargets = scamArena.querySelectorAll(`.scam-target-${gameId}`);
+
+                // Advance wave when all rugs are eliminated
+                if (rugTargets.length === 0 && remainingTargets.length <= 2) {
+                    wave++;
+                    document.getElementById(`scam-wave-${gameId}`).textContent = wave;
+                    document.getElementById(`scam-wave-num-${gameId}`).textContent = wave;
+                    // Clear remaining targets
+                    remainingTargets.forEach(t => t.remove());
+                    targetsCount = 0;
+                    showWaveIndicator();
+                    spawnTargets();
+                }
+            }
+
+            scamArena.addEventListener('click', shoot);
+
+            // Start spawning - show wave 1 then hide
+            showWaveIndicator();
+            spawnTargets();
+            const checkInterval = setInterval(checkWave, 500);
+
+            activeGames[gameId] = {
+                interval: checkInterval,
+                cleanup: () => {
+                    clearInterval(checkInterval);
+                    scamArena.removeEventListener('click', shoot);
+                }
+            };
+        }
+
+        // ============================================
+        // GAME IMPLEMENTATIONS - PLACEHOLDER FOR OTHERS
+        // ============================================
+
+        // ============================================
+        // GAME 3: HOLD HERO - Simple Tower Defense
+        // ============================================
+
+        function startHodlHero(gameId) {
+            const arena = document.getElementById(`arena-${gameId}`);
+            let score = 0;
+            let health = 100;
+            let wave = 1;
+            let enemies = [];
+            let projectiles = [];
+            let playerY = 50;
+            let shootCooldown = 0;
+            let gameActive = true;
+            let enemiesKilled = 0;
+            let enemiesKilledThisWave = 0;
+            const PLAYER_SPEED = 4;
+            const keysPressed = { up: false, down: false };
+
+            arena.innerHTML = `
+                <div style="position: relative; width: 100%; height: 100%; min-height: 350px; background: linear-gradient(90deg, #1a0a05 0%, #2d1810 50%, #1a0a05 100%); overflow: hidden;">
+                    <!-- Background -->
+                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(234,88,12,0.1) 40px, rgba(234,88,12,0.1) 41px);"></div>
+
+                    <!-- Wallet -->
+                    <div style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 45px; z-index: 5; filter: drop-shadow(0 0 15px gold);">💰</div>
+
+                    <!-- Player -->
+                    <div id="hodl-player-${gameId}" style="position: absolute; left: 80px; top: 50%; transform: translateY(-50%); z-index: 10; font-size: 50px; filter: drop-shadow(0 0 10px #ea580c); cursor: pointer;">🛡️</div>
+
+                    <!-- Projectiles -->
+                    <div id="hodl-proj-${gameId}" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none;"></div>
+
+                    <!-- Enemies -->
+                    <div id="hodl-enemies-${gameId}" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none;"></div>
+
+                    <!-- Bonuses -->
+                    <div id="hodl-bonuses-${gameId}" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none;"></div>
+
+                    <!-- HUD -->
+                    <div style="position: absolute; top: 10px; left: 10px; display: flex; gap: 15px; z-index: 100;">
+                        <div style="background: rgba(0,0,0,0.8); padding: 8px 16px; border-radius: 8px; border: 2px solid var(--gold);">
+                            Wave: <span id="hodl-wave-${gameId}" style="color: var(--gold); font-weight: bold;">1</span>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.8); padding: 8px 16px; border-radius: 8px; border: 2px solid var(--green);">
+                            HP: <span id="hodl-hp-${gameId}" style="color: var(--green); font-weight: bold;">100</span>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.8); padding: 8px 16px; border-radius: 8px; border: 2px solid var(--accent-fire);">
+                            Speed: <span id="hodl-speed-${gameId}" style="color: var(--accent-fire); font-weight: bold;">1.0</span>x
+                        </div>
+                    </div>
+
+                    <!-- Controls -->
+                    <div style="position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); font-size: 11px; color: rgba(255,255,255,0.5); background: rgba(0,0,0,0.5); padding: 4px 12px; border-radius: 8px;">
+                        ⬆️⬇️/ZS = Move | SPACE/Click = Shoot 🔥 | 💀=2HP 🧟=3HP
+                    </div>
+                </div>
+            `;
+
+            const player = document.getElementById(`hodl-player-${gameId}`);
+            const projContainer = document.getElementById(`hodl-proj-${gameId}`);
+            const enemiesContainer = document.getElementById(`hodl-enemies-${gameId}`);
+            const bonusContainer = document.getElementById(`hodl-bonuses-${gameId}`);
+            let bonuses = [];
+
+            function shoot() {
+                if (shootCooldown > 0 || !gameActive) return;
+                shootCooldown = 8;
+
+                const proj = document.createElement('div');
+                proj.style.cssText = `position: absolute; left: 140px; top: ${playerY}%; transform: translateY(-50%); font-size: 26px; z-index: 20;`;
+                proj.textContent = '🔥';
+                projContainer.appendChild(proj);
+                projectiles.push({ el: proj, x: 140 });
+            }
+
+            const keyDownHandler = (e) => {
+                if (e.code === 'ArrowUp' || e.key.toLowerCase() === 'z' || e.key.toLowerCase() === 'w') { keysPressed.up = true; e.preventDefault(); }
+                if (e.code === 'ArrowDown' || e.key.toLowerCase() === 's') { keysPressed.down = true; e.preventDefault(); }
+                if (e.code === 'Space') { shoot(); e.preventDefault(); }
+            };
+            const keyUpHandler = (e) => {
+                if (e.code === 'ArrowUp' || e.key.toLowerCase() === 'z' || e.key.toLowerCase() === 'w') keysPressed.up = false;
+                if (e.code === 'ArrowDown' || e.key.toLowerCase() === 's') keysPressed.down = false;
+            };
+
+            document.addEventListener('keydown', keyDownHandler);
+            document.addEventListener('keyup', keyUpHandler);
+            arena.addEventListener('click', shoot);
+
+            // Speed multiplier - starts high and grows FAST
+            let speedMultiplier = 1.2;
+
+            // Enemy types - HP clearly indicated
+            const enemyTypes = [
+                { emoji: '👻', hp: 1, baseSpeed: 1.5, points: 10, color: 'white' },      // Fast ghost - 1 hit
+                { emoji: '🦠', hp: 1, baseSpeed: 1.8, points: 15, color: 'lime' },       // Virus - 1 hit, faster
+                { emoji: '💀', hp: 2, baseSpeed: 1.2, points: 30, color: 'yellow' },     // Skull - 2 hits
+                { emoji: '🧟', hp: 3, baseSpeed: 1.0, points: 50, color: 'orange' },     // Zombie - 3 hits
+                { emoji: '👹', hp: 2, baseSpeed: 1.4, points: 40, color: 'red' },        // Demon - 2 hits, faster
+                { emoji: '🤖', hp: 3, baseSpeed: 0.9, points: 60, color: 'cyan' }        // Robot - 3 hits, slowest
+            ];
+
+            function spawnEnemy() {
+                if (!gameActive) return;
+                const y = 12 + Math.random() * 76;
+
+                // Unlock more enemy types as waves progress
+                const availableTypes = Math.min(enemyTypes.length, 2 + Math.floor(wave / 2));
+                const type = enemyTypes[Math.floor(Math.random() * availableTypes)];
+
+                // HP scales with wave (extra HP every 4 waves)
+                const bonusHp = Math.floor(wave / 4);
+                const finalHp = type.hp + bonusHp;
+
+                const wrapper = document.createElement('div');
+                wrapper.style.cssText = `position: absolute; right: 0%; top: ${y}%; transform: translateY(-50%); text-align: center;`;
+
+                const enemy = document.createElement('div');
+                enemy.style.cssText = `font-size: 38px; filter: drop-shadow(0 0 8px ${type.color});`;
+                enemy.textContent = type.emoji;
+
+                // HP indicator for enemies with 2+ HP
+                const hpBar = document.createElement('div');
+                if (finalHp > 1) {
+                    hpBar.style.cssText = `font-size: 10px; color: ${type.color}; margin-top: -5px;`;
+                    hpBar.textContent = '●'.repeat(finalHp);
+                }
+
+                wrapper.appendChild(enemy);
+                wrapper.appendChild(hpBar);
+                enemiesContainer.appendChild(wrapper);
+
+                enemies.push({
+                    wrapper: wrapper,
+                    el: enemy,
+                    hpBar: hpBar,
+                    x: 100,
+                    y: y,
+                    hp: finalHp,
+                    maxHp: finalHp,
+                    speed: type.baseSpeed * speedMultiplier,
+                    points: type.points,
+                    color: type.color
+                });
+            }
+
+            // Spawn bonus
+            function spawnBonus() {
+                if (!gameActive || Math.random() > 0.4) return;
+                const y = 15 + Math.random() * 70;
+                const types = [
+                    { emoji: '❤️', effect: 'health', value: 20 },
+                    { emoji: '⭐', effect: 'points', value: 100 }
+                ];
+                const type = types[Math.floor(Math.random() * types.length)];
+                const bonus = document.createElement('div');
+                bonus.style.cssText = `position: absolute; right: 5%; top: ${y}%; font-size: 28px; animation: pulse 0.5s infinite alternate;`;
+                bonus.textContent = type.emoji;
+                bonusContainer.appendChild(bonus);
+                bonuses.push({ el: bonus, x: 95, y, ...type });
+            }
+
+            // Start spawning - faster spawn rate
+            let spawnInterval = setInterval(() => {
+                if (gameActive) spawnEnemy();
+            }, Math.max(400, 1200 - wave * 100));
+
+            // Bonus interval
+            let bonusInterval = setInterval(spawnBonus, 5000);
+
+            activeGames[gameId] = {
+                interval: setInterval(() => {
+                    if (!gameActive) return;
+
+                    if (shootCooldown > 0) shootCooldown--;
+
+                    // Move player
+                    if (keysPressed.up) playerY = Math.max(8, playerY - PLAYER_SPEED);
+                    if (keysPressed.down) playerY = Math.min(92, playerY + PLAYER_SPEED);
+                    player.style.top = playerY + '%';
+
+                    // Move projectiles (faster)
+                    projectiles = projectiles.filter(proj => {
+                        proj.x += 6;
+                        proj.el.style.left = proj.x + 'px';
+                        if (proj.x > 700) { proj.el.remove(); return false; }
+                        return true;
+                    });
+
+                    // Move enemies and check collisions
+                    const playerRect = player.getBoundingClientRect();
+                    enemies = enemies.filter(enemy => {
+                        enemy.x -= enemy.speed;
+                        enemy.wrapper.style.right = (100 - enemy.x) + '%';
+
+                        const enemyRect = enemy.el.getBoundingClientRect();
+
+                        // Projectile hit
+                        let wasKilled = false;
+                        projectiles = projectiles.filter(proj => {
+                            const projRect = proj.el.getBoundingClientRect();
+                            if (projRect.left < enemyRect.right && projRect.right > enemyRect.left &&
+                                projRect.top < enemyRect.bottom && projRect.bottom > enemyRect.top) {
+                                enemy.hp--;
+                                proj.el.remove();
+
+                                // Update HP bar
+                                if (enemy.hp > 0 && enemy.hpBar) {
+                                    enemy.hpBar.textContent = '●'.repeat(enemy.hp);
+                                    enemy.el.style.filter = `drop-shadow(0 0 12px ${enemy.color}) brightness(1.3)`;
+                                    setTimeout(() => {
+                                        if (enemy.el) enemy.el.style.filter = `drop-shadow(0 0 8px ${enemy.color})`;
+                                    }, 100);
+                                }
+
+                                if (enemy.hp <= 0) {
+                                    score += enemy.points * wave;
+                                    updateScore(gameId, score);
+                                    enemy.el.textContent = '💥';
+                                    if (enemy.hpBar) enemy.hpBar.textContent = '';
+                                    setTimeout(() => enemy.wrapper.remove(), 150);
+                                    enemiesKilled++;
+                                    enemiesKilledThisWave++;
+                                    wasKilled = true;
+                                }
+                                return false;
+                            }
+                            return true;
+                        });
+                        if (wasKilled) return false;
+
+                        // Player collision
+                        if (enemyRect.left < playerRect.right && enemyRect.right > playerRect.left &&
+                            enemyRect.top < playerRect.bottom && enemyRect.bottom > playerRect.top) {
+                            health -= 15;
+                            const hpEl = document.getElementById(`hodl-hp-${gameId}`);
+                            if (hpEl) {
+                                hpEl.textContent = Math.max(0, health);
+                                if (health <= 50) hpEl.style.color = 'var(--gold)';
+                                if (health <= 25) hpEl.style.color = 'var(--red)';
+                            }
+                            enemy.wrapper.remove();
+                            if (health <= 0) { gameActive = false; endGame(gameId, score); }
+                            return false;
+                        }
+
+                        // Reached wallet
+                        if (enemy.x < 8) {
+                            health -= 25;
+                            const hpEl = document.getElementById(`hodl-hp-${gameId}`);
+                            if (hpEl) {
+                                hpEl.textContent = Math.max(0, health);
+                                if (health <= 50) hpEl.style.color = 'var(--gold)';
+                                if (health <= 25) hpEl.style.color = 'var(--red)';
+                            }
+                            enemy.wrapper.remove();
+                            if (health <= 0) { gameActive = false; endGame(gameId, score); }
+                            return false;
+                        }
+
+                        return enemy.hp > 0;
+                    });
+
+                    // Move bonuses
+                    bonuses = bonuses.filter(bonus => {
+                        bonus.x -= 2;
+                        bonus.el.style.right = (100 - bonus.x) + '%';
+
+                        // Collection by player
+                        const bonusRect = bonus.el.getBoundingClientRect();
+                        if (bonusRect.left < playerRect.right && bonusRect.right > playerRect.left &&
+                            bonusRect.top < playerRect.bottom && bonusRect.bottom > playerRect.top) {
+                            if (bonus.effect === 'health') {
+                                health = Math.min(100, health + bonus.value);
+                                const hpEl = document.getElementById(`hodl-hp-${gameId}`);
+                                if (hpEl) {
+                                    hpEl.textContent = health;
+                                    if (health > 50) hpEl.style.color = 'var(--green)';
+                                }
+                            }
+                            if (bonus.effect === 'points') { score += bonus.value; updateScore(gameId, score); }
+                            bonus.el.remove();
+                            return false;
+                        }
+
+                        if (bonus.x < -5) { bonus.el.remove(); return false; }
+                        return true;
+                    });
+
+                    // Next wave - speed increases FAST (+35% per wave)
+                    if (enemiesKilledThisWave >= 4 + wave * 2) {
+                        wave++;
+                        enemiesKilledThisWave = 0;
+                        speedMultiplier = 1.2 + (wave - 1) * 0.35; // Starts at 1.2x, +35% per wave
+                        const waveEl = document.getElementById(`hodl-wave-${gameId}`);
+                        const speedEl = document.getElementById(`hodl-speed-${gameId}`);
+                        if (waveEl) waveEl.textContent = wave;
+                        if (speedEl) speedEl.textContent = speedMultiplier.toFixed(1);
+                        clearInterval(spawnInterval);
+                        spawnInterval = setInterval(spawnEnemy, Math.max(250, 1000 - wave * 80)); // Much faster spawn
+                    }
+                }, 35),
+                cleanup: () => {
+                    document.removeEventListener('keydown', keyDownHandler);
+                    document.removeEventListener('keyup', keyUpHandler);
+                    arena.removeEventListener('click', shoot);
+                    clearInterval(spawnInterval);
+                    clearInterval(bonusInterval);
+                }
+            };
+        }
+
+        // ============================================
+        // GAME 4: CRYPTO HEIST - GTA-Style Action
+        // ============================================
+
+        function startCryptoHeist(gameId) {
+            const arena = document.getElementById(`arena-${gameId}`);
+            let score = 0;
+            let playerX = 50; // % position
+            let playerY = 50;
+            let playerAngle = 0;
+            let tokens = [];
+            let enemies = [];
+            let bullets = [];
+            let gameOver = false;
+            let wantedLevel = 0;
+            let escapeZone = null;
+            let tokensCollected = 0;
+            let canShoot = true;
+            const keysPressed = { w: false, a: false, s: false, d: false, up: false, down: false, left: false, right: false };
+
+            const PLAYER_SPEED = 2;
+            const BULLET_SPEED = 8;
+            const ENEMY_SPEED = 1.2;
+
+            arena.innerHTML = `
+                <div id="heist-world-${gameId}" style="position: relative; width: 100%; height: 100%; min-height: 350px; overflow: hidden; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);">
+                    <!-- City grid background -->
+                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background:
+                        repeating-linear-gradient(0deg, transparent, transparent 50px, rgba(255,255,255,0.03) 50px, rgba(255,255,255,0.03) 51px),
+                        repeating-linear-gradient(90deg, transparent, transparent 50px, rgba(255,255,255,0.03) 50px, rgba(255,255,255,0.03) 51px);
+                    "></div>
+
+                    <!-- Buildings (obstacles) -->
+                    <div id="heist-buildings-${gameId}" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none;"></div>
+
+                    <!-- Tokens container -->
+                    <div id="heist-tokens-${gameId}" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none;"></div>
+
+                    <!-- Bullets container -->
+                    <div id="heist-bullets-${gameId}" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none;"></div>
+
+                    <!-- Enemies container -->
+                    <div id="heist-enemies-${gameId}" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none;"></div>
+
+                    <!-- Player -->
+                    <div id="heist-player-${gameId}" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 100;">
+                        <div style="font-size: 32px; filter: drop-shadow(0 0 10px rgba(0, 255, 0, 0.5));">🦹</div>
+                    </div>
+
+                    <!-- Escape zone (appears after collecting enough) -->
+                    <div id="heist-escape-${gameId}" style="position: absolute; display: none; font-size: 40px; animation: pulse 0.5s infinite alternate;">🚁</div>
+
+                    <!-- HUD -->
+                    <div style="position: absolute; top: 10px; left: 10px; display: flex; gap: 10px; flex-wrap: wrap; z-index: 200;">
+                        <div style="background: rgba(0,0,0,0.8); padding: 8px 14px; border-radius: 8px; border: 2px solid var(--gold);">
+                            💰 <span id="heist-loot-${gameId}" style="color: var(--gold); font-weight: bold;">0</span>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.8); padding: 8px 14px; border-radius: 8px; border: 2px solid var(--red);">
+                            ⭐ <span id="heist-wanted-${gameId}" style="color: var(--red);">☆☆☆☆☆</span>
+                        </div>
+                    </div>
+
+                    <!-- Mission text -->
+                    <div id="heist-mission-${gameId}" style="position: absolute; top: 50px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); padding: 8px 20px; border-radius: 20px; font-size: 12px; color: var(--gold); border: 1px solid var(--gold); z-index: 200;">
+                        🎯 Collect 10 tokens to unlock escape!
+                    </div>
+
+                    <!-- Controls -->
+                    <div style="position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); font-size: 10px; color: rgba(255,255,255,0.4); background: rgba(0,0,0,0.5); padding: 4px 12px; border-radius: 12px; z-index: 200;">
+                        ZQSD/WASD/Arrows = Move | Click = Shoot | Collect 💎, Avoid 👮, Escape 🚁
+                    </div>
+                </div>
+            `;
+
+            const world = document.getElementById(`heist-world-${gameId}`);
+            const player = document.getElementById(`heist-player-${gameId}`);
+            const tokensContainer = document.getElementById(`heist-tokens-${gameId}`);
+            const enemiesContainer = document.getElementById(`heist-enemies-${gameId}`);
+            const bulletsContainer = document.getElementById(`heist-bullets-${gameId}`);
+            const buildingsContainer = document.getElementById(`heist-buildings-${gameId}`);
+            const escapeEl = document.getElementById(`heist-escape-${gameId}`);
+
+            // Spawn initial tokens
+            function spawnToken() {
+                if (tokens.length >= 15) return;
+                const token = document.createElement('div');
+                const x = 10 + Math.random() * 80;
+                const y = 15 + Math.random() * 70;
+                const types = [
+                    { emoji: '💎', value: 1 },
+                    { emoji: '💰', value: 2 },
+                    { emoji: '🪙', value: 1 },
+                    { emoji: '💵', value: 3 }
+                ];
+                const type = types[Math.floor(Math.random() * types.length)];
+                token.style.cssText = `position: absolute; left: ${x}%; top: ${y}%; font-size: 24px; transform: translate(-50%, -50%); animation: tokenBob 0.8s ease-in-out infinite alternate;`;
+                token.textContent = type.emoji;
+                tokensContainer.appendChild(token);
+                tokens.push({ el: token, x, y, value: type.value });
+            }
+
+            // Spawn enemy (SEC/Police)
+            function spawnEnemy() {
+                if (enemies.length >= 3 + wantedLevel) return;
+                const enemy = document.createElement('div');
+                const side = Math.floor(Math.random() * 4);
+                let x, y;
+                if (side === 0) { x = -5; y = Math.random() * 100; }
+                else if (side === 1) { x = 105; y = Math.random() * 100; }
+                else if (side === 2) { x = Math.random() * 100; y = -5; }
+                else { x = Math.random() * 100; y = 105; }
+
+                const types = [
+                    { emoji: '👮', speed: 1 },
+                    { emoji: '🚔', speed: 1.5 },
+                    { emoji: '🕵️', speed: 0.8 }
+                ];
+                const type = types[Math.floor(Math.random() * types.length)];
+                enemy.style.cssText = `position: absolute; left: ${x}%; top: ${y}%; font-size: 28px; transform: translate(-50%, -50%); filter: drop-shadow(0 0 5px rgba(255, 0, 0, 0.5));`;
+                enemy.textContent = type.emoji;
+                enemiesContainer.appendChild(enemy);
+                enemies.push({ el: enemy, x, y, speed: type.speed + wantedLevel * 0.2 });
+            }
+
+            // Shoot bullet
+            function shoot(targetX, targetY) {
+                if (!canShoot || gameOver) return;
+                canShoot = false;
+                setTimeout(() => canShoot = true, 300);
+
+                const bullet = document.createElement('div');
+                const rect = arena.getBoundingClientRect();
+                const px = playerX;
+                const py = playerY;
+
+                const dx = targetX - px;
+                const dy = targetY - py;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const vx = (dx / dist) * BULLET_SPEED;
+                const vy = (dy / dist) * BULLET_SPEED;
+
+                bullet.style.cssText = `position: absolute; left: ${px}%; top: ${py}%; width: 8px; height: 8px; background: #fbbf24; border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 10px #fbbf24;`;
+                bulletsContainer.appendChild(bullet);
+                bullets.push({ el: bullet, x: px, y: py, vx, vy });
+            }
+
+            // Key handlers (WASD + ZQSD for French keyboards + Arrows)
+            const keyDownHandler = (e) => {
+                const key = e.key.toLowerCase();
+                if (['w', 'z', 'arrowup'].includes(key)) { keysPressed.up = true; e.preventDefault(); }
+                if (['s', 'arrowdown'].includes(key)) { keysPressed.down = true; e.preventDefault(); }
+                if (['a', 'q', 'arrowleft'].includes(key)) { keysPressed.left = true; e.preventDefault(); }
+                if (['d', 'arrowright'].includes(key)) { keysPressed.right = true; e.preventDefault(); }
+            };
+            const keyUpHandler = (e) => {
+                const key = e.key.toLowerCase();
+                if (['w', 'z', 'arrowup'].includes(key)) keysPressed.up = false;
+                if (['s', 'arrowdown'].includes(key)) keysPressed.down = false;
+                if (['a', 'q', 'arrowleft'].includes(key)) keysPressed.left = false;
+                if (['d', 'arrowright'].includes(key)) keysPressed.right = false;
+            };
+            const clickHandler = (e) => {
+                if (gameOver) return;
+                const rect = arena.getBoundingClientRect();
+                const clickX = ((e.clientX - rect.left) / rect.width) * 100;
+                const clickY = ((e.clientY - rect.top) / rect.height) * 100;
+                shoot(clickX, clickY);
+            };
+
+            document.addEventListener('keydown', keyDownHandler);
+            document.addEventListener('keyup', keyUpHandler);
+            arena.addEventListener('click', clickHandler);
+
+            // Spawn initial tokens
+            for (let i = 0; i < 8; i++) spawnToken();
+
+            // Add animations
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes tokenBob { from { transform: translate(-50%, -50%) scale(1); } to { transform: translate(-50%, -55%) scale(1.1); } }
+                @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.2); } }
+            `;
+            arena.appendChild(style);
+
+            activeGames[gameId] = {
+                interval: setInterval(() => {
+                    if (gameOver) return;
+
+                    // Move player
+                    if (keysPressed.up) playerY = Math.max(5, playerY - PLAYER_SPEED);
+                    if (keysPressed.down) playerY = Math.min(95, playerY + PLAYER_SPEED);
+                    if (keysPressed.left) playerX = Math.max(5, playerX - PLAYER_SPEED);
+                    if (keysPressed.right) playerX = Math.min(95, playerX + PLAYER_SPEED);
+                    player.style.left = playerX + '%';
+                    player.style.top = playerY + '%';
+
+                    // Check token collection
+                    tokens = tokens.filter(token => {
+                        const dist = Math.sqrt((token.x - playerX) ** 2 + (token.y - playerY) ** 2);
+                        if (dist < 5) {
+                            score += token.value * 10;
+                            tokensCollected += token.value;
+                            updateScore(gameId, score);
+                            document.getElementById(`heist-loot-${gameId}`).textContent = tokensCollected;
+                            token.el.remove();
+
+                            // Increase wanted level
+                            if (tokensCollected >= 3 && wantedLevel < 1) { wantedLevel = 1; spawnEnemy(); }
+                            if (tokensCollected >= 6 && wantedLevel < 2) { wantedLevel = 2; spawnEnemy(); }
+                            if (tokensCollected >= 10 && wantedLevel < 3) { wantedLevel = 3; spawnEnemy(); }
+                            if (tokensCollected >= 15 && wantedLevel < 4) { wantedLevel = 4; }
+                            if (tokensCollected >= 20 && wantedLevel < 5) { wantedLevel = 5; }
+
+                            // Update wanted display
+                            const stars = '★'.repeat(wantedLevel) + '☆'.repeat(5 - wantedLevel);
+                            document.getElementById(`heist-wanted-${gameId}`).textContent = stars;
+
+                            // Show escape zone after 10 tokens
+                            if (tokensCollected >= 10 && !escapeZone) {
+                                escapeZone = { x: 85 + Math.random() * 10, y: 10 + Math.random() * 20 };
+                                escapeEl.style.left = escapeZone.x + '%';
+                                escapeEl.style.top = escapeZone.y + '%';
+                                escapeEl.style.display = 'block';
+                                document.getElementById(`heist-mission-${gameId}`).textContent = '🚁 Get to the helicopter to escape!';
+                                document.getElementById(`heist-mission-${gameId}`).style.borderColor = 'var(--green)';
+                            }
+
+                            return false;
+                        }
+                        return true;
+                    });
+
+                    // Check escape
+                    if (escapeZone) {
+                        const dist = Math.sqrt((escapeZone.x - playerX) ** 2 + (escapeZone.y - playerY) ** 2);
+                        if (dist < 8) {
+                            gameOver = true;
+                            score += tokensCollected * 50; // Bonus for escaping
+                            document.getElementById(`heist-mission-${gameId}`).textContent = '🎉 ESCAPED! Bonus: +' + (tokensCollected * 50);
+                            document.getElementById(`heist-mission-${gameId}`).style.color = 'var(--green)';
+                            setTimeout(() => endGame(gameId, score), 1500);
+                            return;
+                        }
+                    }
+
+                    // Move enemies towards player
+                    enemies.forEach(enemy => {
+                        const dx = playerX - enemy.x;
+                        const dy = playerY - enemy.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        enemy.x += (dx / dist) * enemy.speed;
+                        enemy.y += (dy / dist) * enemy.speed;
+                        enemy.el.style.left = enemy.x + '%';
+                        enemy.el.style.top = enemy.y + '%';
+
+                        // Check if caught player
+                        if (dist < 4) {
+                            gameOver = true;
+                            player.innerHTML = '<div style="font-size: 32px;">💀</div>';
+                            document.getElementById(`heist-mission-${gameId}`).textContent = '🚨 BUSTED!';
+                            document.getElementById(`heist-mission-${gameId}`).style.color = 'var(--red)';
+                            setTimeout(() => endGame(gameId, score), 1000);
+                        }
+                    });
+
+                    // Move bullets and check hits
+                    bullets = bullets.filter(bullet => {
+                        bullet.x += bullet.vx;
+                        bullet.y += bullet.vy;
+                        bullet.el.style.left = bullet.x + '%';
+                        bullet.el.style.top = bullet.y + '%';
+
+                        // Check if hit enemy
+                        let hitEnemy = false;
+                        enemies = enemies.filter(enemy => {
+                            const dist = Math.sqrt((enemy.x - bullet.x) ** 2 + (enemy.y - bullet.y) ** 2);
+                            if (dist < 4) {
+                                enemy.el.textContent = '💥';
+                                setTimeout(() => enemy.el.remove(), 200);
+                                score += 25;
+                                updateScore(gameId, score);
+                                hitEnemy = true;
+                                return false;
+                            }
+                            return true;
+                        });
+
+                        if (hitEnemy) {
+                            bullet.el.remove();
+                            return false;
+                        }
+
+                        // Remove if out of bounds
+                        if (bullet.x < -5 || bullet.x > 105 || bullet.y < -5 || bullet.y > 105) {
+                            bullet.el.remove();
+                            return false;
+                        }
+                        return true;
+                    });
+
+                    // Spawn more tokens and enemies
+                    if (Math.random() < 0.02) spawnToken();
+                    if (Math.random() < 0.01 + wantedLevel * 0.005) spawnEnemy();
+
+                }, 30),
+                cleanup: () => {
+                    document.removeEventListener('keydown', keyDownHandler);
+                    document.removeEventListener('keyup', keyUpHandler);
+                    arena.removeEventListener('click', clickHandler);
+                }
+            };
+        }
+
+        // ============================================
+        // GAME: PUMP ARENA - Timing Game (Now separate)
+        // ============================================
+
+        function startPumpArena(gameId) {
+            const arena = document.getElementById(`arena-${gameId}`);
+            let score = 0;
+            let balance = 1000;
+            let holdings = 0;
+            let price = 100;
+            let priceHistory = [100];
+            let trend = 1;
+            let volatility = 3;
+            let phase = 'trading'; // 'trading' or 'burnhold'
+            let timeLeft = 10;
+            let speed = 150; // ms per tick, decreases over time
+            let crosshairX = 0;
+            let entryPrice = 0;
+
+            arena.innerHTML = `
+                <div style="padding: 15px; height: 100%; display: flex; flex-direction: column;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;">
+                        <div style="background: var(--bg-charred); padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border-rust);">
+                            Phase: <span id="pump-phase-${gameId}" style="color: var(--green); font-weight: bold;">TRADING</span>
+                        </div>
+                        <div style="background: var(--bg-charred); padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border-rust);">
+                            Time: <span id="pump-time-${gameId}" style="color: var(--accent-bright);">${timeLeft}s</span>
+                        </div>
+                        <div style="background: var(--bg-charred); padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border-rust);">
+                            Balance: $<span id="pump-balance-${gameId}">${balance}</span>
+                        </div>
+                        <div style="background: var(--bg-charred); padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border-rust);">
+                            Holdings: <span id="pump-holdings-${gameId}">${holdings}</span>
+                        </div>
+                    </div>
+                    <div style="flex: 1; background: var(--bg-burnt); border: 2px solid var(--border-rust); border-radius: 8px; position: relative; overflow: hidden; min-height: 200px;">
+                        <canvas id="pump-chart-${gameId}" style="width: 100%; height: 100%;"></canvas>
+                        <!-- Crosshair vertical line -->
+                        <div id="pump-crosshair-line-${gameId}" style="position: absolute; top: 0; bottom: 0; width: 3px; background: rgba(255, 215, 0, 0.8); pointer-events: none; right: 5px; box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);"></div>
+                        <!-- Price dot on chart -->
+                        <div id="pump-price-dot-${gameId}" style="position: absolute; width: 16px; height: 16px; background: #fbbf24; border: 3px solid #fff; border-radius: 50%; pointer-events: none; right: 0; transform: translate(50%, -50%); box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);"></div>
+                        <!-- Price label -->
+                        <div id="pump-price-label-${gameId}" style="position: absolute; right: 25px; background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.9)); color: #000; padding: 4px 10px; border-radius: 4px; font-size: 14px; font-weight: bold; transform: translateY(-50%);">
+                            $<span id="pump-crosshair-price-${gameId}">100</span>
+                        </div>
+                        <div style="position: absolute; right: 10px; top: 10px; font-size: 20px; font-weight: bold; color: var(--accent-bright);">
+                            $<span id="pump-price-${gameId}">${price}</span>
+                        </div>
+                        <div id="pump-speed-indicator-${gameId}" style="position: absolute; left: 10px; bottom: 10px; font-size: 11px; color: var(--text-muted);">
+                            Speed: 1x
+                        </div>
+                    </div>
+                    <div id="pump-trading-controls-${gameId}" style="display: flex; gap: 8px; margin-top: 12px; justify-content: center; flex-wrap: wrap;">
+                        <div style="display: flex; gap: 4px; align-items: center;">
+                            <span style="color: var(--green); font-size: 12px; margin-right: 4px;">📈 BUY:</span>
+                            <button class="btn" onclick="pumpBuyPercent('${gameId}', 25)" style="background: var(--green); border-color: var(--green-light); padding: 8px 12px; font-size: 12px;">25%</button>
+                            <button class="btn" onclick="pumpBuyPercent('${gameId}', 50)" style="background: var(--green); border-color: var(--green-light); padding: 8px 12px; font-size: 12px;">50%</button>
+                            <button class="btn" onclick="pumpBuyPercent('${gameId}', 75)" style="background: var(--green); border-color: var(--green-light); padding: 8px 12px; font-size: 12px;">75%</button>
+                            <button class="btn" onclick="pumpBuyPercent('${gameId}', 100)" style="background: var(--green); border-color: var(--green-light); padding: 8px 12px; font-size: 12px;">ALL</button>
+                        </div>
+                        <div style="display: flex; gap: 4px; align-items: center;">
+                            <span style="color: var(--red); font-size: 12px; margin-right: 4px;">📉 SELL:</span>
+                            <button class="btn" onclick="pumpSellPercent('${gameId}', 25)" id="pump-sell25-${gameId}" style="background: var(--red); border-color: var(--red); padding: 8px 12px; font-size: 12px;" disabled>25%</button>
+                            <button class="btn" onclick="pumpSellPercent('${gameId}', 50)" id="pump-sell50-${gameId}" style="background: var(--red); border-color: var(--red); padding: 8px 12px; font-size: 12px;" disabled>50%</button>
+                            <button class="btn" onclick="pumpSellPercent('${gameId}', 75)" id="pump-sell75-${gameId}" style="background: var(--red); border-color: var(--red); padding: 8px 12px; font-size: 12px;" disabled>75%</button>
+                            <button class="btn" onclick="pumpSellPercent('${gameId}', 100)" id="pump-sell100-${gameId}" style="background: var(--red); border-color: var(--red); padding: 8px 12px; font-size: 12px;" disabled>ALL</button>
+                        </div>
+                    </div>
+                    <div id="pump-burnhold-controls-${gameId}" style="display: none; gap: 10px; margin-top: 12px; justify-content: center;">
+                        <button class="btn" onclick="pumpBurn('${gameId}')" id="pump-burn-${gameId}" style="background: var(--red); border-color: var(--red); padding: 15px 30px; font-size: 18px;">
+                            🔥 BURN (x2 risk)
+                        </button>
+                        <button class="btn" onclick="pumpHold('${gameId}')" id="pump-hold-${gameId}" style="background: var(--green); border-color: var(--green-light); padding: 15px 30px; font-size: 18px;">
+                            💎 HOLD (x1.5 safe)
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            const canvas = document.getElementById(`pump-chart-${gameId}`);
+            const ctx = canvas.getContext('2d');
+            const priceDot = document.getElementById(`pump-price-dot-${gameId}`);
+            const priceLabel = document.getElementById(`pump-price-label-${gameId}`);
+
+            function resizeCanvas() {
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+            }
+            resizeCanvas();
+
+            function drawChart() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Draw grid
+                ctx.strokeStyle = 'rgba(234, 88, 12, 0.1)';
+                ctx.lineWidth = 1;
+                for (let i = 0; i < 5; i++) {
+                    const y = (i / 4) * canvas.height;
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(canvas.width, y);
+                    ctx.stroke();
+                }
+
+                // Draw price line
+                ctx.strokeStyle = '#ea580c';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+
+                const maxPrice = Math.max(...priceHistory) * 1.1;
+                const minPrice = Math.min(...priceHistory) * 0.9;
+
+                let lastY = canvas.height / 2;
+                priceHistory.forEach((p, i) => {
+                    const x = (i / (priceHistory.length - 1 || 1)) * canvas.width;
+                    const y = canvas.height - ((p - minPrice) / (maxPrice - minPrice || 1)) * canvas.height;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                    lastY = y;
+                });
+                ctx.stroke();
+
+                // Update price dot and label position
+                const currentY = canvas.height - ((price - minPrice) / (maxPrice - minPrice || 1)) * canvas.height;
+                priceDot.style.top = currentY + 'px';
+                priceLabel.style.top = currentY + 'px';
+                document.getElementById(`pump-crosshair-price-${gameId}`).textContent = price.toFixed(0);
+            }
+
+            function switchToBurnHold() {
+                phase = 'burnhold';
+                timeLeft = 10;
+                entryPrice = price;
+                document.getElementById(`pump-phase-${gameId}`).textContent = 'BURN/HOLD';
+                document.getElementById(`pump-phase-${gameId}`).style.color = 'var(--gold)';
+                document.getElementById(`pump-trading-controls-${gameId}`).style.display = 'none';
+                document.getElementById(`pump-burnhold-controls-${gameId}`).style.display = 'flex';
+            }
+
+            async function endPumpArena() {
+                const finalValue = balance + holdings * price;
+                score = Math.max(0, Math.round(finalValue - 1000));
+
+                // Settle bet if in betting mode
+                if (pumpArenaMode === 'betting' && currentBetId) {
+                    const betResult = await settlePumpArenaBet(score);
+                    if (betResult) {
+                        // Show bet result with payout info
+                        let resultMessage;
+                        if (betResult.won) {
+                            if (betResult.payoutSent) {
+                                resultMessage = `YOU WON!\n\n` +
+                                    `+${betResult.payout.toLocaleString()} $ASDF tokens!\n\n` +
+                                    `Payout sent to your wallet.\n` +
+                                    `TX: ${betResult.payoutSignature?.slice(0, 20)}...`;
+                            } else if (betResult.payoutPending) {
+                                resultMessage = `YOU WON!\n\n` +
+                                    `+${betResult.payout.toLocaleString()} $ASDF tokens!\n\n` +
+                                    `Payout is being processed. Check your wallet shortly.`;
+                            } else {
+                                resultMessage = `YOU WON!\n\n` +
+                                    `+${betResult.payout.toLocaleString()} $ASDF tokens!`;
+                            }
+                        } else {
+                            resultMessage = `You lost.\n\nBetter luck next time!`;
+                        }
+                        alert(resultMessage);
+                    }
+                }
+
+                endGame(gameId, score);
+            }
+
+            // Helper to update sell buttons state
+            function updateSellButtons() {
+                const hasHoldings = holdings > 0;
+                [25, 50, 75, 100].forEach(pct => {
+                    const btn = document.getElementById(`pump-sell${pct}-${gameId}`);
+                    if (btn) btn.disabled = !hasHoldings;
+                });
+            }
+
+            window.pumpBuyPercent = (gId, percent) => {
+                if (gId !== gameId || balance <= 0 || phase !== 'trading') return;
+                const amount = Math.floor(balance * percent / 100);
+                if (amount <= 0) return;
+                balance -= amount;
+                holdings += Math.floor(amount / price * 100) / 100;
+                document.getElementById(`pump-balance-${gameId}`).textContent = balance.toFixed(0);
+                document.getElementById(`pump-holdings-${gameId}`).textContent = holdings.toFixed(2);
+                updateSellButtons();
+            };
+
+            window.pumpSellPercent = (gId, percent) => {
+                if (gId !== gameId || holdings <= 0 || phase !== 'trading') return;
+                const tokensToSell = holdings * percent / 100;
+                const value = Math.round(tokensToSell * price);
+                holdings -= tokensToSell;
+                if (holdings < 0.01) holdings = 0; // Clean up small amounts
+                balance += value;
+                document.getElementById(`pump-balance-${gameId}`).textContent = balance.toFixed(0);
+                document.getElementById(`pump-holdings-${gameId}`).textContent = holdings.toFixed(2);
+                updateSellButtons();
+            };
+
+            // Legacy functions for compatibility
+            window.pumpBuy = (gId) => pumpBuyPercent(gId, 10); // Buy 10% by default
+
+            window.pumpSell = (gId) => {
+                if (gId !== gameId || holdings <= 0 || phase !== 'trading') return;
+                balance += Math.round(holdings * price);
+                holdings = 0;
+                document.getElementById(`pump-balance-${gameId}`).textContent = balance.toFixed(0);
+                document.getElementById(`pump-holdings-${gameId}`).textContent = '0';
+                document.getElementById(`pump-sell-${gameId}`).disabled = true;
+            };
+
+            window.pumpBurn = (gId) => {
+                if (gId !== gameId || phase !== 'burnhold') return;
+                phase = 'ended'; // Prevent further clicks
+
+                // Burn: 50% chance of x2, 50% chance of x0.5
+                const roll = Math.random();
+                const success = roll > 0.5;
+                if (success) {
+                    balance *= 2;
+                    holdings *= 2;
+                } else {
+                    balance *= 0.5;
+                    holdings *= 0.5;
+                }
+                document.getElementById(`pump-balance-${gameId}`).textContent = Math.round(balance);
+                document.getElementById(`pump-holdings-${gameId}`).textContent = holdings.toFixed(2);
+                document.getElementById(`pump-phase-${gameId}`).textContent = success ? '🔥 BURN WIN! x2' : '💀 BURN FAIL x0.5';
+                document.getElementById(`pump-phase-${gameId}`).style.color = success ? 'var(--green)' : 'var(--red)';
+                document.getElementById(`pump-burn-${gameId}`).disabled = true;
+                document.getElementById(`pump-hold-${gameId}`).disabled = true;
+
+                // End game after showing result
+                setTimeout(() => endPumpArena(), 1500);
+            };
+
+            window.pumpHold = (gId) => {
+                if (gId !== gameId || phase !== 'burnhold') return;
+                phase = 'ended'; // Prevent further clicks
+
+                // Hold: guaranteed x1.5
+                balance *= 1.5;
+                holdings *= 1.5;
+                document.getElementById(`pump-balance-${gameId}`).textContent = Math.round(balance);
+                document.getElementById(`pump-holdings-${gameId}`).textContent = holdings.toFixed(2);
+                document.getElementById(`pump-phase-${gameId}`).textContent = '💎 HOLD! x1.5';
+                document.getElementById(`pump-phase-${gameId}`).style.color = 'var(--green)';
+                document.getElementById(`pump-burn-${gameId}`).disabled = true;
+                document.getElementById(`pump-hold-${gameId}`).disabled = true;
+
+                // End game after showing result
+                setTimeout(() => endPumpArena(), 1500);
+            };
+
+            let tickCount = 0;
+            let lastSecond = 10;
+
+            activeGames[gameId] = {
+                interval: setInterval(() => {
+                    tickCount++;
+
+                    // Update timer every second
+                    const currentSecond = Math.ceil(timeLeft);
+                    if (currentSecond !== lastSecond) {
+                        lastSecond = currentSecond;
+                        document.getElementById(`pump-time-${gameId}`).textContent = currentSecond + 's';
+                    }
+
+                    // Decrease time
+                    timeLeft -= speed / 1000;
+
+                    // Increase speed progressively during trading phase
+                    if (phase === 'trading' && speed > 50) {
+                        speed -= 0.5;
+                        const speedMultiplier = (150 / speed).toFixed(1);
+                        document.getElementById(`pump-speed-indicator-${gameId}`).textContent = `Speed: ${speedMultiplier}x`;
+                    }
+
+                    // Update price with trend and volatility
+                    volatility = 3 + (10 - timeLeft) * 0.5; // Volatility increases
+                    const change = trend * (Math.random() * volatility) + (Math.random() - 0.5) * volatility * 2;
+                    price = Math.max(10, price + change);
+
+                    // Occasionally reverse trend
+                    if (Math.random() < 0.08) trend *= -1;
+
+                    priceHistory.push(price);
+                    if (priceHistory.length > 60) priceHistory.shift();
+
+                    document.getElementById(`pump-price-${gameId}`).textContent = price.toFixed(0);
+                    drawChart();
+                    updateScore(gameId, Math.round(balance + holdings * price - 1000));
+
+                    // Phase transitions
+                    if (phase === 'trading' && timeLeft <= 0) {
+                        switchToBurnHold();
+                    } else if (phase === 'burnhold' && timeLeft <= 0) {
+                        endPumpArena();
+                    }
+                }, speed)
+            };
+
+            // Use dynamic interval
+            function gameLoop() {
+                if (!activeGames[gameId]) return;
+                clearInterval(activeGames[gameId].interval);
+                activeGames[gameId].interval = setInterval(() => {
+                    tickCount++;
+
+                    const currentSecond = Math.ceil(timeLeft);
+                    if (currentSecond !== lastSecond) {
+                        lastSecond = currentSecond;
+                        document.getElementById(`pump-time-${gameId}`).textContent = currentSecond + 's';
+                    }
+
+                    timeLeft -= 0.1;
+
+                    if (phase === 'trading' && speed > 50) {
+                        speed -= 1;
+                        const speedMultiplier = (150 / speed).toFixed(1);
+                        document.getElementById(`pump-speed-indicator-${gameId}`).textContent = `Speed: ${speedMultiplier}x`;
+                    }
+
+                    volatility = 3 + (10 - Math.max(0, timeLeft)) * 0.8;
+                    const change = trend * (Math.random() * volatility) + (Math.random() - 0.5) * volatility * 2;
+                    price = Math.max(10, price + change);
+
+                    if (Math.random() < 0.08) trend *= -1;
+
+                    priceHistory.push(price);
+                    if (priceHistory.length > 60) priceHistory.shift();
+
+                    document.getElementById(`pump-price-${gameId}`).textContent = price.toFixed(0);
+                    drawChart();
+                    updateScore(gameId, Math.round(balance + holdings * price - 1000));
+
+                    if (phase === 'trading' && timeLeft <= 0) {
+                        switchToBurnHold();
+                    } else if (phase === 'burnhold' && timeLeft <= 0) {
+                        endPumpArena();
+                    }
+                }, 100);
+            }
+            gameLoop();
+        }
+
+        // ============================================
+        // GAME 5: RUG PULL ESCAPE - Reaction Game
+        // ============================================
+
+        function startRugPull(gameId) {
+            const arena = document.getElementById(`arena-${gameId}`);
+            let score = 0;
+            let round = 1;
+            let lives = 3;
+            let currentThreat = null;
+            let canRespond = false;
+            let responded = false;
+
+            // Define threats with their required actions
+            const threats = [
+                { emoji: '🚨', name: 'SCAM ALERT', key: 'leftclick', keyLabel: 'LEFT CLICK', color: '#ef4444' },
+                { emoji: '🐋', name: 'WHALE DUMP', key: 'rightclick', keyLabel: 'RIGHT CLICK', color: '#3b82f6' },
+                { emoji: '🔓', name: 'UNLOCK', key: 'z', keyLabel: 'Z', color: '#8b5cf6' },
+                { emoji: '💀', name: 'DEV SOLD', key: 'd', keyLabel: 'D', color: '#6b7280' },
+                { emoji: '🔺', name: 'PONZI', key: 'q', keyLabel: 'Q', color: '#f59e0b' },
+                { emoji: '🐍', name: 'SNAKE', key: 's', keyLabel: 'S', color: '#22c55e' },
+                { emoji: '🔥', name: 'FIRE SALE', key: 'f', keyLabel: 'F', color: '#ea580c' }
+            ];
+
+            function renderArena() {
+                arena.innerHTML = `
+                    <div style="display: flex; height: 100%;">
+                        <!-- Legend on the left -->
+                        <div style="width: 140px; background: var(--bg-charred); border-right: 2px solid var(--border-rust); padding: 10px; overflow-y: auto;">
+                            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px; text-align: center; font-weight: bold;">THREAT LEGEND</div>
+                            ${threats.map(t => `
+                                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; padding: 4px; background: var(--bg-burnt); border-radius: 4px; font-size: 10px;">
+                                    <span style="font-size: 16px;">${t.emoji}</span>
+                                    <div>
+                                        <div style="color: ${t.color}; font-weight: bold;">${t.keyLabel}</div>
+                                        <div style="color: var(--text-muted); font-size: 9px;">${t.name}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <!-- Main game area -->
+                        <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; text-align: center; padding: 20px;">
+                            <div style="font-size: 14px; color: var(--text-muted);">
+                                Round ${round}/15 | Lives: <span style="color: var(--red);">${'❤️'.repeat(lives)}</span>
+                            </div>
+                            <div style="font-size: 80px;" id="rug-threat-${gameId}">💰</div>
+                            <div style="font-size: 18px; font-weight: bold;" id="rug-message-${gameId}" style="color: var(--green);">Your wallet is safe...</div>
+                            <div style="font-size: 14px; color: var(--text-muted);" id="rug-hint-${gameId}">Watch for threats!</div>
+                            <div id="rug-action-${gameId}" style="font-size: 24px; font-weight: bold; height: 40px;"></div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function newRound() {
+                if (round > 15) {
+                    endGame(gameId, score);
+                    return;
+                }
+
+                responded = false;
+                canRespond = false;
+                currentThreat = null;
+
+                renderArena();
+                document.getElementById(`rug-message-${gameId}`).textContent = 'Your wallet is safe...';
+                document.getElementById(`rug-message-${gameId}`).style.color = 'var(--green)';
+
+                // Random delay before threat (1.5-4 seconds)
+                const threatDelay = 1500 + Math.random() * 2500;
+
+                setTimeout(() => {
+                    if (!activeGames[gameId] || responded) return;
+
+                    // Pick random threat
+                    currentThreat = threats[Math.floor(Math.random() * threats.length)];
+                    canRespond = true;
+
+                    document.getElementById(`rug-threat-${gameId}`).textContent = currentThreat.emoji;
+                    document.getElementById(`rug-threat-${gameId}`).style.animation = 'pulse 0.3s infinite';
+                    document.getElementById(`rug-message-${gameId}`).textContent = `${currentThreat.name} DETECTED!`;
+                    document.getElementById(`rug-message-${gameId}`).style.color = currentThreat.color;
+                    document.getElementById(`rug-hint-${gameId}`).textContent = `Press ${currentThreat.keyLabel} to escape!`;
+                    document.getElementById(`rug-action-${gameId}`).innerHTML = `<span style="color: ${currentThreat.color}; background: var(--bg-charred); padding: 8px 16px; border-radius: 8px; border: 2px solid ${currentThreat.color};">${currentThreat.keyLabel}</span>`;
+
+                    // Time window to respond (0.8-1.5 seconds based on round)
+                    const responseWindow = Math.max(600, 1500 - round * 50);
+
+                    setTimeout(() => {
+                        if (!activeGames[gameId] || responded) return;
+                        canRespond = false;
+
+                        document.getElementById(`rug-threat-${gameId}`).textContent = '💀';
+                        document.getElementById(`rug-message-${gameId}`).textContent = 'RUG PULLED! Too slow!';
+                        document.getElementById(`rug-message-${gameId}`).style.color = 'var(--red)';
+                        document.getElementById(`rug-action-${gameId}`).textContent = '';
+
+                        lives--;
+                        if (lives <= 0) {
+                            setTimeout(() => endGame(gameId, score), 1000);
+                        } else {
+                            round++;
+                            setTimeout(newRound, 1200);
+                        }
+                    }, responseWindow);
+                }, threatDelay);
+            }
+
+            function handleResponse(key) {
+                if (!canRespond || responded || !currentThreat) return;
+
+                if (key === currentThreat.key) {
+                    // Correct response!
+                    responded = true;
+                    canRespond = false;
+
+                    const points = 50 + round * 10;
+                    score += points;
+                    updateScore(gameId, score);
+
+                    document.getElementById(`rug-threat-${gameId}`).textContent = '✅';
+                    document.getElementById(`rug-message-${gameId}`).textContent = `ESCAPED! +${points} points`;
+                    document.getElementById(`rug-message-${gameId}`).style.color = 'var(--green)';
+                    document.getElementById(`rug-action-${gameId}`).textContent = '';
+
+                    round++;
+                    setTimeout(newRound, 800);
+                } else {
+                    // Wrong key!
+                    responded = true;
+                    canRespond = false;
+
+                    document.getElementById(`rug-threat-${gameId}`).textContent = '❌';
+                    document.getElementById(`rug-message-${gameId}`).textContent = `WRONG KEY! Needed ${currentThreat.keyLabel}`;
+                    document.getElementById(`rug-message-${gameId}`).style.color = 'var(--red)';
+                    document.getElementById(`rug-action-${gameId}`).textContent = '';
+
+                    lives--;
+                    if (lives <= 0) {
+                        setTimeout(() => endGame(gameId, score), 1000);
+                    } else {
+                        round++;
+                        setTimeout(newRound, 1200);
+                    }
+                }
+            }
+
+            // Keyboard handler
+            const keyHandler = (e) => {
+                const key = e.key.toLowerCase();
+                if (['z', 'd', 'q', 's', 'f'].includes(key)) {
+                    e.preventDefault();
+                    handleResponse(key);
+                }
+            };
+            document.addEventListener('keydown', keyHandler);
+
+            // Mouse handler
+            const mouseHandler = (e) => {
+                e.preventDefault();
+                if (e.button === 0) handleResponse('leftclick');
+                else if (e.button === 2) handleResponse('rightclick');
+            };
+            arena.addEventListener('mousedown', mouseHandler);
+            arena.addEventListener('contextmenu', (e) => e.preventDefault());
+
+            activeGames[gameId] = {
+                interval: null,
+                cleanup: () => {
+                    document.removeEventListener('keydown', keyHandler);
+                    arena.removeEventListener('mousedown', mouseHandler);
+                }
+            };
+
+            // Add pulse animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes pulse {
+                    0%, 100% { transform: scale(1); }
+                    50% { transform: scale(1.1); }
+                }
+            `;
+            arena.appendChild(style);
+
+            newRound();
+        }
+
+        // ============================================
+        // GAME 6: WHALE WATCH - Pattern Memory
+        // ============================================
+
+        function startWhaleWatch(gameId) {
+            const arena = document.getElementById(`arena-${gameId}`);
+            let score = 0;
+            let level = 1;
+            let pattern = [];
+            let playerPattern = [];
+            let isShowingPattern = false;
+
+            const moves = ['📈', '📉', '💎', '🔄'];
+            const colors = ['#22c55e', '#ef4444', '#3b82f6', '#fbbf24'];
+            const labels = ['BUY', 'SELL', 'HOLD', 'SWAP'];
+
+            arena.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 20px;">
+                    <div style="font-size: 14px; color: var(--text-muted);">Level: <span id="whale-level-${gameId}">${level}</span></div>
+                    <div style="font-size: 40px;" id="whale-display-${gameId}">Watch the whale's moves...</div>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                        ${moves.map((m, i) => `
+                            <button class="btn" id="whale-btn-${gameId}-${i}" onclick="whaleClick('${gameId}', ${i})" style="width: 100px; height: 80px; font-size: 24px; background: ${colors[i]}; border-color: ${colors[i]};" disabled>
+                                ${m}<br><span style="font-size: 11px;">${labels[i]}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div id="whale-feedback-${gameId}" style="font-size: 14px; height: 20px;"></div>
+                </div>
+            `;
+
+            function showPattern() {
+                isShowingPattern = true;
+                playerPattern = [];
+                document.getElementById(`whale-display-${gameId}`).textContent = 'Watch closely...';
+                document.getElementById(`whale-feedback-${gameId}`).textContent = '';
+
+                // Disable buttons during pattern show
+                moves.forEach((_, i) => {
+                    document.getElementById(`whale-btn-${gameId}-${i}`).disabled = true;
+                });
+
+                // Add new move to pattern
+                pattern.push(Math.floor(Math.random() * 4));
+
+                // Show pattern sequence
+                let i = 0;
+                const showNext = () => {
+                    if (i >= pattern.length) {
+                        isShowingPattern = false;
+                        document.getElementById(`whale-display-${gameId}`).textContent = '🐋 Your turn! Repeat the pattern';
+                        moves.forEach((_, idx) => {
+                            document.getElementById(`whale-btn-${gameId}-${idx}`).disabled = false;
+                            document.getElementById(`whale-btn-${gameId}-${idx}`).style.opacity = '1';
+                        });
+                        return;
+                    }
+
+                    // Dim all buttons first
+                    moves.forEach((_, idx) => {
+                        document.getElementById(`whale-btn-${gameId}-${idx}`).style.opacity = '0.3';
+                    });
+
+                    const btn = document.getElementById(`whale-btn-${gameId}-${pattern[i]}`);
+                    // Highlight the active button brightly
+                    btn.style.opacity = '1';
+                    btn.style.transform = 'scale(1.2)';
+                    btn.style.boxShadow = `0 0 40px ${colors[pattern[i]]}, 0 0 60px ${colors[pattern[i]]}, inset 0 0 20px rgba(255,255,255,0.3)`;
+                    btn.style.filter = 'brightness(1.5)';
+                    btn.style.border = '4px solid white';
+
+                    setTimeout(() => {
+                        btn.style.transform = 'scale(1)';
+                        btn.style.boxShadow = '';
+                        btn.style.filter = '';
+                        btn.style.border = '';
+                        btn.style.opacity = '0.5';
+                        i++;
+                        setTimeout(showNext, 400);
+                    }, 600);
+                };
+
+                setTimeout(showNext, 800);
+            }
+
+            window.whaleClick = (gId, moveIndex) => {
+                if (gId !== gameId || isShowingPattern) return;
+
+                playerPattern.push(moveIndex);
+
+                const btn = document.getElementById(`whale-btn-${gameId}-${moveIndex}`);
+                btn.style.transform = 'scale(0.95)';
+                setTimeout(() => btn.style.transform = 'scale(1)', 100);
+
+                // Check if correct
+                const idx = playerPattern.length - 1;
+                if (playerPattern[idx] !== pattern[idx]) {
+                    document.getElementById(`whale-feedback-${gameId}`).textContent = 'Wrong! Game Over';
+                    document.getElementById(`whale-feedback-${gameId}`).style.color = 'var(--red)';
+                    moves.forEach((_, i) => {
+                        document.getElementById(`whale-btn-${gameId}-${i}`).disabled = true;
+                    });
+                    endGame(gameId, score);
+                    return;
+                }
+
+                // Check if pattern complete
+                if (playerPattern.length === pattern.length) {
+                    score += level * 10;
+                    level++;
+                    updateScore(gameId, score);
+                    document.getElementById(`whale-level-${gameId}`).textContent = level;
+                    document.getElementById(`whale-feedback-${gameId}`).textContent = 'Correct! +' + ((level - 1) * 10) + ' points';
+                    document.getElementById(`whale-feedback-${gameId}`).style.color = 'var(--green)';
+
+                    moves.forEach((_, i) => {
+                        document.getElementById(`whale-btn-${gameId}-${i}`).disabled = true;
+                    });
+
+                    setTimeout(showPattern, 1000);
+                }
+            };
+
+            activeGames[gameId] = { interval: null };
+            setTimeout(showPattern, 500);
+        }
+
+        // ============================================
+        // GAME 7: STAKE STACKER - Tetris-like
+        // ============================================
+
+        function startStakeStacker(gameId) {
+            const arena = document.getElementById(`arena-${gameId}`);
+            let score = 0;
+            let gameOver = false;
+
+            // Two towers configuration
+            const towerWidth = 120;
+            const towerGap = 40;
+            const blockHeight = 25;
+            const viewHeight = 300;
+            const scrollThreshold = 7; // Start scrolling after 7th block
+
+            // Tower states with scroll offset
+            const towers = {
+                left: { blocks: [], height: 0, blockWidth: 80, blockX: 20, direction: 1, scrollOffset: 0 },
+                right: { blocks: [], height: 0, blockWidth: 80, blockX: 20, direction: -1, scrollOffset: 0 }
+            };
+
+            let speed = 3;
+
+            arena.innerHTML = `
+                <div style="display: flex; flex-direction: column; height: 100%; padding: 10px;">
+                    <div style="text-align: center; margin-bottom: 10px;">
+                        <div style="font-size: 12px; color: var(--text-muted);">LEFT CLICK = Left Tower | RIGHT CLICK = Right Tower</div>
+                        <div style="font-size: 10px; color: var(--gold); margin-top: 3px;">∞ INFINITE MODE - Stack forever!</div>
+                    </div>
+                    <div style="flex: 1; display: flex; justify-content: center; gap: ${towerGap}px; align-items: flex-end;">
+                        <!-- Left Tower -->
+                        <div style="text-align: center;">
+                            <div style="font-size: 12px; color: var(--green); margin-bottom: 5px;">LEFT (Q)</div>
+                            <div id="stacker-left-${gameId}" style="width: ${towerWidth}px; height: ${viewHeight}px; background: var(--bg-burnt); border: 2px solid var(--green); border-radius: 8px; position: relative; overflow: hidden;">
+                                <div id="stacker-blocks-left-${gameId}" style="position: absolute; bottom: 0; left: 0; right: 0; transition: transform 0.3s ease-out;"></div>
+                                <div id="stacker-moving-left-${gameId}" style="position: absolute; height: ${blockHeight}px; background: linear-gradient(135deg, var(--green), var(--green-light)); border: 2px solid var(--green-light); border-radius: 3px; display: none; box-shadow: 0 0 10px var(--green);"></div>
+                            </div>
+                        </div>
+                        <!-- Right Tower -->
+                        <div style="text-align: center;">
+                            <div style="font-size: 12px; color: var(--accent-bright); margin-bottom: 5px;">RIGHT (D)</div>
+                            <div id="stacker-right-${gameId}" style="width: ${towerWidth}px; height: ${viewHeight}px; background: var(--bg-burnt); border: 2px solid var(--accent-fire); border-radius: 8px; position: relative; overflow: hidden;">
+                                <div id="stacker-blocks-right-${gameId}" style="position: absolute; bottom: 0; left: 0; right: 0; transition: transform 0.3s ease-out;"></div>
+                                <div id="stacker-moving-right-${gameId}" style="position: absolute; height: ${blockHeight}px; background: linear-gradient(135deg, var(--accent-fire), var(--accent-bright)); border: 2px solid var(--accent-bright); border-radius: 3px; display: none; box-shadow: 0 0 10px var(--accent-fire);"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="text-align: center; margin-top: 10px;">
+                        <div style="font-size: 11px; color: var(--text-muted);">
+                            Left: <span id="stacker-height-left-${gameId}" style="color: var(--green); font-weight: bold;">0</span> |
+                            Right: <span id="stacker-height-right-${gameId}" style="color: var(--accent-bright); font-weight: bold;">0</span> |
+                            Total: <span id="stacker-total-${gameId}" style="color: var(--gold); font-weight: bold;">0</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            function scrollTower(side) {
+                const tower = towers[side];
+                const blocksContainer = document.getElementById(`stacker-blocks-${side}-${gameId}`);
+
+                // Start scrolling after reaching threshold
+                if (tower.height >= scrollThreshold) {
+                    const scrollAmount = (tower.height - scrollThreshold + 1) * blockHeight;
+                    tower.scrollOffset = scrollAmount;
+                    blocksContainer.style.transform = `translateY(${scrollAmount}px)`;
+                }
+            }
+
+            function getVisibleBottom(side) {
+                const tower = towers[side];
+                // The visible bottom position accounting for scroll
+                return (tower.height * blockHeight) - tower.scrollOffset;
+            }
+
+            function spawnBlock(side) {
+                if (gameOver) return;
+                const tower = towers[side];
+                const movingBlock = document.getElementById(`stacker-moving-${side}-${gameId}`);
+
+                tower.blockX = side === 'left' ? 0 : towerWidth - tower.blockWidth;
+                tower.direction = side === 'left' ? 1 : -1;
+
+                movingBlock.style.display = 'block';
+                movingBlock.style.width = tower.blockWidth + 'px';
+                movingBlock.style.left = tower.blockX + 'px';
+                // Position relative to visible area
+                movingBlock.style.bottom = getVisibleBottom(side) + 'px';
+            }
+
+            function updateMovingBlock(side) {
+                const tower = towers[side];
+                const movingBlock = document.getElementById(`stacker-moving-${side}-${gameId}`);
+                if (movingBlock.style.display !== 'none') {
+                    movingBlock.style.left = tower.blockX + 'px';
+                    movingBlock.style.bottom = getVisibleBottom(side) + 'px';
+                }
+            }
+
+            function dropBlock(side) {
+                if (gameOver) return;
+
+                const tower = towers[side];
+                const movingBlock = document.getElementById(`stacker-moving-${side}-${gameId}`);
+                const blocksContainer = document.getElementById(`stacker-blocks-${side}-${gameId}`);
+
+                // If no moving block, spawn one instead
+                if (movingBlock.style.display === 'none') {
+                    spawnBlock(side);
+                    return;
+                }
+
+                let prevBlock = tower.blocks[tower.blocks.length - 1];
+                let overlap = tower.blockWidth;
+                let newX = tower.blockX;
+
+                if (prevBlock) {
+                    const prevLeft = prevBlock.x;
+                    const prevRight = prevBlock.x + prevBlock.width;
+                    const currLeft = tower.blockX;
+                    const currRight = tower.blockX + tower.blockWidth;
+
+                    if (currRight <= prevLeft || currLeft >= prevRight) {
+                        // Complete miss - game over
+                        gameOver = true;
+                        movingBlock.style.background = 'var(--red)';
+                        movingBlock.style.borderColor = 'var(--red)';
+                        movingBlock.style.boxShadow = '0 0 20px var(--red)';
+                        setTimeout(() => endGame(gameId, score), 500);
+                        return;
+                    }
+
+                    // Calculate overlap
+                    const overlapLeft = Math.max(prevLeft, currLeft);
+                    const overlapRight = Math.min(prevRight, currRight);
+                    overlap = overlapRight - overlapLeft;
+                    newX = overlapLeft;
+
+                    // Perfect stack bonus
+                    if (overlap >= tower.blockWidth - 3) {
+                        overlap = tower.blockWidth;
+                        score += 25;
+                        // Perfect bonus visual
+                        const perfectText = document.createElement('div');
+                        perfectText.textContent = 'PERFECT! +25';
+                        perfectText.style.cssText = `position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); color: var(--gold); font-size: 14px; font-weight: bold; animation: fadeUp 0.5s ease-out forwards; pointer-events: none;`;
+                        arena.appendChild(perfectText);
+                        setTimeout(() => perfectText.remove(), 500);
+                    }
+                }
+
+                // Add block to stack
+                const block = document.createElement('div');
+                const bgColor = side === 'left' ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.8), rgba(34, 197, 94, 0.5))' : 'linear-gradient(135deg, rgba(234, 88, 12, 0.8), rgba(234, 88, 12, 0.5))';
+                const borderColor = side === 'left' ? 'var(--green-light)' : 'var(--accent-bright)';
+                block.style.cssText = `position: absolute; left: ${newX}px; bottom: ${tower.height * blockHeight}px; width: ${overlap}px; height: ${blockHeight}px; background: ${bgColor}; border: 1px solid ${borderColor}; border-radius: 3px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);`;
+                blocksContainer.appendChild(block);
+
+                tower.blocks.push({ x: newX, width: overlap, element: block });
+                tower.blockWidth = overlap;
+                tower.height++;
+                score += 10;
+
+                document.getElementById(`stacker-height-${side}-${gameId}`).textContent = tower.height;
+                document.getElementById(`stacker-total-${gameId}`).textContent = towers.left.height + towers.right.height;
+                updateScore(gameId, score);
+
+                // Hide moving block
+                movingBlock.style.display = 'none';
+
+                // Scroll tower if needed (infinite mode)
+                scrollTower(side);
+
+                // Spawn next block after short delay
+                setTimeout(() => spawnBlock(side), 100);
+
+                // Increase speed based on total height
+                const totalHeight = towers.left.height + towers.right.height;
+                speed = Math.min(12, 3 + totalHeight * 0.15);
+            }
+
+            // Context menu handler
+            const contextHandler = (e) => e.preventDefault();
+
+            // Mouse handler
+            const mouseHandler = (e) => {
+                e.preventDefault();
+                if (e.button === 0) dropBlock('left');
+                else if (e.button === 2) dropBlock('right');
+            };
+            arena.addEventListener('mousedown', mouseHandler);
+            arena.addEventListener('contextmenu', contextHandler);
+
+            // Keyboard handler (Q for left, D for right)
+            const keyHandler = (e) => {
+                if (e.key.toLowerCase() === 'q' || e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    dropBlock('left');
+                } else if (e.key.toLowerCase() === 'd' || e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    dropBlock('right');
+                }
+            };
+            document.addEventListener('keydown', keyHandler);
+
+            // Add CSS animation for perfect bonus
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes fadeUp {
+                    0% { opacity: 1; transform: translate(-50%, -50%); }
+                    100% { opacity: 0; transform: translate(-50%, -100%); }
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Spawn initial blocks
+            spawnBlock('left');
+            spawnBlock('right');
+
+            activeGames[gameId] = {
+                interval: setInterval(() => {
+                    if (gameOver) return;
+
+                    // Move both blocks
+                    ['left', 'right'].forEach(side => {
+                        const tower = towers[side];
+                        const movingBlock = document.getElementById(`stacker-moving-${side}-${gameId}`);
+
+                        if (movingBlock && movingBlock.style.display !== 'none') {
+                            tower.blockX += tower.direction * speed;
+
+                            if (tower.blockX + tower.blockWidth > towerWidth) {
+                                tower.blockX = towerWidth - tower.blockWidth;
+                                tower.direction = -1;
+                            } else if (tower.blockX < 0) {
+                                tower.blockX = 0;
+                                tower.direction = 1;
+                            }
+
+                            updateMovingBlock(side);
+                        }
+                    });
+                }, 30),
+                cleanup: () => {
+                    arena.removeEventListener('mousedown', mouseHandler);
+                    arena.removeEventListener('contextmenu', contextHandler);
+                    document.removeEventListener('keydown', keyHandler);
+                }
+            };
+        }
+
+        // ============================================
+        // GAME 8: DEX DASH - Racing
+        // ============================================
+
+        function startDexDash(gameId) {
+            const arena = document.getElementById(`arena-${gameId}`);
+            let score = 0;
+            let distance = 0;
+            let speed = 80; // km/h - starts fast
+            let gameOver = false;
+
+            // Player position (percentage based for responsive)
+            let playerX = 50; // center of road
+            let playerY = 75; // near bottom
+            let moveDir = { x: 0, y: 0 };
+            let moveInterval = null;
+
+            // Road boundaries (percentage)
+            const ROAD_LEFT = 18;
+            const ROAD_RIGHT = 82;
+            const ROAD_TOP = 10;
+            const ROAD_BOTTOM = 90;
+
+            // Objects in game
+            let obstacles = [];
+            let coins = [];
+
+            arena.innerHTML = `
+                <div id="dex-container-${gameId}" style="position: relative; width: 100%; height: 100%; min-height: 350px; overflow: hidden; background: linear-gradient(180deg, #0a1628 0%, #0a0f1a 100%);">
+                    <!-- Road -->
+                    <div id="dex-road-${gameId}" style="position: absolute; left: 15%; right: 15%; top: 0; bottom: 0; background: linear-gradient(90deg, #1a1a2e 0%, #252540 50%, #1a1a2e 100%); border-left: 5px solid #555; border-right: 5px solid #555;"></div>
+
+                    <!-- Lane markings (animated) -->
+                    <div id="dex-lines-${gameId}" style="position: absolute; left: 50%; top: 0; width: 6px; bottom: 0; transform: translateX(-50%); background: repeating-linear-gradient(180deg, rgba(255,255,255,0.7) 0px, rgba(255,255,255,0.7) 30px, transparent 30px, transparent 60px);"></div>
+
+                    <!-- Left lane line -->
+                    <div style="position: absolute; left: 32.5%; top: 0; width: 4px; bottom: 0; transform: translateX(-50%); background: repeating-linear-gradient(180deg, rgba(255,200,0,0.5) 0px, rgba(255,200,0,0.5) 20px, transparent 20px, transparent 50px);"></div>
+                    <!-- Right lane line -->
+                    <div style="position: absolute; left: 67.5%; top: 0; width: 4px; bottom: 0; transform: translateX(-50%); background: repeating-linear-gradient(180deg, rgba(255,200,0,0.5) 0px, rgba(255,200,0,0.5) 20px, transparent 20px, transparent 50px);"></div>
+
+                    <!-- Obstacles container -->
+                    <div id="dex-obstacles-${gameId}" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 15;"></div>
+
+                    <!-- Coins container -->
+                    <div id="dex-coins-${gameId}" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 15;"></div>
+
+                    <!-- Player car -->
+                    <div id="dex-player-${gameId}" style="position: absolute; left: 50%; top: 75%; font-size: 36px; transform: translate(-50%, -50%); filter: drop-shadow(0 0 12px var(--gold)); z-index: 20; transition: left 0.08s ease-out, top 0.08s ease-out;">🏎️</div>
+
+                    <!-- HUD -->
+                    <div style="position: absolute; top: 10px; left: 10px; display: flex; gap: 10px; z-index: 50;">
+                        <div style="background: rgba(0,0,0,0.85); padding: 8px 14px; border-radius: 10px; border: 2px solid var(--gold);">
+                            <div style="font-size: 10px; color: var(--text-muted);">DISTANCE</div>
+                            <div style="font-size: 18px; color: var(--gold); font-weight: bold;"><span id="dex-distance-${gameId}">0</span>m</div>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.85); padding: 8px 14px; border-radius: 10px; border: 2px solid var(--accent-fire);">
+                            <div style="font-size: 10px; color: var(--text-muted);">SPEED</div>
+                            <div style="font-size: 18px; color: var(--accent-bright); font-weight: bold;"><span id="dex-speed-${gameId}">80</span> km/h</div>
+                        </div>
+                    </div>
+
+                    <div style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.85); padding: 8px 14px; border-radius: 10px; border: 2px solid var(--green); z-index: 50;">
+                        <div style="font-size: 10px; color: var(--text-muted);">COINS</div>
+                        <div style="font-size: 18px; color: var(--green); font-weight: bold;"><span id="dex-coins-count-${gameId}">0</span></div>
+                    </div>
+
+                    <!-- Controls hint -->
+                    <div style="position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%); font-size: 11px; color: var(--text-muted); background: rgba(0,0,0,0.7); padding: 5px 15px; border-radius: 12px; z-index: 50;">
+                        ← → ↑ ↓ / ZQSD / Click to move
+                    </div>
+                </div>
+                <style>
+                    @keyframes dexScroll${gameId} {
+                        from { background-position-y: 0; }
+                        to { background-position-y: 60px; }
+                    }
+                </style>
+            `;
+
+            const player = document.getElementById(`dex-player-${gameId}`);
+            const obstaclesContainer = document.getElementById(`dex-obstacles-${gameId}`);
+            const coinsContainer = document.getElementById(`dex-coins-${gameId}`);
+            const linesEl = document.getElementById(`dex-lines-${gameId}`);
+            let coinsCollected = 0;
+
+            function updatePlayerPos() {
+                player.style.left = playerX + '%';
+                player.style.top = playerY + '%';
+            }
+
+            function movePlayer() {
+                const moveSpeed = 1.8 + speed / 150;
+                playerX = Math.max(ROAD_LEFT, Math.min(ROAD_RIGHT, playerX + moveDir.x * moveSpeed));
+                playerY = Math.max(ROAD_TOP + 5, Math.min(ROAD_BOTTOM, playerY + moveDir.y * moveSpeed));
+                updatePlayerPos();
+            }
+
+            // Keyboard controls
+            const keyDownHandler = (e) => {
+                if (gameOver) return;
+                const key = e.key.toLowerCase();
+                let changed = false;
+
+                if ((key === 'arrowleft' || key === 'q' || key === 'a') && moveDir.x !== -1) { moveDir.x = -1; changed = true; }
+                if ((key === 'arrowright' || key === 'd') && moveDir.x !== 1) { moveDir.x = 1; changed = true; }
+                if ((key === 'arrowup' || key === 'z' || key === 'w') && moveDir.y !== -1) { moveDir.y = -1; changed = true; }
+                if ((key === 'arrowdown' || key === 's') && moveDir.y !== 1) { moveDir.y = 1; changed = true; }
+
+                if (changed && !moveInterval) {
+                    moveInterval = setInterval(movePlayer, 16);
+                }
+                e.preventDefault();
+            };
+
+            const keyUpHandler = (e) => {
+                const key = e.key.toLowerCase();
+                if (key === 'arrowleft' || key === 'q' || key === 'a') moveDir.x = moveDir.x === -1 ? 0 : moveDir.x;
+                if (key === 'arrowright' || key === 'd') moveDir.x = moveDir.x === 1 ? 0 : moveDir.x;
+                if (key === 'arrowup' || key === 'z' || key === 'w') moveDir.y = moveDir.y === -1 ? 0 : moveDir.y;
+                if (key === 'arrowdown' || key === 's') moveDir.y = moveDir.y === 1 ? 0 : moveDir.y;
+
+                if (moveDir.x === 0 && moveDir.y === 0 && moveInterval) {
+                    clearInterval(moveInterval);
+                    moveInterval = null;
+                }
+            };
+
+            document.addEventListener('keydown', keyDownHandler);
+            document.addEventListener('keyup', keyUpHandler);
+
+            // Click/touch to move towards position
+            const clickHandler = (e) => {
+                if (gameOver) return;
+                const rect = arena.getBoundingClientRect();
+                const clickX = ((e.clientX - rect.left) / rect.width) * 100;
+                const clickY = ((e.clientY - rect.top) / rect.height) * 100;
+
+                // Clamp to road
+                playerX = Math.max(ROAD_LEFT, Math.min(ROAD_RIGHT, clickX));
+                playerY = Math.max(ROAD_TOP + 5, Math.min(ROAD_BOTTOM, clickY));
+                updatePlayerPos();
+            };
+            arena.addEventListener('click', clickHandler);
+
+            // Obstacle types
+            const obstacleTypes = [
+                { emoji: '🚨', name: 'RUG' },
+                { emoji: '💀', name: 'SCAM' },
+                { emoji: '🚗', name: 'CAR' },
+                { emoji: '🚧', name: 'BLOCK' },
+                { emoji: '🦈', name: 'SHARK' }
+            ];
+
+            // Coin types
+            const coinTypes = [
+                { emoji: '🪙', points: 10 },
+                { emoji: '💎', points: 30 },
+                { emoji: '🔥', points: 50 }
+            ];
+
+            // Spawn rates
+            let spawnTimer = 0;
+            let obstacleSpawnRate = 40; // frames between spawns
+
+            activeGames[gameId] = {
+                interval: setInterval(() => {
+                    if (gameOver) return;
+
+                    // Update distance based on speed
+                    distance += Math.floor(speed / 30);
+                    score = distance + coinsCollected * 5;
+
+                    const distanceEl = document.getElementById(`dex-distance-${gameId}`);
+                    const speedEl = document.getElementById(`dex-speed-${gameId}`);
+                    if (distanceEl) distanceEl.textContent = distance;
+                    if (speedEl) speedEl.textContent = Math.floor(speed);
+
+                    updateScore(gameId, score);
+
+                    // Animate road lines based on speed
+                    const animSpeed = Math.max(0.1, 0.5 - speed / 400);
+                    if (linesEl) linesEl.style.animation = `dexScroll${gameId} ${animSpeed}s linear infinite`;
+
+                    // Progressive speed increase (much faster acceleration)
+                    speed = Math.min(450, 80 + distance * 0.08);
+
+                    // Spawn obstacles
+                    spawnTimer++;
+                    obstacleSpawnRate = Math.max(15, 50 - Math.floor(speed / 15));
+
+                    if (spawnTimer >= obstacleSpawnRate) {
+                        spawnTimer = 0;
+                        const type = obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)];
+                        const x = ROAD_LEFT + 5 + Math.random() * (ROAD_RIGHT - ROAD_LEFT - 10);
+                        const obs = document.createElement('div');
+                        obs.style.cssText = `position: absolute; left: ${x}%; top: -8%; font-size: 30px; transform: translate(-50%, -50%); filter: drop-shadow(0 0 8px rgba(255,50,50,0.7));`;
+                        obs.textContent = type.emoji;
+                        obstaclesContainer.appendChild(obs);
+                        obstacles.push({ el: obs, x, y: -8 });
+                    }
+
+                    // Spawn coins (less frequent)
+                    if (Math.random() < 0.025) {
+                        const type = coinTypes[Math.random() < 0.6 ? 0 : (Math.random() < 0.7 ? 1 : 2)];
+                        const x = ROAD_LEFT + 5 + Math.random() * (ROAD_RIGHT - ROAD_LEFT - 10);
+                        const coin = document.createElement('div');
+                        coin.style.cssText = `position: absolute; left: ${x}%; top: -8%; font-size: 26px; transform: translate(-50%, -50%); filter: drop-shadow(0 0 8px var(--gold)); animation: pulse 0.4s infinite alternate;`;
+                        coin.textContent = type.emoji;
+                        coinsContainer.appendChild(coin);
+                        coins.push({ el: coin, x, y: -8, points: type.points });
+                    }
+
+                    // Move speed (percentage per frame, scales with speed)
+                    const moveY = speed / 100;
+
+                    // Move obstacles
+                    obstacles = obstacles.filter(obs => {
+                        obs.y += moveY;
+                        obs.el.style.top = obs.y + '%';
+
+                        // Collision check (hitbox based on percentage distance)
+                        const dx = Math.abs(obs.x - playerX);
+                        const dy = Math.abs(obs.y - playerY);
+                        if (dx < 7 && dy < 7) {
+                            gameOver = true;
+                            player.style.filter = 'drop-shadow(0 0 25px red)';
+                            player.textContent = '💥';
+                            setTimeout(() => endGame(gameId, score), 600);
+                            return false;
+                        }
+
+                        if (obs.y > 110) {
+                            obs.el.remove();
+                            return false;
+                        }
+                        return true;
+                    });
+
+                    // Move coins
+                    coins = coins.filter(coin => {
+                        coin.y += moveY;
+                        coin.el.style.top = coin.y + '%';
+
+                        // Collection check
+                        const dx = Math.abs(coin.x - playerX);
+                        const dy = Math.abs(coin.y - playerY);
+                        if (dx < 8 && dy < 8) {
+                            coinsCollected += coin.points;
+                            score += coin.points;
+                            updateScore(gameId, score);
+                            const coinsEl = document.getElementById(`dex-coins-count-${gameId}`);
+                            if (coinsEl) coinsEl.textContent = coinsCollected;
+
+                            // Collect effect
+                            coin.el.style.transform = 'translate(-50%, -50%) scale(1.8)';
+                            coin.el.style.opacity = '0';
+                            setTimeout(() => coin.el.remove(), 150);
+                            return false;
+                        }
+
+                        if (coin.y > 110) {
+                            coin.el.remove();
+                            return false;
+                        }
+                        return true;
+                    });
+
+                }, 30),
+                cleanup: () => {
+                    document.removeEventListener('keydown', keyDownHandler);
+                    document.removeEventListener('keyup', keyUpHandler);
+                    arena.removeEventListener('click', clickHandler);
+                    if (moveInterval) clearInterval(moveInterval);
+                }
+            };
+        }
+
+        // ============================================
+        // GAME 9: TOKEN ARCHER - Turn-based Archery
+        // Multi-stage with enemies, weapons, bonuses
+        // ============================================
+
+        function startBurnOrHold(gameId) {
+            const arena = document.getElementById(`arena-${gameId}`);
+            let score = 0;
+            let stage = 1;
+            let round = 1;
+            let gameOver = false;
+
+            // Physics constants
+            const GRAVITY = 0.18;
+            const ARROW_SPEED = 4.5;
+
+            // Maps/Backgrounds
+            const MAPS = [
+                { name: 'Forest', bg: 'linear-gradient(180deg, #1a3a2e 0%, #0d1f18 60%, #050d0a 100%)', ground: '#2d4a3e', groundBorder: '#4a7a5e', obstacles: '🌲' },
+                { name: 'Desert', bg: 'linear-gradient(180deg, #4a3a1e 0%, #2d2510 60%, #1a1508 100%)', ground: '#8b7355', groundBorder: '#c4a574', obstacles: '🌵' },
+                { name: 'Ice', bg: 'linear-gradient(180deg, #1e3a4a 0%, #102530 60%, #081518 100%)', ground: '#5588aa', groundBorder: '#88bbdd', obstacles: '🧊' },
+                { name: 'Volcano', bg: 'linear-gradient(180deg, #3a1a1a 0%, #2d0d0d 60%, #150505 100%)', ground: '#4a2a2a', groundBorder: '#aa4444', obstacles: '🪨' },
+                { name: 'Space', bg: 'linear-gradient(180deg, #0a0a2e 0%, #05051a 60%, #020208 100%)', ground: '#2a2a4a', groundBorder: '#5555aa', obstacles: '🛸' }
+            ];
+
+            // Enemy types per stage
+            const ENEMIES = [
+                { emoji: '👹', name: 'Goblin', hp: 80, damage: 12, accuracy: 0.55 },
+                { emoji: '🧟', name: 'Zombie', hp: 100, damage: 18, accuracy: 0.5 },
+                { emoji: '🧙', name: 'Mage', hp: 70, damage: 25, accuracy: 0.65 },
+                { emoji: '🐉', name: 'Dragon', hp: 130, damage: 22, accuracy: 0.6 },
+                { emoji: '👿', name: 'Demon', hp: 160, damage: 30, accuracy: 0.7 }
+            ];
+
+            // Weapons (unlocked by stage)
+            const WEAPONS = [
+                { emoji: '🏹', name: 'Bow', damage: 25, speed: 4.5 },
+                { emoji: '💣', name: 'Bomb', damage: 45, speed: 3, explosive: true, radius: 15 },
+                { emoji: '⚡', name: 'Lightning', damage: 35, speed: 7 },
+                { emoji: '🔥', name: 'Fire Arrow', damage: 30, speed: 5, burn: true, burnDmg: 5 }
+            ];
+
+            // Bonuses
+            const BONUSES = [
+                { emoji: '❤️', type: 'heal', value: 25, desc: '+25 HP' },
+                { emoji: '💪', type: 'power', value: 1.5, desc: '+50% DMG' },
+                { emoji: '🛡️', type: 'shield', value: 30, desc: '+30 Shield' },
+                { emoji: '💥', type: 'explosive', value: 0, desc: 'Get Bomb!' }
+            ];
+
+            // Buffs system (chosen between stages)
+            const BUFFS = [
+                { id: 'strength', emoji: '💪', name: 'Force', desc: '+30% dégâts permanents', effect: () => { playerBuffs.damageBonus += 0.3; } },
+                { id: 'defense', emoji: '🛡️', name: 'Défense', desc: '+25 HP max et soin', effect: () => { player.maxHp += 25; player.hp = player.maxHp; } },
+                { id: 'precision', emoji: '🎯', name: 'Précision', desc: 'Tracé pointillé de visée (1 tour)', effect: () => { playerBuffs.aimLine = true; } },
+                { id: 'mobility', emoji: '👟', name: 'Mobilité', desc: '+1 pas de déplacement', effect: () => { playerBuffs.maxSteps += 1; } }
+            ];
+
+            // Player buffs state
+            let playerBuffs = {
+                damageBonus: 0,
+                aimLine: false,
+                maxSteps: 2 // Can move 2 steps before shooting
+            };
+
+            // Current state
+            let currentMapIndex = 0;
+            let currentMap = MAPS[0];
+            let currentEnemyType = ENEMIES[0];
+            let currentWeaponIndex = 0;
+            let currentWeapon = WEAPONS[0];
+            let bonuses = [];
+            let obstacles = [];
+            let playerShield = 0;
+            let powerMultiplier = 1;
+            let burnEffect = false;
+            let stepsRemaining = 2;
+            let showingBuffSelection = false;
+
+            // Characters - GOLEM as player
+            const player = { x: 15, y: 68, hp: 100, maxHp: 100, emoji: '🗿' };
+            let enemy = { x: 85, y: 68, hp: currentEnemyType.hp, maxHp: currentEnemyType.hp, emoji: currentEnemyType.emoji };
+
+            let isPlayerTurn = true;
+            let isAiming = false;
+            let isMoving = false;
+            let aimAngle = 0;
+            let aimPower = 50;
+            let arrow = null;
+            let animationId = null;
+
+            // DOM elements (set after render)
+            let arrowEl, aimEl, powerEl, powerFillEl, arrowsContainer, trajectoryEl;
+
+            function renderArena() {
+                stepsRemaining = playerBuffs.maxSteps;
+
+                arena.innerHTML = `
+                    <div id="archer-container-${gameId}" style="position: relative; width: 100%; height: 100%; min-height: 350px; overflow: hidden; background: ${currentMap.bg};">
+                        <!-- Ground -->
+                        <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 18%; background: ${currentMap.ground}; border-top: 3px solid ${currentMap.groundBorder};"></div>
+
+                        <!-- Obstacles container -->
+                        <div id="archer-obstacles-${gameId}" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none;"></div>
+
+                        <!-- Bonuses container -->
+                        <div id="archer-bonuses-${gameId}" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none;"></div>
+
+                        <!-- Trajectory line (for precision buff) -->
+                        <svg id="archer-trajectory-${gameId}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 35; display: none;"></svg>
+
+                        <!-- Player GOLEM -->
+                        <div id="archer-player-${gameId}" style="position: absolute; left: ${player.x}%; top: ${player.y}%; font-size: 38px; filter: drop-shadow(0 0 10px var(--green)); transform: translate(-50%, -50%); transition: left 0.2s, top 0.2s; cursor: ${isPlayerTurn ? 'pointer' : 'default'};">🗿</div>
+
+                        <!-- Enemy -->
+                        <div id="archer-enemy-${gameId}" style="position: absolute; left: ${enemy.x}%; top: ${enemy.y}%; font-size: 40px; filter: drop-shadow(0 0 10px var(--red)); transform: translate(-50%, -50%) scaleX(-1);">${enemy.emoji}</div>
+
+                        <!-- Arrow container -->
+                        <div id="archer-arrows-${gameId}" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none;"></div>
+
+                        <!-- Active arrow -->
+                        <div id="archer-arrow-${gameId}" style="position: absolute; font-size: 24px; display: none; z-index: 50;">${currentWeapon.emoji}</div>
+
+                        <!-- Aim indicator -->
+                        <div id="archer-aim-${gameId}" style="position: absolute; left: ${player.x}%; top: ${player.y}%; display: none; transform: translate(-50%, -50%); z-index: 40;">
+                            <div style="width: 70px; height: 5px; background: linear-gradient(90deg, var(--gold), transparent); border-radius: 3px; transform-origin: left center;"></div>
+                        </div>
+
+                        <!-- Power meter -->
+                        <div id="archer-power-${gameId}" style="position: absolute; left: 3%; bottom: 25%; width: 12px; height: 100px; background: rgba(0,0,0,0.7); border-radius: 6px; display: none; border: 2px solid var(--gold);">
+                            <div id="archer-power-fill-${gameId}" style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(180deg, var(--red), var(--gold), var(--green)); border-radius: 4px; transition: height 0.05s;"></div>
+                        </div>
+
+                        <!-- HUD -->
+                        <div style="position: absolute; top: 8px; left: 8px; right: 8px; display: flex; justify-content: space-between; z-index: 100;">
+                            <div style="width: 110px;">
+                                <div style="font-size: 10px; color: var(--green); margin-bottom: 2px;">GOLEM ${playerShield > 0 ? '🛡️' + playerShield : ''} ${playerBuffs.damageBonus > 0 ? '💪' : ''}</div>
+                                <div style="background: rgba(0,0,0,0.6); border-radius: 5px; height: 14px; overflow: hidden; border: 2px solid var(--green);">
+                                    <div id="archer-hp-player-${gameId}" style="height: 100%; width: 100%; background: var(--green); transition: width 0.3s;"></div>
+                                </div>
+                                <div style="font-size: 10px; color: var(--text-muted);"><span id="archer-hp-text-player-${gameId}">${player.hp}</span>/${player.maxHp}</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 12px; color: var(--gold); font-weight: bold;">STAGE ${stage} - ${currentMap.name}</div>
+                                <div id="archer-round-${gameId}" style="font-size: 10px; color: var(--accent-bright);">Round ${round}</div>
+                                <div id="archer-turn-${gameId}" style="font-size: 12px; color: var(--green); margin-top: 2px; font-weight: bold;">YOUR TURN</div>
+                                <div id="archer-steps-${gameId}" style="font-size: 10px; color: var(--accent-bright); margin-top: 2px;">👟 ${stepsRemaining} pas restants</div>
+                            </div>
+                            <div style="width: 110px; text-align: right;">
+                                <div style="font-size: 10px; color: var(--red); margin-bottom: 2px;">${currentEnemyType.name} ${burnEffect ? '🔥' : ''}</div>
+                                <div style="background: rgba(0,0,0,0.6); border-radius: 5px; height: 14px; overflow: hidden; border: 2px solid var(--red);">
+                                    <div id="archer-hp-enemy-${gameId}" style="height: 100%; width: 100%; background: var(--red); transition: width 0.3s;"></div>
+                                </div>
+                                <div style="font-size: 10px; color: var(--text-muted);"><span id="archer-hp-text-enemy-${gameId}">${enemy.hp}</span>/${enemy.maxHp}</div>
+                            </div>
+                        </div>
+
+                        <!-- Movement buttons -->
+                        <div id="archer-move-${gameId}" style="position: absolute; bottom: 35px; left: 8px; display: flex; flex-direction: column; gap: 4px; z-index: 100;">
+                            <button id="archer-move-up-${gameId}" style="padding: 6px 12px; font-size: 14px; cursor: pointer; background: rgba(0,0,0,0.8); border: 2px solid var(--accent-bright); border-radius: 8px; color: white;">⬆️</button>
+                            <button id="archer-move-down-${gameId}" style="padding: 6px 12px; font-size: 14px; cursor: pointer; background: rgba(0,0,0,0.8); border: 2px solid var(--accent-bright); border-radius: 8px; color: white;">⬇️</button>
+                        </div>
+
+                        <!-- Weapon selector -->
+                        <div id="archer-weapons-${gameId}" style="position: absolute; bottom: 8px; right: 8px; display: flex; gap: 5px; z-index: 100;"></div>
+
+                        <!-- Instructions -->
+                        <div id="archer-hint-${gameId}" style="position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); font-size: 11px; color: var(--text-muted); background: rgba(0,0,0,0.8); padding: 5px 14px; border-radius: 12px; z-index: 100;">
+                            ⬆️⬇️ Déplacer • Glisser pour viser • Relâcher pour tirer
+                        </div>
+
+                        <!-- Score -->
+                        <div style="position: absolute; top: 55px; left: 50%; transform: translateX(-50%); font-size: 13px; color: var(--gold); z-index: 100;">
+                            Score: <span id="archer-score-${gameId}">${score}</span>
+                        </div>
+                    </div>
+                    <style>
+                        @keyframes archerFloatUp {
+                            0% { opacity: 1; transform: translateX(-50%) translateY(0); }
+                            100% { opacity: 0; transform: translateX(-50%) translateY(-40px); }
+                        }
+                        @keyframes archerPulse {
+                            0%, 100% { transform: scale(1); }
+                            50% { transform: scale(1.2); }
+                        }
+                        @keyframes archerExplosion {
+                            0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+                            100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
+                        }
+                        @keyframes archerShake {
+                            0%, 100% { transform: translate(-50%, -50%) scaleX(-1); }
+                            25% { transform: translate(-45%, -50%) scaleX(-1); }
+                            75% { transform: translate(-55%, -50%) scaleX(-1); }
+                        }
+                        @keyframes archerGolemMove {
+                            0%, 100% { transform: translate(-50%, -50%); }
+                            50% { transform: translate(-50%, -55%); }
+                        }
+                    </style>
+                `;
+
+                // Get DOM elements
+                arrowEl = document.getElementById(`archer-arrow-${gameId}`);
+                aimEl = document.getElementById(`archer-aim-${gameId}`);
+                powerEl = document.getElementById(`archer-power-${gameId}`);
+                powerFillEl = document.getElementById(`archer-power-fill-${gameId}`);
+                arrowsContainer = document.getElementById(`archer-arrows-${gameId}`);
+                trajectoryEl = document.getElementById(`archer-trajectory-${gameId}`);
+
+                // Movement button handlers
+                const moveUpBtn = document.getElementById(`archer-move-up-${gameId}`);
+                const moveDownBtn = document.getElementById(`archer-move-down-${gameId}`);
+
+                if (moveUpBtn) {
+                    moveUpBtn.onclick = () => movePlayer(-8);
+                }
+                if (moveDownBtn) {
+                    moveDownBtn.onclick = () => movePlayer(8);
+                }
+
+                spawnObstacles();
+                spawnBonuses();
+                renderWeapons();
+                updateHP();
+                updateStepsDisplay();
+            }
+
+            function movePlayer(deltaY) {
+                if (!isPlayerTurn || arrow || gameOver || stepsRemaining <= 0) return;
+
+                const newY = player.y + deltaY;
+                // Keep player on ground (between 50% and 75%)
+                if (newY >= 50 && newY <= 75) {
+                    player.y = newY;
+                    stepsRemaining--;
+
+                    const playerEl = document.getElementById(`archer-player-${gameId}`);
+                    if (playerEl) {
+                        playerEl.style.top = player.y + '%';
+                        playerEl.style.animation = 'archerGolemMove 0.2s';
+                        setTimeout(() => { if (playerEl) playerEl.style.animation = ''; }, 200);
+                    }
+
+                    // Update aim position
+                    if (aimEl) {
+                        aimEl.style.top = player.y + '%';
+                    }
+
+                    updateStepsDisplay();
+                }
+            }
+
+            function updateStepsDisplay() {
+                const stepsEl = document.getElementById(`archer-steps-${gameId}`);
+                const moveUpBtn = document.getElementById(`archer-move-up-${gameId}`);
+                const moveDownBtn = document.getElementById(`archer-move-down-${gameId}`);
+
+                if (stepsEl) {
+                    stepsEl.textContent = `👟 ${stepsRemaining} pas restants`;
+                    stepsEl.style.color = stepsRemaining > 0 ? 'var(--accent-bright)' : 'var(--text-muted)';
+                }
+
+                const canMove = stepsRemaining > 0 && isPlayerTurn && !arrow;
+                if (moveUpBtn) moveUpBtn.disabled = !canMove || player.y <= 50;
+                if (moveDownBtn) moveDownBtn.disabled = !canMove || player.y >= 75;
+            }
+
+            function showBuffSelection() {
+                showingBuffSelection = true;
+
+                // Create buff selection overlay
+                const overlay = document.createElement('div');
+                overlay.id = `archer-buff-overlay-${gameId}`;
+                overlay.style.cssText = `position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;`;
+
+                overlay.innerHTML = `
+                    <div style="font-size: 18px; color: var(--gold); font-weight: bold; margin-bottom: 10px;">🎉 STAGE ${stage} TERMINÉ!</div>
+                    <div style="font-size: 14px; color: var(--text-cream); margin-bottom: 20px;">Choisissez un buff permanent:</div>
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;"></div>
+                `;
+
+                const buffContainer = overlay.querySelector('div:last-child');
+
+                // Shuffle and pick 3 random buffs
+                const shuffled = [...BUFFS].sort(() => Math.random() - 0.5).slice(0, 3);
+
+                shuffled.forEach(buff => {
+                    const btn = document.createElement('button');
+                    btn.style.cssText = `
+                        padding: 15px 20px; border-radius: 12px; cursor: pointer;
+                        background: rgba(50, 50, 80, 0.9); border: 3px solid var(--gold);
+                        color: var(--text-cream); min-width: 120px; text-align: center;
+                        transition: all 0.2s;
+                    `;
+                    btn.innerHTML = `
+                        <div style="font-size: 28px; margin-bottom: 5px;">${buff.emoji}</div>
+                        <div style="font-size: 13px; font-weight: bold; color: var(--gold);">${buff.name}</div>
+                        <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">${buff.desc}</div>
+                    `;
+                    btn.onmouseover = () => { btn.style.background = 'rgba(100, 80, 40, 0.9)'; btn.style.transform = 'scale(1.05)'; };
+                    btn.onmouseout = () => { btn.style.background = 'rgba(50, 50, 80, 0.9)'; btn.style.transform = 'scale(1)'; };
+                    btn.onclick = () => {
+                        buff.effect();
+                        showBonus(`${buff.emoji} ${buff.name}!`);
+                        overlay.remove();
+                        showingBuffSelection = false;
+                        proceedToNextStage();
+                    };
+                    buffContainer.appendChild(btn);
+                });
+
+                const container = document.getElementById(`archer-container-${gameId}`);
+                if (container) container.appendChild(overlay);
+            }
+
+            function proceedToNextStage() {
+                stage++;
+                round = 1;
+                burnEffect = false;
+
+                // Cycle through maps
+                currentMapIndex = (stage - 1) % MAPS.length;
+                currentMap = MAPS[currentMapIndex];
+
+                // Progress through enemies (cycle with scaling)
+                const enemyIndex = (stage - 1) % ENEMIES.length;
+                currentEnemyType = { ...ENEMIES[enemyIndex] };
+
+                // Scale enemy stats by stage
+                const scaling = 1 + (stage - 1) * 0.18;
+                currentEnemyType.hp = Math.round(currentEnemyType.hp * scaling);
+                currentEnemyType.damage = Math.round(currentEnemyType.damage * scaling);
+
+                // Reset enemy
+                enemy = {
+                    x: 85,
+                    y: 68,
+                    hp: currentEnemyType.hp,
+                    maxHp: currentEnemyType.hp,
+                    emoji: currentEnemyType.emoji
+                };
+
+                // Reset precision buff (only lasts 1 stage)
+                playerBuffs.aimLine = false;
+
+                isPlayerTurn = true;
+
+                // Re-render
+                setTimeout(() => {
+                    renderArena();
+                    setupControls();
+                }, 300);
+            }
+
+            function renderWeapons() {
+                const container = document.getElementById(`archer-weapons-${gameId}`);
+                if (!container) return;
+                container.innerHTML = '';
+
+                // Show unlocked weapons (1 per stage beaten)
+                const unlockedCount = Math.min(stage, WEAPONS.length);
+                for (let i = 0; i < unlockedCount; i++) {
+                    const w = WEAPONS[i];
+                    const btn = document.createElement('button');
+                    btn.style.cssText = `
+                        padding: 5px 10px; border-radius: 8px; font-size: 16px; cursor: pointer;
+                        background: ${i === currentWeaponIndex ? 'var(--gold)' : 'rgba(0,0,0,0.7)'};
+                        border: 2px solid ${i === currentWeaponIndex ? 'var(--gold)' : 'var(--border)'};
+                        color: ${i === currentWeaponIndex ? '#000' : '#fff'};
+                        transition: all 0.2s;
+                    `;
+                    btn.textContent = w.emoji;
+                    btn.title = `${w.name} (${w.damage} DMG)`;
+                    btn.onclick = () => selectWeapon(i);
+                    container.appendChild(btn);
+                }
+            }
+
+            function selectWeapon(index) {
+                if (!isPlayerTurn || arrow) return;
+                currentWeaponIndex = index;
+                currentWeapon = WEAPONS[index];
+                renderWeapons();
+                if (arrowEl) arrowEl.textContent = currentWeapon.emoji;
+            }
+
+            function spawnObstacles() {
+                const container = document.getElementById(`archer-obstacles-${gameId}`);
+                if (!container) return;
+                container.innerHTML = '';
+                obstacles = [];
+
+                // Add obstacles based on stage (more obstacles as game progresses)
+                const obsCount = Math.min(1 + Math.floor(stage / 2), 4);
+                for (let i = 0; i < obsCount; i++) {
+                    const obs = {
+                        x: 30 + Math.random() * 35,
+                        y: 35 + Math.random() * 30,
+                        size: 20 + Math.random() * 15
+                    };
+                    obstacles.push(obs);
+                    const el = document.createElement('div');
+                    el.style.cssText = `position: absolute; left: ${obs.x}%; top: ${obs.y}%; font-size: ${obs.size}px; opacity: 0.8; transform: translate(-50%, -50%);`;
+                    el.textContent = currentMap.obstacles;
+                    container.appendChild(el);
+                }
+            }
+
+            function spawnBonuses() {
+                const container = document.getElementById(`archer-bonuses-${gameId}`);
+                if (!container) return;
+                container.innerHTML = '';
+                bonuses = [];
+
+                // 40% chance of bonus per round
+                if (Math.random() < 0.4) {
+                    const bonus = { ...BONUSES[Math.floor(Math.random() * BONUSES.length)] };
+                    bonus.x = 25 + Math.random() * 50;
+                    bonus.y = 25 + Math.random() * 35;
+                    bonuses.push(bonus);
+
+                    const el = document.createElement('div');
+                    el.id = `archer-bonus-0-${gameId}`;
+                    el.style.cssText = `position: absolute; left: ${bonus.x}%; top: ${bonus.y}%; font-size: 26px; animation: archerPulse 0.6s infinite; cursor: default; transform: translate(-50%, -50%);`;
+                    el.textContent = bonus.emoji;
+                    container.appendChild(el);
+                }
+            }
+
+            function updateHP() {
+                const playerHpEl = document.getElementById(`archer-hp-player-${gameId}`);
+                const enemyHpEl = document.getElementById(`archer-hp-enemy-${gameId}`);
+                const playerTextEl = document.getElementById(`archer-hp-text-player-${gameId}`);
+                const enemyTextEl = document.getElementById(`archer-hp-text-enemy-${gameId}`);
+
+                if (playerHpEl) playerHpEl.style.width = Math.max(0, player.hp / player.maxHp * 100) + '%';
+                if (enemyHpEl) enemyHpEl.style.width = Math.max(0, enemy.hp / enemy.maxHp * 100) + '%';
+                if (playerTextEl) playerTextEl.textContent = Math.max(0, Math.round(player.hp));
+                if (enemyTextEl) enemyTextEl.textContent = Math.max(0, Math.round(enemy.hp));
+            }
+
+            function showDamage(targetX, targetY, damage, isHeal = false) {
+                const container = document.getElementById(`archer-container-${gameId}`);
+                if (!container) return;
+
+                const dmgText = document.createElement('div');
+                dmgText.textContent = isHeal ? `+${Math.round(damage)}` : `-${Math.round(damage)}`;
+                dmgText.style.cssText = `position: absolute; left: ${targetX}%; top: ${targetY - 10}%; color: ${isHeal ? 'var(--green)' : 'var(--red)'}; font-size: 20px; font-weight: bold; animation: archerFloatUp 1s ease-out forwards; pointer-events: none; transform: translateX(-50%); z-index: 200;`;
+                container.appendChild(dmgText);
+                setTimeout(() => dmgText.remove(), 1000);
+            }
+
+            function showExplosion(x, y) {
+                const container = document.getElementById(`archer-container-${gameId}`);
+                if (!container) return;
+
+                const explosion = document.createElement('div');
+                explosion.textContent = '💥';
+                explosion.style.cssText = `position: absolute; left: ${x}%; top: ${y}%; font-size: 50px; animation: archerExplosion 0.5s ease-out forwards; pointer-events: none; z-index: 150;`;
+                container.appendChild(explosion);
+                setTimeout(() => explosion.remove(), 500);
+            }
+
+            function showBonus(text) {
+                const container = document.getElementById(`archer-container-${gameId}`);
+                if (!container) return;
+
+                const bonusText = document.createElement('div');
+                bonusText.textContent = text;
+                bonusText.style.cssText = `position: absolute; left: 50%; top: 40%; color: var(--gold); font-size: 18px; font-weight: bold; animation: archerFloatUp 1.5s ease-out forwards; pointer-events: none; transform: translateX(-50%); z-index: 200; text-shadow: 0 0 10px var(--gold);`;
+                container.appendChild(bonusText);
+                setTimeout(() => bonusText.remove(), 1500);
+            }
+
+            function applyBonus(bonus) {
+                switch(bonus.type) {
+                    case 'heal':
+                        player.hp = Math.min(player.maxHp, player.hp + bonus.value);
+                        showDamage(player.x, player.y, bonus.value, true);
+                        showBonus(bonus.desc);
+                        break;
+                    case 'power':
+                        powerMultiplier = bonus.value;
+                        showBonus(bonus.desc);
+                        break;
+                    case 'shield':
+                        playerShield += bonus.value;
+                        showBonus(bonus.desc);
+                        break;
+                    case 'explosive':
+                        // Unlock bomb if not already
+                        if (currentWeaponIndex === 0) {
+                            currentWeaponIndex = 1;
+                            currentWeapon = WEAPONS[1];
+                        }
+                        showBonus(bonus.desc);
+                        renderWeapons();
+                        break;
+                }
+                updateHP();
+            }
+
+            function checkBonusCollision(x, y) {
+                for (let i = bonuses.length - 1; i >= 0; i--) {
+                    const b = bonuses[i];
+                    const dist = Math.sqrt(Math.pow(x - b.x, 2) + Math.pow(y - b.y, 2));
+                    if (dist < 8) {
+                        // Collected!
+                        applyBonus(b);
+                        bonuses.splice(i, 1);
+                        const el = document.getElementById(`archer-bonus-${i}-${gameId}`);
+                        if (el) el.remove();
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            function checkObstacleCollision(x, y) {
+                for (const obs of obstacles) {
+                    const dist = Math.sqrt(Math.pow(x - obs.x, 2) + Math.pow(y - obs.y, 2));
+                    if (dist < obs.size / 5) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            function shootArrow(shooter, targetX, targetY, isPlayer) {
+                const startX = shooter.x;
+                const startY = shooter.y;
+
+                const dx = targetX - startX;
+                const dy = targetY - startY;
+                const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                const speed = isPlayer ? (currentWeapon.speed || ARROW_SPEED) : ARROW_SPEED * 0.85;
+                const power = Math.min(1, aimPower / 100) * speed;
+
+                arrow = {
+                    x: startX,
+                    y: startY,
+                    vx: (dx / dist) * power * (isPlayer ? 1.1 : 1),
+                    vy: (dy / dist) * power,
+                    isPlayer: isPlayer,
+                    rotation: Math.atan2(dy, dx) * 180 / Math.PI,
+                    weapon: isPlayer ? currentWeapon : WEAPONS[0]
+                };
+
+                if (arrowEl) {
+                    arrowEl.style.display = 'block';
+                    arrowEl.textContent = isPlayer ? arrow.weapon.emoji : '🗡️';
+                }
+
+                animateArrow();
+            }
+
+            function animateArrow() {
+                if (!arrow || gameOver) return;
+
+                // Apply physics
+                arrow.vy += GRAVITY;
+                arrow.x += arrow.vx;
+                arrow.y += arrow.vy;
+
+                // Update rotation
+                arrow.rotation = Math.atan2(arrow.vy, arrow.vx) * 180 / Math.PI;
+
+                // Update position
+                if (arrowEl) {
+                    arrowEl.style.left = arrow.x + '%';
+                    arrowEl.style.top = arrow.y + '%';
+                    arrowEl.style.transform = `translate(-50%, -50%) rotate(${arrow.rotation}deg)`;
+                }
+
+                // Check bonus collision (player only)
+                if (arrow.isPlayer) {
+                    checkBonusCollision(arrow.x, arrow.y);
+                }
+
+                // Check obstacle collision
+                if (checkObstacleCollision(arrow.x, arrow.y)) {
+                    if (arrow.weapon.explosive) {
+                        showExplosion(arrow.x, arrow.y);
+                    }
+                    if (arrowEl) arrowEl.style.display = 'none';
+                    arrow = null;
+
+                    setTimeout(() => {
+                        if (!gameOver) {
+                            isPlayerTurn = !isPlayerTurn;
+                            updateTurnIndicator();
+                            if (!isPlayerTurn) {
+                                setTimeout(enemyTurn, 800);
+                            }
+                        }
+                    }, 400);
+                    return;
+                }
+
+                // Check collision with target
+                const target = arrow.isPlayer ? enemy : player;
+                const hitDist = Math.sqrt(Math.pow(arrow.x - target.x, 2) + Math.pow(arrow.y - target.y, 2));
+                const hitRadius = arrow.weapon.explosive ? arrow.weapon.radius : 10;
+
+                if (hitDist < hitRadius) {
+                    // Hit!
+                    let baseDamage = arrow.isPlayer ? arrow.weapon.damage : currentEnemyType.damage;
+                    let damage = baseDamage * (0.8 + Math.random() * 0.4); // 80-120% variance
+
+                    // Apply permanent damage bonus from buffs + power multiplier for player
+                    if (arrow.isPlayer) {
+                        damage *= (1 + playerBuffs.damageBonus); // Permanent buff
+                        damage *= powerMultiplier; // Temporary power-up
+                        powerMultiplier = 1; // Reset after use
+                    }
+
+                    // Explosion effect
+                    if (arrow.weapon.explosive) {
+                        showExplosion(arrow.x, arrow.y);
+                    }
+
+                    // Shield absorption for player
+                    if (!arrow.isPlayer && playerShield > 0) {
+                        const absorbed = Math.min(playerShield, damage);
+                        playerShield -= absorbed;
+                        damage -= absorbed;
+                        showBonus(`Shield: -${Math.round(absorbed)}`);
+                    }
+
+                    target.hp -= damage;
+                    showDamage(target.x, target.y, damage);
+
+                    // Burn effect
+                    if (arrow.weapon.burn && arrow.isPlayer) {
+                        burnEffect = true;
+                        target.hp -= arrow.weapon.burnDmg;
+                        setTimeout(() => {
+                            if (!gameOver) showDamage(target.x, target.y, arrow.weapon.burnDmg);
+                        }, 500);
+                    }
+
+                    // Shake effect on enemy
+                    if (arrow.isPlayer) {
+                        const enemyEl = document.getElementById(`archer-enemy-${gameId}`);
+                        if (enemyEl) {
+                            enemyEl.style.animation = 'archerShake 0.2s';
+                            setTimeout(() => { if (enemyEl) enemyEl.style.animation = ''; }, 200);
+                        }
+                    }
+
+                    score += Math.round(damage) * (arrow.isPlayer ? 2 : 0);
+                    const scoreEl = document.getElementById(`archer-score-${gameId}`);
+                    if (scoreEl) scoreEl.textContent = score;
+                    updateScore(gameId, score);
+                    updateHP();
+
+                    if (arrowEl) arrowEl.style.display = 'none';
+                    arrow = null;
+
+                    // Check win/lose
+                    if (target.hp <= 0) {
+                        target.hp = 0;
+                        updateHP();
+
+                        if (arrow === null || arrow.isPlayer) {
+                            // Player won this stage
+                            score += 500 + stage * 100;
+                            const scoreEl2 = document.getElementById(`archer-score-${gameId}`);
+                            if (scoreEl2) scoreEl2.textContent = score;
+                            updateScore(gameId, score);
+
+                            // Advance to next stage
+                            setTimeout(() => nextStage(), 1500);
+                        } else {
+                            // Player died
+                            gameOver = true;
+                            setTimeout(() => endGame(gameId, score), 1000);
+                        }
+                        return;
+                    }
+
+                    // Next turn
+                    setTimeout(() => {
+                        if (!gameOver) {
+                            isPlayerTurn = !isPlayerTurn;
+                            updateTurnIndicator();
+                            if (!isPlayerTurn) {
+                                setTimeout(enemyTurn, 800);
+                            }
+                        }
+                    }, 600);
+                    return;
+                }
+
+                // Out of bounds or hit ground
+                if (arrow.y > 82 || arrow.x < -5 || arrow.x > 105) {
+                    if (arrow.weapon.explosive && arrow.y > 82) {
+                        showExplosion(arrow.x, 80);
+                    }
+                    if (arrowEl) arrowEl.style.display = 'none';
+                    arrow = null;
+
+                    setTimeout(() => {
+                        if (!gameOver) {
+                            isPlayerTurn = !isPlayerTurn;
+                            updateTurnIndicator();
+                            if (!isPlayerTurn) {
+                                setTimeout(enemyTurn, 800);
+                            }
+                        }
+                    }, 400);
+                    return;
+                }
+
+                animationId = requestAnimationFrame(animateArrow);
+            }
+
+            function nextStage() {
+                if (gameOver || showingBuffSelection) return;
+
+                // Show buff selection before proceeding
+                showBuffSelection();
+            }
+
+            function updateTurnIndicator() {
+                const turnEl = document.getElementById(`archer-turn-${gameId}`);
+                const roundEl = document.getElementById(`archer-round-${gameId}`);
+                const hintEl = document.getElementById(`archer-hint-${gameId}`);
+
+                if (isPlayerTurn) {
+                    // Reset steps for new turn
+                    stepsRemaining = playerBuffs.maxSteps;
+                    updateStepsDisplay();
+
+                    if (turnEl) {
+                        turnEl.textContent = 'YOUR TURN';
+                        turnEl.style.color = 'var(--green)';
+                    }
+                    if (hintEl) hintEl.textContent = '⬆️⬇️ Déplacer • Glisser pour viser • Relâcher pour tirer';
+
+                    // Apply burn damage to enemy at start of player turn
+                    if (burnEffect && enemy.hp > 0) {
+                        enemy.hp -= 5;
+                        showDamage(enemy.x, enemy.y, 5);
+                        updateHP();
+                        if (enemy.hp <= 0) {
+                            enemy.hp = 0;
+                            updateHP();
+                            setTimeout(() => nextStage(), 1000);
+                        }
+                    }
+                } else {
+                    if (turnEl) {
+                        turnEl.textContent = 'ENEMY TURN';
+                        turnEl.style.color = 'var(--red)';
+                    }
+                    if (hintEl) hintEl.textContent = `${currentEnemyType.name} vise...`;
+                    round++;
+                    if (roundEl) roundEl.textContent = `Round ${round}`;
+                    spawnBonuses(); // Spawn new bonus each round
+                }
+            }
+
+            function enemyTurn() {
+                if (gameOver) return;
+
+                // AI aiming - accuracy based on enemy type
+                const accuracy = currentEnemyType.accuracy;
+                const errorRange = (1 - accuracy) * 25;
+                const targetX = player.x + (Math.random() - 0.5) * errorRange;
+                const targetY = player.y + (Math.random() - 0.5) * errorRange * 0.7;
+                aimPower = 65 + Math.random() * 30;
+
+                shootArrow(enemy, targetX, targetY, false);
+            }
+
+            function setupControls() {
+                let clickStartX = 0;
+                let clickStartY = 0;
+
+                const mouseDown = (e) => {
+                    if (!isPlayerTurn || arrow || gameOver) return;
+                    isAiming = true;
+                    const rect = arena.getBoundingClientRect();
+                    clickStartX = ((e.clientX - rect.left) / rect.width) * 100;
+                    clickStartY = ((e.clientY - rect.top) / rect.height) * 100;
+                    if (aimEl) aimEl.style.display = 'block';
+                    if (powerEl) powerEl.style.display = 'block';
+                    aimPower = 25;
+                };
+
+                const mouseMove = (e) => {
+                    if (!isAiming || gameOver) return;
+                    const rect = arena.getBoundingClientRect();
+                    const mouseX = ((e.clientX - rect.left) / rect.width) * 100;
+                    const mouseY = ((e.clientY - rect.top) / rect.height) * 100;
+
+                    const dx = mouseX - player.x;
+                    const dy = mouseY - player.y;
+                    aimAngle = Math.atan2(dy, dx);
+
+                    // Power based on drag distance
+                    const distFromStart = Math.sqrt(Math.pow(mouseX - clickStartX, 2) + Math.pow(mouseY - clickStartY, 2));
+                    aimPower = Math.min(100, 25 + distFromStart * 2);
+
+                    // Update visuals
+                    const aimDegrees = aimAngle * 180 / Math.PI;
+                    if (aimEl) {
+                        const aimBar = aimEl.querySelector('div');
+                        if (aimBar) {
+                            aimBar.style.transform = `rotate(${aimDegrees}deg)`;
+                            aimBar.style.width = (50 + aimPower * 0.6) + 'px';
+                        }
+                    }
+                    if (powerFillEl) powerFillEl.style.height = aimPower + '%';
+
+                    // Draw trajectory line if precision buff is active
+                    if (playerBuffs.aimLine && trajectoryEl) {
+                        trajectoryEl.style.display = 'block';
+                        drawTrajectory(aimAngle, aimPower);
+                    }
+                };
+
+                const mouseUp = (e) => {
+                    if (!isAiming || gameOver) return;
+                    isAiming = false;
+
+                    if (aimEl) aimEl.style.display = 'none';
+                    if (powerEl) powerEl.style.display = 'none';
+                    if (trajectoryEl) trajectoryEl.style.display = 'none';
+
+                    if (aimPower > 25) {
+                        const targetX = player.x + Math.cos(aimAngle) * 100;
+                        const targetY = player.y + Math.sin(aimAngle) * 100;
+                        shootArrow(player, targetX, targetY, true);
+                    }
+                };
+
+                // Draw trajectory prediction for precision buff
+                function drawTrajectory(angle, power) {
+                    if (!trajectoryEl) return;
+                    trajectoryEl.innerHTML = '';
+
+                    const speed = (currentWeapon.speed || ARROW_SPEED) * Math.min(1, power / 100) * 1.1;
+                    let x = player.x;
+                    let y = player.y;
+                    let vx = Math.cos(angle) * speed;
+                    let vy = Math.sin(angle) * speed;
+
+                    let path = `M ${x} ${y}`;
+                    for (let i = 0; i < 25; i++) {
+                        vy += GRAVITY;
+                        x += vx;
+                        y += vy;
+                        if (y > 85 || x > 100 || x < 0) break;
+                        if (i % 2 === 0) {
+                            path += ` L ${x} ${y}`;
+                        } else {
+                            path += ` M ${x} ${y}`;
+                        }
+                    }
+
+                    const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    pathEl.setAttribute('d', path);
+                    pathEl.setAttribute('stroke', 'rgba(255, 215, 0, 0.6)');
+                    pathEl.setAttribute('stroke-width', '3');
+                    pathEl.setAttribute('fill', 'none');
+                    pathEl.setAttribute('stroke-dasharray', '8,8');
+                    trajectoryEl.appendChild(pathEl);
+                }
+
+                arena.addEventListener('mousedown', mouseDown);
+                arena.addEventListener('mousemove', mouseMove);
+                arena.addEventListener('mouseup', mouseUp);
+                arena.addEventListener('mouseleave', mouseUp);
+
+                // Touch support - store handlers for proper cleanup
+                const touchHandler = (handler) => (e) => {
+                    e.preventDefault();
+                    if (e.touches && e.touches[0]) {
+                        handler({ clientX: e.touches[0].clientX, clientY: e.touches[0].clientY });
+                    } else {
+                        handler(e);
+                    }
+                };
+
+                const touchStartHandler = touchHandler(mouseDown);
+                const touchMoveHandler = touchHandler(mouseMove);
+                const touchEndHandler = touchHandler(mouseUp);
+
+                arena.addEventListener('touchstart', touchStartHandler);
+                arena.addEventListener('touchmove', touchMoveHandler);
+                arena.addEventListener('touchend', touchEndHandler);
+
+                // Store cleanup - include all event listeners
+                activeGames[gameId] = {
+                    interval: null,
+                    cleanup: () => {
+                        if (animationId) cancelAnimationFrame(animationId);
+                        arena.removeEventListener('mousedown', mouseDown);
+                        arena.removeEventListener('mousemove', mouseMove);
+                        arena.removeEventListener('mouseup', mouseUp);
+                        arena.removeEventListener('mouseleave', mouseUp);
+                        arena.removeEventListener('touchstart', touchStartHandler);
+                        arena.removeEventListener('touchmove', touchMoveHandler);
+                        arena.removeEventListener('touchend', touchEndHandler);
+                    }
+                };
+            }
+
+            // Initialize game
+            renderArena();
+            setupControls();
+        }
+
+        // ============================================
+        // UTILITIES & SECURITY
+        // ============================================
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(str) {
+            if (typeof str !== 'string') return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // Validate game ID against whitelist (prevents injection via DOM manipulation)
+        // Include pumparena which is now a separate special game
+        const VALID_GAME_IDS = new Set([...GAMES.map(g => g.id), 'pumparena']);
+        function isValidGameId(gameId) {
+            return typeof gameId === 'string' && VALID_GAME_IDS.has(gameId);
+        }
+
+        // Sanitize numeric input
+        function sanitizeNumber(value, min, max, defaultVal) {
+            const num = Number(value);
+            if (!Number.isFinite(num)) return defaultVal;
+            return Math.max(min, Math.min(max, num));
+        }
+
+        // ============================================
+        // PUMP ARENA SPECIAL MODE HANDLING
+        // ============================================
+
+        let pumpArenaMode = 'classic'; // 'classic' or 'betting'
+        let pumpArenaBetAmount = 0;
+        let currentBetId = null; // Track current bet for settling
+
+        async function openPumpArena(mode) {
+            pumpArenaMode = mode;
+            const modal = document.getElementById('modal-pumparena');
+            const modeBadge = document.getElementById('pump-mode-badge');
+            const betInfo = document.getElementById('pump-bet-info');
+
+            if (mode === 'betting') {
+                if (!appState.wallet || !appState.isHolder) {
+                    alert('Please connect your wallet and hold $asdfasdfa tokens to use betting mode!');
+                    return;
+                }
+
+                // Check for pending bet first
+                try {
+                    const pendingBet = await ApiClient.getPendingBet();
+                    if (pendingBet.bet) {
+                        alert('You have a pending bet! Complete your current game first.');
+                        return;
+                    }
+                } catch (error) {
+                    console.warn('Could not check pending bet:', error);
+                }
+
+                // Get betting config from API
+                let bettingConfig = { minBet: 10000, maxBet: 1000000000, targetScore: 100000 };
+                try {
+                    const config = await ApiClient.getBettingConfig();
+                    bettingConfig = config;
+                } catch (error) {
+                    console.warn('Using default betting config');
+                }
+
+                modeBadge.textContent = 'BETTING';
+                modeBadge.style.background = 'var(--gold)';
+                modeBadge.style.color = '#000';
+                betInfo.style.display = 'block';
+
+                // Show bet amount selector with proper validation
+                const betInput = prompt(
+                    `Enter bet amount:\n` +
+                    `Min: ${bettingConfig.minBet.toLocaleString()} $asdfasdfa\n` +
+                    `Max: ${bettingConfig.maxBet.toLocaleString()} $asdfasdfa\n` +
+                    `Target Score to Win: ${bettingConfig.targetScore.toLocaleString()}`,
+                    '10000'
+                );
+
+                if (!betInput || betInput.trim() === '') {
+                    alert('Bet amount is required');
+                    return;
+                }
+
+                // Security: Validate numeric input
+                const parsedBet = parseInt(betInput.trim(), 10);
+                if (!Number.isFinite(parsedBet) || parsedBet < bettingConfig.minBet) {
+                    alert(`Minimum bet is ${bettingConfig.minBet.toLocaleString()} $asdfasdfa`);
+                    return;
+                }
+
+                // Validate against balance
+                if (parsedBet > appState.balance) {
+                    alert('Insufficient balance! You have ' + appState.balance.toLocaleString() + ' $asdfasdfa');
+                    return;
+                }
+
+                // Cap at maximum
+                pumpArenaBetAmount = Math.min(parsedBet, bettingConfig.maxBet);
+
+                // Confirm bet with user
+                const confirmMessage = CONFIG.DEV_MODE
+                    ? `[DEV MODE] Place Bet\n\n` +
+                      `Amount: ${pumpArenaBetAmount.toLocaleString()} $ASDF\n` +
+                      `Target Score: ${bettingConfig.targetScore.toLocaleString()}\n\n` +
+                      `Payment will be simulated for testing.`
+                    : `Place Bet\n\n` +
+                      `Amount: ${pumpArenaBetAmount.toLocaleString()} $ASDF\n` +
+                      `Target Score: ${bettingConfig.targetScore.toLocaleString()}\n` +
+                      `Potential Payout: ${Math.floor(pumpArenaBetAmount * (bettingConfig.winMultiplier || 1.8)).toLocaleString()} $ASDF\n\n` +
+                      `This will transfer tokens to escrow. Click OK to proceed.`;
+
+                const confirmed = confirm(confirmMessage);
+
+                if (!confirmed) {
+                    return;
+                }
+
+                // Transfer tokens to escrow (or simulate)
+                let transactionSignature;
+
+                if (CONFIG.DEV_MODE) {
+                    // Development mode - generate mock signature
+                    console.log('[DEV MODE] Simulating bet payment');
+                    transactionSignature = Array.from({ length: 88 }, () =>
+                        '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'[Math.floor(Math.random() * 58)]
+                    ).join('');
+                } else {
+                    // Production mode - Real token transfer
+                    if (typeof solanaWeb3 === 'undefined') {
+                        alert('Solana Web3 not loaded. Please refresh the page.');
+                        return;
+                    }
+
+                    try {
+                        transactionSignature = await SolanaPayment.transferTokens(pumpArenaBetAmount);
+                    } catch (paymentError) {
+                        if (paymentError.message.includes('User rejected') ||
+                            paymentError.message.includes('cancelled')) {
+                            alert('Transaction cancelled by user');
+                        } else {
+                            alert(`Token transfer failed: ${paymentError.message}`);
+                        }
+                        return;
+                    }
+                }
+
+                // Place bet via API with transaction signature
+                try {
+                    const betResult = await ApiClient.placeBet(pumpArenaBetAmount, transactionSignature);
+                    if (betResult.success) {
+                        currentBetId = betResult.bet.id;
+                        document.getElementById('pump-bet-amount').textContent = pumpArenaBetAmount.toLocaleString();
+
+                        // Show potential payout
+                        const potentialPayout = betResult.bet.potentialPayout;
+                        const payoutEl = document.getElementById('pump-potential-payout');
+                        if (payoutEl) {
+                            payoutEl.textContent = potentialPayout.toLocaleString();
+                        }
+                    }
+                } catch (error) {
+                    const errorMsg = CONFIG.DEV_MODE
+                        ? `Failed to place bet: ${error.message}`
+                        : `Failed to place bet: ${error.message}\n\nNote: Your tokens were transferred. Please contact support with transaction: ${transactionSignature.slice(0, 20)}...`;
+                    alert(errorMsg);
+                    return;
+                }
+            } else {
+                modeBadge.textContent = 'CLASSIC';
+                modeBadge.style.background = 'var(--green)';
+                modeBadge.style.color = '#fff';
+                betInfo.style.display = 'none';
+                pumpArenaBetAmount = 0;
+                currentBetId = null;
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Settle bet when Pump Arena ends
+        async function settlePumpArenaBet(finalScore) {
+            if (!currentBetId || pumpArenaMode !== 'betting') {
+                return null;
+            }
+
+            try {
+                const result = await ApiClient.settleBet(currentBetId, finalScore);
+                currentBetId = null;
+
+                return {
+                    won: result.result.won,
+                    payout: result.result.payout,
+                    payoutSent: result.result.payoutSent,
+                    payoutSignature: result.result.payoutSignature,
+                    payoutPending: result.result.payoutPending,
+                    message: result.message
+                };
+            } catch (error) {
+                console.error('Failed to settle bet:', error);
+                return null;
+            }
+        }
+
+        // Update pump bet button when wallet connects
+        function updatePumpBetButton() {
+            const btn = document.getElementById('pump-bet-btn');
+            if (btn) {
+                if (appState.wallet && appState.isHolder) {
+                    btn.disabled = false;
+                    btn.textContent = 'BET $ASDFASDFA';
+                } else if (appState.wallet) {
+                    btn.disabled = true;
+                    btn.textContent = 'NEED 1M+ TOKENS';
+                } else {
+                    btn.disabled = true;
+                    btn.textContent = 'CONNECT WALLET';
+                }
+            }
+        }
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+
+        /**
+         * Initialize Solana Web3 global
+         * Required since we removed inline script for CSP compliance
+         */
+        function initSolanaWeb3() {
+            if (typeof solanaWeb3 !== 'undefined') {
+                window.solanaWeb3 = solanaWeb3;
+            }
+        }
+
+        /**
+         * Attach all event listeners (migrated from onclick handlers for CSP compliance)
+         */
+        function initEventListeners() {
+            // Wallet button
+            const walletBtn = document.getElementById('wallet-btn');
+            if (walletBtn) {
+                walletBtn.addEventListener('click', handleWalletClick);
+            }
+
+            // Featured game buttons
+            const playFeaturedBtn = document.getElementById('play-featured-btn');
+            if (playFeaturedBtn) {
+                playFeaturedBtn.addEventListener('click', playFeaturedGame);
+            }
+
+            const viewAllGamesBtn = document.getElementById('view-all-games-btn');
+            if (viewAllGamesBtn) {
+                viewAllGamesBtn.addEventListener('click', scrollToGames);
+            }
+
+            // Pump Arena buttons
+            const pumpClassicBtn = document.getElementById('pump-classic-btn');
+            if (pumpClassicBtn) {
+                pumpClassicBtn.addEventListener('click', () => openPumpArena('classic'));
+            }
+
+            const pumpBetBtn = document.getElementById('pump-bet-btn');
+            if (pumpBetBtn) {
+                pumpBetBtn.addEventListener('click', () => openPumpArena('betting'));
+            }
+
+            // Pump Arena modal controls
+            const closePumpArenaBtn = document.getElementById('close-pumparena-btn');
+            if (closePumpArenaBtn) {
+                closePumpArenaBtn.addEventListener('click', () => closeGame('pumparena'));
+            }
+
+            const startPumpArenaBtn = document.getElementById('start-pumparena-btn');
+            if (startPumpArenaBtn) {
+                startPumpArenaBtn.addEventListener('click', () => startGame('pumparena'));
+            }
+
+            // Leaderboard tabs
+            document.querySelectorAll('.leaderboard-tab[data-board]').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const board = tab.dataset.board;
+                    const filter = tab.dataset.filter;
+                    switchLeaderboard(board, filter);
+
+                    // Update active state
+                    tab.closest('.leaderboard-tabs').querySelectorAll('.leaderboard-tab').forEach(t => {
+                        t.classList.remove('active');
+                    });
+                    tab.classList.add('active');
+                });
+            });
+
+            // Test mode button
+            const testModeBtn = document.getElementById('test-mode-btn');
+            if (testModeBtn) {
+                testModeBtn.addEventListener('click', toggleTestMode);
+            }
+
+            // Tickets buttons
+            const buyTicketsBtn = document.getElementById('buy-tickets-btn');
+            if (buyTicketsBtn) {
+                buyTicketsBtn.addEventListener('click', openBuyTickets);
+            }
+
+            const closeTicketModalBtn = document.getElementById('close-ticket-modal-btn');
+            if (closeTicketModalBtn) {
+                closeTicketModalBtn.addEventListener('click', closeTicketModal);
+            }
+
+            // Buy ticket buttons (using event delegation)
+            document.querySelectorAll('.buy-ticket-btn[data-ticket]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    buyTicket(btn.dataset.ticket);
+                });
+            });
+
+            // Pack modal
+            const closePackModalBtn = document.getElementById('close-pack-modal-btn');
+            if (closePackModalBtn) {
+                closePackModalBtn.addEventListener('click', closePackModal);
+            }
+        }
+
+        function init() {
+            // Initialize Solana Web3 first
+            initSolanaWeb3();
+
+            // Attach event listeners (migrated from onclick for CSP)
+            initEventListeners();
+
+            loadState();
+            updateFeaturedGame();
+            renderGamesGrid();
+            generateGameModals();
+            renderLeaderboards();
+            updateCountdown();
+            updateAirdropCountdown();
+
+            // Update countdowns every second
+            setInterval(updateCountdown, 1000);
+            setInterval(updateAirdropCountdown, 60000);
+
+            // Update Pump Arena betting button
+            updatePumpBetButton();
+
+            // Check if wallet was previously connected
+            if (appState.wallet) {
+                updateWalletUI(appState.wallet);
+                updateAccessUI();
+
+                // Try to reconnect to Phantom
+                const provider = getPhantomProvider();
+                if (provider) {
+                    provider.connect({ onlyIfTrusted: true })
+                        .then(response => {
+                            if (response.publicKey.toString() === appState.wallet) {
+                                checkTokenBalance(appState.wallet);
+                            }
+                        })
+                        .catch(() => {
+                            // Silent fail for auto-reconnect
+                        });
+                }
+            }
+
+            // Listen for Phantom events
+            const provider = getPhantomProvider();
+            if (provider) {
+                provider.on('disconnect', () => {
+                    appState.wallet = null;
+                    appState.isHolder = false;
+                    saveState();
+                    updateWalletUI(null);
+                    updateAccessUI();
+                    renderGamesGrid();
+                });
+
+                provider.on('accountChanged', (publicKey) => {
+                    if (publicKey) {
+                        appState.wallet = publicKey.toString();
+                        saveState();
+                        updateWalletUI(appState.wallet);
+                        checkTokenBalance(appState.wallet);
+                    } else {
+                        disconnectWallet();
+                    }
+                });
+            }
+        }
+
+        // Run on DOM ready
+        document.addEventListener('DOMContentLoaded', init);
+
+        // Close modal on Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                GAMES.forEach(game => {
+                    const modal = document.getElementById(`modal-${game.id}`);
+                    if (modal.classList.contains('active')) {
+                        closeGame(game.id);
+                    }
+                });
+            }
+        });

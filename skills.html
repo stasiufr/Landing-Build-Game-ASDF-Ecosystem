@@ -16,6 +16,18 @@
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="DENY">
     <meta name="referrer" content="strict-origin-when-cross-origin">
+    <!-- Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self';
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+        font-src 'self' https://fonts.gstatic.com;
+        img-src 'self' data: https:;
+        connect-src 'self';
+        frame-ancestors 'none';
+        base-uri 'self';
+        form-action 'self';
+    ">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -938,8 +950,9 @@
                     ⏱️ Ends in <strong id="countdown">5d 12h 34m</strong>
                 </div>
 
+                <!-- TODO: Replace placeholder URLs with actual form links before production -->
                 <div class="challenge-actions">
-                    <a href="https://forms.google.com/your-form" target="_blank" class="btn btn-gold">
+                    <a href="#" data-form="challenge-submit" target="_blank" rel="noopener noreferrer" class="btn btn-gold" onclick="alert('Form URL not configured yet'); return false;">
                         📤 Submit Entry
                     </a>
                     <a href="#entries" class="btn">
@@ -985,7 +998,7 @@
                             <span class="stars">⭐⭐⭐⭐⭐</span>
                             <span>4.9</span>
                         </div>
-                        <a href="https://twitter.com/example" target="_blank" class="btn btn-sm">View →</a>
+                        <a href="https://twitter.com/example" target="_blank" rel="noopener noreferrer" class="btn btn-sm">View →</a>
                     </div>
                 </div>
 
@@ -1004,7 +1017,7 @@
                             <span class="stars">⭐⭐⭐⭐⭐</span>
                             <span>4.7</span>
                         </div>
-                        <a href="https://twitter.com/example" target="_blank" class="btn btn-sm">View →</a>
+                        <a href="https://twitter.com/example" target="_blank" rel="noopener noreferrer" class="btn btn-sm">View →</a>
                     </div>
                 </div>
 
@@ -1023,7 +1036,7 @@
                             <span class="stars">⭐⭐⭐⭐⭐</span>
                             <span>4.8</span>
                         </div>
-                        <a href="https://twitter.com/example" target="_blank" class="btn btn-sm">View →</a>
+                        <a href="https://twitter.com/example" target="_blank" rel="noopener noreferrer" class="btn btn-sm">View →</a>
                     </div>
                 </div>
 
@@ -1042,7 +1055,7 @@
                             <span class="stars">⭐⭐⭐⭐</span>
                             <span>4.6</span>
                         </div>
-                        <a href="https://twitter.com/example" target="_blank" class="btn btn-sm">View →</a>
+                        <a href="https://twitter.com/example" target="_blank" rel="noopener noreferrer" class="btn btn-sm">View →</a>
                     </div>
                 </div>
 
@@ -1061,7 +1074,7 @@
                             <span class="stars">⭐⭐⭐⭐⭐</span>
                             <span>4.8</span>
                         </div>
-                        <a href="https://twitter.com/example" target="_blank" class="btn btn-sm">View →</a>
+                        <a href="https://twitter.com/example" target="_blank" rel="noopener noreferrer" class="btn btn-sm">View →</a>
                     </div>
                 </div>
 
@@ -1080,7 +1093,7 @@
                             <span class="stars">⭐⭐⭐⭐⭐</span>
                             <span>4.9</span>
                         </div>
-                        <a href="https://twitter.com/example" target="_blank" class="btn btn-sm">View →</a>
+                        <a href="https://twitter.com/example" target="_blank" rel="noopener noreferrer" class="btn btn-sm">View →</a>
                     </div>
                 </div>
             </div>
@@ -1196,11 +1209,12 @@
             <h2>🔥 Ready to Create?</h2>
             <p>Join the Skills Marketplace. Share what you know, learn what you need, earn $asdfasdfa.</p>
 
+            <!-- TODO: Replace placeholder URLs with actual links before production -->
             <div class="cta-buttons">
-                <a href="https://forms.google.com/creator-signup" target="_blank" class="btn btn-primary">
+                <a href="#" data-form="creator-signup" target="_blank" rel="noopener noreferrer" class="btn btn-primary" onclick="alert('Form URL not configured yet'); return false;">
                     Become a Creator
                 </a>
-                <a href="https://t.me/asdfasdfa" target="_blank" class="btn">
+                <a href="https://t.me/asdfasdfa" target="_blank" rel="noopener noreferrer" class="btn">
                     Join Community
                 </a>
             </div>
@@ -1223,8 +1237,8 @@
                     <a href="learn.html">Learn</a>
                     <a href="games.html">Games</a>
                     <a href="build.html">Build</a>
-                    <a href="https://github.com/zeyxx/asdf-burn-engine" target="_blank">GitHub</a>
-                    <a href="https://twitter.com/asdfasdfa" target="_blank">Twitter</a>
+                    <a href="https://github.com/zeyxx/asdf-burn-engine" target="_blank" rel="noopener noreferrer">GitHub</a>
+                    <a href="https://twitter.com/asdfasdfa" target="_blank" rel="noopener noreferrer">Twitter</a>
                 </div>
             </div>
 

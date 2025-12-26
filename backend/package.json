@@ -1,0 +1,45 @@
+{
+  "name": "asdf-games-api",
+  "version": "1.0.0",
+  "description": "Backend API for ASDF Games - Game of the Week Platform",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "dev:setup": "node scripts/start-dev.js",
+    "test": "node --test src/**/*.test.js",
+    "migrate": "node src/db/migrate.js",
+    "db:migrate": "node src/db/migrate.js",
+    "db:seed": "node src/db/seed.js",
+    "docker:db": "echo 'Set POSTGRES_PASSWORD env var first!' && docker run --name asdf-postgres -e POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-changeme} -e POSTGRES_DB=asdf_games -p 5432:5432 -d postgres:15",
+    "docker:db:stop": "docker stop asdf-postgres && docker rm asdf-postgres"
+  },
+  "keywords": [
+    "solana",
+    "gaming",
+    "api",
+    "asdf"
+  ],
+  "author": "ASDF Team",
+  "license": "MIT",
+  "dependencies": {
+    "@solana/web3.js": "^1.87.0",
+    "bs58": "^5.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^7.1.0",
+    "pg": "^8.11.3",
+    "tweetnacl": "^1.0.3",
+    "uuid": "^9.0.1",
+    "zod": "^4.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

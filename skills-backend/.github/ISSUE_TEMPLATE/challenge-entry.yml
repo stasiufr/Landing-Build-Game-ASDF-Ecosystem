@@ -1,0 +1,95 @@
+name: "Challenge Entry"
+description: "Submit your entry for the weekly ASDF Skills challenge"
+title: "[Entry] "
+labels: ["challenge-entry", "pending-review"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Submit Your Challenge Entry
+
+        Thanks for participating in the ASDF Skills weekly challenge!
+
+        **Important:** Make sure your submission follows the challenge theme and community guidelines.
+
+        Votes are counted via reactions - community members can vote for your entry using the thumbs up reaction.
+
+  - type: input
+    id: title
+    attributes:
+      label: Entry Title
+      description: A clear, descriptive title for your submission
+      placeholder: "My awesome beginner tutorial for..."
+    validations:
+      required: true
+
+  - type: input
+    id: submission_url
+    attributes:
+      label: Submission URL
+      description: Link to your content (YouTube, GitHub, Notion, etc.)
+      placeholder: "https://..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Brief description of your submission (what it covers, who it's for)
+      placeholder: |
+        This tutorial covers...
+
+        Perfect for beginners who want to learn...
+    validations:
+      required: true
+
+  - type: input
+    id: wallet
+    attributes:
+      label: Solana Wallet
+      description: Your wallet address for prize distribution (if you win)
+      placeholder: "ABC123..."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      description: Select the category that best fits your submission
+      options:
+        - Gaming
+        - Strategy
+        - Tech
+        - Cooking
+        - Building
+        - Fitness
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Confirmation
+      description: Please confirm the following
+      options:
+        - label: This is my original work
+          required: true
+        - label: I have read and agree to the community guidelines
+          required: true
+        - label: I understand votes are based on community reactions
+          required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+
+        **What happens next?**
+        1. Your entry will be reviewed by moderators
+        2. Once approved, the `pending-review` label will be removed
+        3. Community members can vote using the thumbs up reaction
+        4. Winners are announced at the end of the challenge period
+
+        Good luck!
