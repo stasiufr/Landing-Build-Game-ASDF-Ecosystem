@@ -16,14 +16,14 @@
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="DENY">
     <meta name="referrer" content="strict-origin-when-cross-origin">
-    <!-- Content Security Policy -->
+    <!-- Content Security Policy - Strict (no unsafe-inline for scripts) -->
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self';
-        script-src 'self' 'unsafe-inline';
+        script-src 'self' https://unpkg.com;
         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
         font-src 'self' https://fonts.gstatic.com;
         img-src 'self' data: https:;
-        connect-src 'self' https://api.mainnet-beta.solana.com https://api.devnet.solana.com https://*.solana.com https://api.asdf-games.com;
+        connect-src 'self' https://api.mainnet-beta.solana.com https://api.devnet.solana.com https://*.solana.com https://api.asdf-games.com http://localhost:3001;
         frame-ancestors 'none';
         base-uri 'self';
         form-action 'self';
@@ -73,6 +73,20 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html { scroll-behavior: smooth; }
+
+        /* Accessibility: Focus styles */
+        :focus-visible {
+            outline: 2px solid var(--accent-fire);
+            outline-offset: 2px;
+        }
+        button:focus-visible, a:focus-visible {
+            outline: 2px solid var(--accent-bright);
+            outline-offset: 2px;
+        }
+        .skip-link:focus {
+            left: 16px !important;
+        }
+
 
         body {
             font-family: var(--font-mono);
@@ -1109,10 +1123,20 @@
     </style>
 </head>
 <body>
+<<<<<<< HEAD
     <!-- ============================================
          NAVIGATION
          ============================================ -->
     <nav class="nav">
+=======
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="skip-link" style="position: absolute; left: -9999px; top: 0; z-index: 9999; padding: 8px 16px; background: var(--accent-fire); color: #fff; text-decoration: none;">Skip to main content</a>
+
+    <!-- ============================================
+         NAVIGATION
+         ============================================ -->
+    <nav class="nav" role="navigation" aria-label="Main navigation">
+>>>>>>> f63d5c4 (refactor: split games.js into modular architecture)
         <div class="nav-content">
             <a href="index.html" class="nav-logo">
                 <span class="nav-logo-text">ASDF</span>
@@ -1125,8 +1149,13 @@
             </ul>
 
             <div class="nav-right">
+<<<<<<< HEAD
                 <span id="user-badge" class="visitor-badge">VISITOR</span>
                 <button id="wallet-btn" class="wallet-btn" onclick="handleWalletClick()">
+=======
+                <span id="user-badge" class="visitor-badge" role="status" aria-live="polite">VISITOR</span>
+                <button id="wallet-btn" class="wallet-btn" aria-label="Connect Phantom wallet">
+>>>>>>> f63d5c4 (refactor: split games.js into modular architecture)
                     <span id="wallet-btn-text">Connect Wallet</span>
                 </button>
             </div>
@@ -1136,7 +1165,11 @@
     <!-- ============================================
          MAIN CONTENT
          ============================================ -->
+<<<<<<< HEAD
     <main class="main">
+=======
+    <main id="main-content" class="main" role="main">
+>>>>>>> f63d5c4 (refactor: split games.js into modular architecture)
         <!-- Hero Section -->
         <section class="hero">
             <div class="hero-content container">
@@ -1168,10 +1201,17 @@
                 </div>
 
                 <div class="hero-buttons">
+<<<<<<< HEAD
                     <button id="play-featured-btn" class="btn btn-primary" onclick="playFeaturedGame()">
                         PLAY NOW
                     </button>
                     <button class="btn" onclick="scrollToGames()">
+=======
+                    <button id="play-featured-btn" class="btn btn-primary">
+                        PLAY NOW
+                    </button>
+                    <button id="view-all-games-btn" class="btn">
+>>>>>>> f63d5c4 (refactor: split games.js into modular architecture)
                         View All Games
                     </button>
                 </div>
@@ -1227,7 +1267,11 @@
                         <h3 class="game-name">Classic Mode</h3>
                         <p class="game-type">Practice Trading</p>
                         <p style="font-size: 12px; color: var(--text-muted); margin: 10px 0;">Free to play. Practice your trading skills with virtual $1000. Compete for leaderboard spots!</p>
+<<<<<<< HEAD
                         <button class="btn game-play-btn" onclick="openPumpArena('classic')" style="background: var(--green); border-color: var(--green-light);">
+=======
+                        <button id="pump-classic-btn" class="btn game-play-btn" data-mode="classic" style="background: var(--green); border-color: var(--green-light);">
+>>>>>>> f63d5c4 (refactor: split games.js into modular architecture)
                             PLAY FREE
                         </button>
                     </div>
@@ -1238,7 +1282,11 @@
                         <h3 class="game-name">Betting Mode</h3>
                         <p class="game-type" style="color: var(--gold);">Bet $asdfasdfa</p>
                         <p style="font-size: 12px; color: var(--text-muted); margin: 10px 0;">Stake your $asdfasdfa tokens. Double your bet if you profit, lose it if you don't!</p>
+<<<<<<< HEAD
                         <button class="btn game-play-btn" onclick="openPumpArena('betting')" style="background: var(--gold); border-color: var(--gold); color: #000;" id="pump-bet-btn" disabled>
+=======
+                        <button id="pump-bet-btn" class="btn game-play-btn" data-mode="betting" style="background: var(--gold); border-color: var(--gold); color: #000;" disabled>
+>>>>>>> f63d5c4 (refactor: split games.js into modular architecture)
                             CONNECT WALLET
                         </button>
                         <p style="font-size: 10px; color: var(--text-muted); margin-top: 8px;">Min bet: 10,000 $asdfasdfa</p>
@@ -1256,7 +1304,11 @@
                         <span>Pump Arena</span>
                         <span id="pump-mode-badge" style="background: var(--green); padding: 4px 10px; border-radius: 12px; font-size: 12px; margin-left: 10px;">CLASSIC</span>
                     </h2>
+<<<<<<< HEAD
                     <button class="game-modal-close" onclick="closeGame('pumparena')">&times;</button>
+=======
+                    <button id="close-pumparena-btn" class="game-modal-close" data-game="pumparena">&times;</button>
+>>>>>>> f63d5c4 (refactor: split games.js into modular architecture)
                 </div>
                 <div class="game-modal-body">
                     <div class="game-arena" id="arena-pumparena">
@@ -1270,7 +1322,11 @@
                                     <p style="font-size: 11px; color: var(--text-muted);">Win: 2x your bet | Lose: Lose bet</p>
                                 </div>
                             </div>
+<<<<<<< HEAD
                             <button class="btn btn-primary" onclick="startGame('pumparena')">
+=======
+                            <button id="start-pumparena-btn" class="btn btn-primary" data-game="pumparena">
+>>>>>>> f63d5c4 (refactor: split games.js into modular architecture)
                                 START GAME
                             </button>
                         </div>
@@ -1305,8 +1361,13 @@
                         <div class="leaderboard-header">
                             <h3 class="leaderboard-title">This Week</h3>
                             <div class="leaderboard-tabs">
+<<<<<<< HEAD
                                 <button class="leaderboard-tab active" onclick="switchLeaderboard('weekly', 'featured')">Featured</button>
                                 <button class="leaderboard-tab" onclick="switchLeaderboard('weekly', 'all')">All Games</button>
+=======
+                                <button class="leaderboard-tab active" data-board="weekly" data-filter="featured">Featured</button>
+                                <button class="leaderboard-tab" data-board="weekly" data-filter="all">All Games</button>
+>>>>>>> f63d5c4 (refactor: split games.js into modular architecture)
                             </div>
                         </div>
                         <div class="leaderboard-list" id="weekly-leaderboard">
@@ -1413,7 +1474,11 @@
     </main>
 
     <!-- Test Mode Button (Fixed) -->
+<<<<<<< HEAD
     <button id="test-mode-btn" class="btn" onclick="toggleTestMode()" style="position: fixed; bottom: 20px; left: 20px; z-index: 50; font-size: 11px; padding: 8px 16px;">
+=======
+    <button id="test-mode-btn" class="btn" style="position: fixed; bottom: 20px; left: 20px; z-index: 50; font-size: 11px; padding: 8px 16px;">
+>>>>>>> f63d5c4 (refactor: split games.js into modular architecture)
         TEST MODE: OFF
     </button>
 
@@ -1422,7 +1487,11 @@
         <div class="tickets-count">
             <span id="ticket-count">No active ticket</span>
         </div>
+<<<<<<< HEAD
         <button class="btn buy-tickets-btn" onclick="openBuyTickets()">Buy Tickets</button>
+=======
+        <button id="buy-tickets-btn" class="btn buy-tickets-btn">Buy Tickets</button>
+>>>>>>> f63d5c4 (refactor: split games.js into modular architecture)
     </div>
 
     <!-- Game Modals Container -->
@@ -1438,7 +1507,11 @@
                     <span></span>
                     <span>Buy Competitive Tickets</span>
                 </h2>
+<<<<<<< HEAD
                 <button class="game-modal-close" onclick="closeTicketModal()">&times;</button>
+=======
+                <button id="close-ticket-modal-btn" class="game-modal-close">&times;</button>
+>>>>>>> f63d5c4 (refactor: split games.js into modular architecture)
             </div>
             <div class="game-modal-body" style="padding: 24px;">
                 <p style="text-align: center; color: var(--text-muted); margin-bottom: 24px;">
@@ -1452,7 +1525,11 @@
                         <h3 style="font-family: var(--font-display); font-size: 18px; margin-bottom: 8px;">Standard</h3>
                         <div style="font-size: 24px; font-weight: bold; color: var(--gold); margin-bottom: 8px;">$5.52</div>
                         <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">30 min real-time<br>Competitive mode</p>
+<<<<<<< HEAD
                         <button class="btn" onclick="buyTicket('standard')" style="width: 100%;">Buy</button>
+=======
+                        <button class="btn buy-ticket-btn" data-ticket="standard" style="width: 100%;">Buy</button>
+>>>>>>> f63d5c4 (refactor: split games.js into modular architecture)
                     </div>
 
                     <!-- Premium Ticket -->
@@ -1462,7 +1539,11 @@
                         <h3 style="font-family: var(--font-display); font-size: 18px; margin-bottom: 8px; color: var(--purple);">Premium</h3>
                         <div style="font-size: 24px; font-weight: bold; color: var(--purple); margin-bottom: 8px;">$55.20</div>
                         <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">300 min in-game<br>Pause anytime</p>
+<<<<<<< HEAD
                         <button class="btn" onclick="buyTicket('premium')" style="width: 100%; background: var(--purple); border-color: var(--purple);">Buy</button>
+=======
+                        <button class="btn buy-ticket-btn" data-ticket="premium" style="width: 100%; background: var(--purple); border-color: var(--purple);">Buy</button>
+>>>>>>> f63d5c4 (refactor: split games.js into modular architecture)
                     </div>
 
                     <!-- Donator Ticket -->
@@ -1473,7 +1554,11 @@
                         <div style="font-size: 24px; font-weight: bold; color: var(--gold); margin-bottom: 8px;">$552</div>
                         <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Full week access</p>
                         <p style="font-size: 11px; color: var(--gold); margin-bottom: 16px;">+ 1/3 chance bonus airdrop slot!</p>
+<<<<<<< HEAD
                         <button class="btn" onclick="buyTicket('donator')" style="width: 100%; background: var(--gold); border-color: var(--gold); color: #000;">Buy</button>
+=======
+                        <button class="btn buy-ticket-btn" data-ticket="donator" style="width: 100%; background: var(--gold); border-color: var(--gold); color: #000;">Buy</button>
+>>>>>>> f63d5c4 (refactor: split games.js into modular architecture)
                     </div>
                 </div>
 
@@ -1500,7 +1585,11 @@
                     <!-- Content will be inserted by JS -->
                 </div>
 
+<<<<<<< HEAD
                 <button class="btn" onclick="closePackModal()" style="margin-top: 30px;">Continue</button>
+=======
+                <button id="close-pack-modal-btn" class="btn" style="margin-top: 30px;">Continue</button>
+>>>>>>> f63d5c4 (refactor: split games.js into modular architecture)
             </div>
         </div>
     </div>
@@ -1508,6 +1597,7 @@
     <!-- ============================================
          JAVASCRIPT
          ============================================ -->
+<<<<<<< HEAD
     <script>
         // ============================================
         // CONFIGURATION
@@ -5902,5 +5992,21 @@
             }
         });
     </script>
+=======
+    <!-- Solana Web3.js for blockchain transactions (with Subresource Integrity) -->
+    <script src="https://unpkg.com/@solana/web3.js@1.87.6/lib/index.iife.min.js"
+            integrity="sha384-frt8Dafwfh70NeaBS1T4CRjuekut3aQwBwRGErSdQ+htbmU6sT8P2lc07CA03Kix"
+            crossorigin="anonymous"></script>
+
+    <!-- ASDF Games - Modular Architecture -->
+    <script src="js/games/utils.js"></script>
+    <script src="js/games/config.js"></script>
+    <script src="js/games/solana.js"></script>
+    <script src="js/games/api.js"></script>
+    <script src="js/games/state.js"></script>
+    <script src="js/games/ui.js"></script>
+    <script src="js/games/engine.js"></script>
+    <script src="js/games/main.js"></script>
+>>>>>>> f63d5c4 (refactor: split games.js into modular architecture)
 </body>
 </html>

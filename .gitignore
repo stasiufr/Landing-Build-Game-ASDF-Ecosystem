@@ -49,3 +49,18 @@ ehthumbs.db
 *.key
 *.p12
 secrets/
+keypair.json
+*-keypair.json
+wallet.json
+*.cert
+
+# Database
+*.sqlite
+*.db
+
+# Docker
+docker-compose.override.yml
+
+# Rust (vanity grinder)
+target/
+Cargo.lock
