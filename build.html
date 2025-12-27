@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Build on ASDF | Developer Resources</title>
+    <meta name="description" content="Build on the ASDF ecosystem. Open source tools, SDKs, and resources for developers. Contribute to the burn protocol.">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://asdfasdfa.com/build">
+    <meta property="og:title" content="Build on ASDF - Developer Resources">
+    <meta property="og:description" content="Open source tools, SDKs, and resources for developers building on the ASDF ecosystem.">
+    <meta property="og:image" content="https://asdfasdfa.com/og-build.png">
+    <meta property="og:site_name" content="ASDFASDFA">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://asdfasdfa.com/build">
+    <meta name="twitter:title" content="Build on ASDF - Developer Resources">
+    <meta name="twitter:description" content="Open source tools, SDKs, and resources for developers building on the ASDF ecosystem.">
+    <meta name="twitter:image" content="https://asdfasdfa.com/og-build.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+    <!-- Security -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <!-- Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self';
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+        font-src 'self' https://fonts.gstatic.com;
+        img-src 'self' data: https:;
+        connect-src 'self';
+        frame-ancestors 'none';
+        base-uri 'self';
+        form-action 'self';
+    ">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/build.css">
+</head>
+<body>
+    <!-- ============================================
+         NAVIGATION
+         ============================================ -->
+    <nav class="nav">
+        <div class="nav-content">
+            <a href="index.html" class="nav-logo">
+                <span class="nav-logo-icon">🔥</span>
+                <span class="nav-logo-text">ASDFASDFA</span>
+            </a>
+
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="learn.html">Learn</a></li>
+                <li><a href="games.html">Games</a></li>
+                <li><a href="skills.html">Skills</a></li>
+                <li><a href="build.html" class="active">Build</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- ============================================
+         HERO SECTION
+         ============================================ -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-badge">
+                <span>OPEN SOURCE</span>
+            </div>
+            <h1>Build on ASDF</h1>
+            <p class="hero-description">Join the builders shaping the future of the burn protocol. Open source tools, comprehensive APIs, and a community that ships.</p>
+            <div class="hero-buttons">
+                <a href="https://github.com/zeyxx/asdf-burn-engine" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+                    View on GitHub
+                </a>
+                <a href="#resources" class="btn">
+                    Explore Resources
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         STATS BAR
+         ============================================ -->
+    <section class="stats-bar">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value">100%</div>
+                    <div class="stat-label">Open Source</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">MIT</div>
+                    <div class="stat-label">License</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">Solana</div>
+                    <div class="stat-label">Blockchain</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">Active</div>
+                    <div class="stat-label">Development</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         WHY BUILD ON ASDF
+         ============================================ -->
+    <section class="why-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Why Build on ASDF?</h2>
+                <p>A protocol designed for builders, by builders</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔥</div>
+                    <h3>Deflationary by Design</h3>
+                    <p>Every transaction burns tokens. Build applications that contribute to scarcity while providing value.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Solana Speed</h3>
+                    <p>Sub-second finality, minimal fees. Build real-time applications without compromise.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔓</div>
+                    <h3>Fully Open Source</h3>
+                    <p>All contracts, tools, and infrastructure are open source. Fork, extend, contribute.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🤝</div>
+                    <h3>Community First</h3>
+                    <p>Active Discord, regular calls, and a culture of helping each other ship.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">💰</div>
+                    <h3>Builder Rewards</h3>
+                    <p>Treasury allocation for ecosystem grants. Get funded to build what matters.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📚</div>
+                    <h3>Great Documentation</h3>
+                    <p>Comprehensive guides, examples, and API references. Get started in minutes.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         DEVELOPER RESOURCES
+         ============================================ -->
+    <section class="resources-section" id="resources">
+        <div class="container">
+            <div class="section-header">
+                <h2>Developer Resources</h2>
+                <p>Everything you need to start building</p>
+            </div>
+
+            <div class="resources-grid">
+                <!-- Burn Engine -->
+                <div class="resource-card">
+                    <div class="resource-header">
+                        <span class="resource-icon">🔥</span>
+                        <span class="resource-badge">Core</span>
+                    </div>
+                    <h3>Burn Engine</h3>
+                    <p>The core smart contract powering the ASDF burn mechanism. Anchor-based, audited, and battle-tested.</p>
+                    <div class="resource-links">
+                        <a href="https://github.com/zeyxx/asdf-burn-engine" target="_blank" rel="noopener noreferrer" class="resource-link">
+                            GitHub
+                        </a>
+                        <a href="https://docs.asdfasdfa.com/burn-engine" target="_blank" rel="noopener noreferrer" class="resource-link">
+                            Docs
+                        </a>
+                    </div>
+                </div>
+
+                <!-- JavaScript SDK -->
+                <div class="resource-card">
+                    <div class="resource-header">
+                        <span class="resource-icon">📦</span>
+                        <span class="resource-badge">SDK</span>
+                    </div>
+                    <h3>JavaScript SDK</h3>
+                    <p>TypeScript SDK for interacting with ASDF contracts. Wallet integration, transaction building, and more.</p>
+                    <div class="resource-links">
+                        <a href="https://github.com/zeyxx/asdf-js-sdk" target="_blank" rel="noopener noreferrer" class="resource-link">
+                            GitHub
+                        </a>
+                        <a href="https://www.npmjs.com/package/@asdf/sdk" target="_blank" rel="noopener noreferrer" class="resource-link">
+                            npm
+                        </a>
+                    </div>
+                </div>
+
+                <!-- API -->
+                <div class="resource-card">
+                    <div class="resource-header">
+                        <span class="resource-icon">🔌</span>
+                        <span class="resource-badge">API</span>
+                    </div>
+                    <h3>REST API</h3>
+                    <p>Query burn statistics, leaderboards, and token data. Rate-limited free tier available.</p>
+                    <div class="resource-links">
+                        <a href="https://api.asdfasdfa.com/docs" target="_blank" rel="noopener noreferrer" class="resource-link">
+                            API Docs
+                        </a>
+                        <a href="https://github.com/zeyxx/asdf-api" target="_blank" rel="noopener noreferrer" class="resource-link">
+                            GitHub
+                        </a>
+                    </div>
+                </div>
+
+                <!-- UI Components -->
+                <div class="resource-card">
+                    <div class="resource-header">
+                        <span class="resource-icon">🎨</span>
+                        <span class="resource-badge">UI</span>
+                    </div>
+                    <h3>UI Components</h3>
+                    <p>React components for common ASDF integrations. Wallet connect, burn displays, leaderboards.</p>
+                    <div class="resource-links">
+                        <a href="https://github.com/zeyxx/asdf-ui" target="_blank" rel="noopener noreferrer" class="resource-link">
+                            GitHub
+                        </a>
+                        <a href="https://storybook.asdfasdfa.com" target="_blank" rel="noopener noreferrer" class="resource-link">
+                            Storybook
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Indexer -->
+                <div class="resource-card">
+                    <div class="resource-header">
+                        <span class="resource-icon">🗄️</span>
+                        <span class="resource-badge">Infra</span>
+                    </div>
+                    <h3>Indexer</h3>
+                    <p>Real-time indexer for ASDF transactions. Powers the API and analytics dashboards.</p>
+                    <div class="resource-links">
+                        <a href="https://github.com/zeyxx/asdf-indexer" target="_blank" rel="noopener noreferrer" class="resource-link">
+                            GitHub
+                        </a>
+                        <a href="https://docs.asdfasdfa.com/indexer" target="_blank" rel="noopener noreferrer" class="resource-link">
+                            Docs
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Examples -->
+                <div class="resource-card">
+                    <div class="resource-header">
+                        <span class="resource-icon">💡</span>
+                        <span class="resource-badge">Examples</span>
+                    </div>
+                    <h3>Example Projects</h3>
+                    <p>Full example applications showing ASDF integration patterns. Clone and customize.</p>
+                    <div class="resource-links">
+                        <a href="https://github.com/zeyxx/asdf-examples" target="_blank" rel="noopener noreferrer" class="resource-link">
+                            GitHub
+                        </a>
+                        <a href="https://examples.asdfasdfa.com" target="_blank" rel="noopener noreferrer" class="resource-link">
+                            Live Demos
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         CONTRIBUTE SECTION
+         ============================================ -->
+    <section class="contribute-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>How to Contribute</h2>
+                <p>Join the builders making ASDF better</p>
+            </div>
+
+            <div class="contribute-grid">
+                <div class="contribute-step">
+                    <div class="step-number">1</div>
+                    <h3>Find an Issue</h3>
+                    <p>Browse open issues labeled "good first issue" or "help wanted" on our repos.</p>
+                </div>
+
+                <div class="contribute-step">
+                    <div class="step-number">2</div>
+                    <h3>Fork & Build</h3>
+                    <p>Fork the repo, create a branch, and implement your changes following our guidelines.</p>
+                </div>
+
+                <div class="contribute-step">
+                    <div class="step-number">3</div>
+                    <h3>Submit PR</h3>
+                    <p>Open a pull request with a clear description. Our team reviews within 48 hours.</p>
+                </div>
+
+                <div class="contribute-step">
+                    <div class="step-number">4</div>
+                    <h3>Get Recognized</h3>
+                    <p>Contributors get added to our Hall of Fame and may be eligible for grants.</p>
+                </div>
+            </div>
+
+            <div class="contribute-cta">
+                <a href="https://github.com/zeyxx/asdf-burn-engine/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer" class="btn">
+                    Read Contributing Guide
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         GRANTS SECTION
+         ============================================ -->
+    <section class="grants-section">
+        <div class="container">
+            <div class="grants-card">
+                <div class="grants-icon">💰</div>
+                <h2>Builder Grants</h2>
+                <p>We allocate treasury funds to support developers building on ASDF. From small bounties to major grants for ambitious projects.</p>
+
+                <div class="grants-tiers">
+                    <div class="grant-tier">
+                        <div class="tier-amount">$500 - $2K</div>
+                        <div class="tier-label">Bug Bounties</div>
+                    </div>
+                    <div class="grant-tier">
+                        <div class="tier-amount">$2K - $10K</div>
+                        <div class="tier-label">Feature Grants</div>
+                    </div>
+                    <div class="grant-tier">
+                        <div class="tier-amount">$10K+</div>
+                        <div class="tier-label">Major Projects</div>
+                    </div>
+                </div>
+
+                <a href="https://forms.asdfasdfa.com/grants" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+                    Apply for Grant
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         CTA SECTION
+         ============================================ -->
+    <section class="cta-section">
+        <div class="container">
+            <h2>Ready to Build?</h2>
+            <p>Join our Discord to connect with other builders, get help, and stay updated on the latest developments.</p>
+            <div class="cta-buttons">
+                <a href="https://discord.gg/asdfasdfa" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+                    Join Discord
+                </a>
+                <a href="https://github.com/zeyxx" target="_blank" rel="noopener noreferrer" class="btn">
+                    Explore GitHub
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         FOOTER
+         ============================================ -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <span>🔥</span>
+                    <span>ASDF Build</span>
+                </div>
+
+                <div class="footer-links">
+                    <a href="index.html">Home</a>
+                    <a href="learn.html">Learn</a>
+                    <a href="games.html">Games</a>
+                    <a href="skills.html">Skills</a>
+                    <a href="https://github.com/zeyxx/asdf-burn-engine" target="_blank" rel="noopener noreferrer">GitHub</a>
+                    <a href="https://twitter.com/asdfasdfa" target="_blank" rel="noopener noreferrer">Twitter</a>
+                </div>
+            </div>
+
+            <div class="footer-note">
+                Open source. MIT Licensed. Ship fast. THIS IS FINE. 🔥
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
