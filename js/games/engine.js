@@ -192,12 +192,278 @@ async function endGame(gameId, finalScore) {
 
 function startBurnRunner(gameId) {
     const arena = document.getElementById(`arena-${gameId}`);
-    arena.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--gold);">Loading Burn Runner...</div>';
 
-    // Game will be implemented in games-impl.js
-    if (typeof _startBurnRunner === 'function') {
-        _startBurnRunner(gameId);
+    // Game state
+    const state = {
+        score: 0,
+        distance: 0,
+        tokens: 0,
+        speed: 5,
+        gravity: 0.6,
+        jumpForce: -12,
+        isJumping: false,
+        gameOver: false,
+        player: { x: 80, y: 0, vy: 0, width: 40, height: 50 },
+        ground: 0,
+        obstacles: [],
+        collectibles: [],
+        particles: [],
+        lastObstacle: 0,
+        lastCollectible: 0
+    };
+
+    // Render game UI
+    arena.innerHTML = `
+        <div style="width:100%;height:100%;position:relative;overflow:hidden;background:linear-gradient(180deg,#1a0a2e 0%,#2d1b4e 50%,#1a1a2e 100%);">
+            <canvas id="br-canvas" style="width:100%;height:100%;"></canvas>
+            <div style="position:absolute;top:15px;left:15px;display:flex;gap:20px;">
+                <div style="background:rgba(0,0,0,0.5);padding:8px 16px;border-radius:8px;">
+                    <span style="color:var(--text-muted);font-size:12px;">DISTANCE</span>
+                    <div style="color:var(--gold);font-size:20px;font-weight:bold;" id="br-distance">0m</div>
+                </div>
+                <div style="background:rgba(0,0,0,0.5);padding:8px 16px;border-radius:8px;">
+                    <span style="color:var(--text-muted);font-size:12px;">TOKENS BURNED</span>
+                    <div style="color:var(--accent-fire);font-size:20px;font-weight:bold;" id="br-tokens">0 🔥</div>
+                </div>
+            </div>
+            <div style="position:absolute;bottom:15px;left:50%;transform:translateX(-50%);color:var(--text-muted);font-size:12px;">
+                SPACE or CLICK to jump
+            </div>
+        </div>
+    `;
+
+    const canvas = document.getElementById('br-canvas');
+    const ctx = canvas.getContext('2d');
+    const distanceEl = document.getElementById('br-distance');
+    const tokensEl = document.getElementById('br-tokens');
+
+    function resizeCanvas() {
+        const rect = canvas.parentElement.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+        state.ground = canvas.height - 60;
+        state.player.y = state.ground - state.player.height;
     }
+    resizeCanvas();
+
+    const obstacleTypes = [
+        { icon: '💀', name: 'SCAM', width: 35, height: 45 },
+        { icon: '🔴', name: 'RUG', width: 40, height: 35 },
+        { icon: '📉', name: 'FUD', width: 35, height: 40 },
+        { icon: '🦠', name: 'VIRUS', width: 30, height: 35 }
+    ];
+
+    function jump() {
+        if (state.gameOver) return;
+        if (state.player.y >= state.ground - state.player.height - 5) {
+            state.player.vy = state.jumpForce;
+            state.isJumping = true;
+        }
+    }
+
+    function spawnObstacle() {
+        const type = obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)];
+        state.obstacles.push({
+            x: canvas.width + 50,
+            y: state.ground - type.height,
+            ...type
+        });
+    }
+
+    function spawnCollectible() {
+        const height = 30 + Math.random() * 80;
+        state.collectibles.push({
+            x: canvas.width + 50,
+            y: state.ground - height - 25,
+            width: 25,
+            height: 25,
+            icon: '🪙'
+        });
+    }
+
+    function addBurnParticles(x, y) {
+        for (let i = 0; i < 8; i++) {
+            state.particles.push({
+                x, y,
+                vx: (Math.random() - 0.5) * 6,
+                vy: -Math.random() * 4 - 2,
+                life: 30,
+                icon: ['🔥', '✨', '💫'][Math.floor(Math.random() * 3)]
+            });
+        }
+    }
+
+    function checkCollision(a, b) {
+        return a.x < b.x + b.width &&
+               a.x + a.width > b.x &&
+               a.y < b.y + b.height &&
+               a.y + a.height > b.y;
+    }
+
+    function update() {
+        if (state.gameOver) return;
+
+        // Update distance and speed
+        state.distance += state.speed * 0.1;
+        state.speed = Math.min(15, 5 + state.distance * 0.002);
+
+        // Player physics
+        state.player.vy += state.gravity;
+        state.player.y += state.player.vy;
+
+        if (state.player.y >= state.ground - state.player.height) {
+            state.player.y = state.ground - state.player.height;
+            state.player.vy = 0;
+            state.isJumping = false;
+        }
+
+        // Spawn obstacles
+        if (state.distance - state.lastObstacle > 80 + Math.random() * 60) {
+            spawnObstacle();
+            state.lastObstacle = state.distance;
+        }
+
+        // Spawn collectibles
+        if (state.distance - state.lastCollectible > 40 + Math.random() * 30) {
+            spawnCollectible();
+            state.lastCollectible = state.distance;
+        }
+
+        // Update obstacles
+        state.obstacles = state.obstacles.filter(obs => {
+            obs.x -= state.speed;
+
+            if (checkCollision(state.player, obs)) {
+                state.gameOver = true;
+                const finalScore = Math.floor(state.distance) + state.tokens * 10;
+                endGame(gameId, finalScore);
+            }
+
+            return obs.x > -50;
+        });
+
+        // Update collectibles
+        state.collectibles = state.collectibles.filter(col => {
+            col.x -= state.speed;
+
+            if (checkCollision(state.player, col)) {
+                state.tokens++;
+                addBurnParticles(col.x, col.y);
+                return false;
+            }
+
+            return col.x > -50;
+        });
+
+        // Update particles
+        state.particles = state.particles.filter(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.1;
+            p.life--;
+            return p.life > 0;
+        });
+
+        // Update UI
+        distanceEl.textContent = Math.floor(state.distance) + 'm';
+        tokensEl.textContent = state.tokens + ' 🔥';
+        state.score = Math.floor(state.distance) + state.tokens * 10;
+        updateScore(gameId, state.score);
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw ground
+        ctx.fillStyle = '#3d2b5a';
+        ctx.fillRect(0, state.ground, canvas.width, 60);
+
+        // Draw blockchain pattern on ground
+        ctx.strokeStyle = '#5a4080';
+        ctx.lineWidth = 1;
+        const offset = (state.distance * 5) % 40;
+        for (let x = -offset; x < canvas.width; x += 40) {
+            ctx.strokeRect(x, state.ground + 5, 35, 15);
+        }
+
+        // Draw player
+        ctx.font = '40px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const playerCenterX = state.player.x + state.player.width / 2;
+        const playerCenterY = state.player.y + state.player.height / 2;
+
+        // Player shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.beginPath();
+        ctx.ellipse(playerCenterX, state.ground + 5, 20, 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Running animation
+        const bounce = state.isJumping ? 0 : Math.sin(state.distance * 0.3) * 3;
+        ctx.fillText('🏃', playerCenterX, playerCenterY + bounce);
+
+        // Trail effect when running fast
+        if (state.speed > 8) {
+            ctx.globalAlpha = 0.3;
+            ctx.fillText('🏃', playerCenterX - 20, playerCenterY + bounce);
+            ctx.globalAlpha = 0.15;
+            ctx.fillText('🏃', playerCenterX - 40, playerCenterY + bounce);
+            ctx.globalAlpha = 1;
+        }
+
+        // Draw obstacles
+        ctx.font = '35px Arial';
+        state.obstacles.forEach(obs => {
+            ctx.fillText(obs.icon, obs.x + obs.width / 2, obs.y + obs.height / 2);
+        });
+
+        // Draw collectibles
+        ctx.font = '25px Arial';
+        state.collectibles.forEach(col => {
+            // Floating animation
+            const float = Math.sin(Date.now() * 0.005 + col.x) * 5;
+            ctx.fillText(col.icon, col.x + col.width / 2, col.y + col.height / 2 + float);
+        });
+
+        // Draw particles
+        ctx.font = '16px Arial';
+        state.particles.forEach(p => {
+            ctx.globalAlpha = p.life / 30;
+            ctx.fillText(p.icon, p.x, p.y);
+        });
+        ctx.globalAlpha = 1;
+    }
+
+    function gameLoop() {
+        if (state.gameOver) return;
+        update();
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    // Event listeners
+    function handleInput(e) {
+        if (e.type === 'keydown' && e.code !== 'Space') return;
+        e.preventDefault();
+        jump();
+    }
+
+    document.addEventListener('keydown', handleInput);
+    canvas.addEventListener('click', handleInput);
+    canvas.addEventListener('touchstart', handleInput);
+
+    // Start game loop
+    gameLoop();
+
+    activeGames[gameId] = {
+        cleanup: () => {
+            state.gameOver = true;
+            document.removeEventListener('keydown', handleInput);
+            canvas.removeEventListener('click', handleInput);
+            canvas.removeEventListener('touchstart', handleInput);
+        }
+    };
 }
 
 function startScamBlaster(gameId) {
