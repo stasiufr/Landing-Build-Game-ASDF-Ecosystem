@@ -60,10 +60,19 @@
             min-height: 100vh;
         }
 
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg-charred); }
-        ::-webkit-scrollbar-thumb { background: var(--border-rust); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--accent-fire); }
+        /* Scrollbar styling - Firefox */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-rust) var(--bg-charred);
+        }
+
+        /* Scrollbar styling - Webkit (Chrome, Safari, Edge) */
+        @supports selector(::-webkit-scrollbar) {
+            ::-webkit-scrollbar { width: 8px; }
+            ::-webkit-scrollbar-track { background: var(--bg-charred); }
+            ::-webkit-scrollbar-thumb { background: var(--border-rust); border-radius: 4px; }
+            ::-webkit-scrollbar-thumb:hover { background: var(--accent-fire); }
+        }
 
         .container {
             max-width: var(--container-max);

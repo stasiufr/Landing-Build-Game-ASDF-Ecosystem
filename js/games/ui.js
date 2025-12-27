@@ -154,19 +154,22 @@ async function renderLeaderboards() {
 
 function renderWeeklyLeaderboard(data) {
     return data.map(entry => {
-        const rankClass = entry.rank === 1 ? 'gold' : entry.rank === 2 ? 'silver' : entry.rank === 3 ? 'bronze' : '';
-        const isYou = appState.wallet && entry.player.includes(appState.wallet.slice(0, 4));
-        const slots = AIRDROP_SLOTS[entry.rank] || 0;
+        // Validate numeric values from API (defense-in-depth)
+        const rank = Number.isFinite(entry.rank) ? Math.floor(entry.rank) : 0;
+        const score = Number.isFinite(entry.score) ? Math.floor(entry.score) : 0;
+        const rankClass = rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : '';
+        const isYou = appState.wallet && typeof entry.player === 'string' && entry.player.includes(appState.wallet.slice(0, 4));
+        const slots = AIRDROP_SLOTS[rank] || 0;
         const slotBadge = slots > 0 ? `<span style="color: var(--gold); font-size: 11px; margin-left: 8px;">+${slots} slots</span>` : '';
 
         return `
             <div class="leaderboard-item ${isYou ? 'you' : ''}">
-                <div class="leaderboard-rank ${rankClass}">${entry.rank}</div>
+                <div class="leaderboard-rank ${rankClass}">${rank}</div>
                 <div class="leaderboard-player" style="flex: 1;">
-                    ${isYou ? ' You' : escapeHtml(entry.player)}
+                    ${isYou ? ' You' : escapeHtml(String(entry.player || ''))}
                     ${slotBadge}
                 </div>
-                <div class="leaderboard-score">${entry.score.toLocaleString()}</div>
+                <div class="leaderboard-score">${score.toLocaleString()}</div>
             </div>
         `;
     }).join('');
@@ -174,14 +177,17 @@ function renderWeeklyLeaderboard(data) {
 
 function renderCycleLeaderboard(data) {
     return data.map(entry => {
-        const rankClass = entry.rank === 1 ? 'gold' : entry.rank === 2 ? 'silver' : entry.rank === 3 ? 'bronze' : '';
-        const isYou = appState.wallet && entry.player.includes(appState.wallet.slice(0, 4));
+        // Validate numeric values from API (defense-in-depth)
+        const rank = Number.isFinite(entry.rank) ? Math.floor(entry.rank) : 0;
+        const slots = Number.isFinite(entry.slots) ? Math.floor(entry.slots) : 0;
+        const rankClass = rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : '';
+        const isYou = appState.wallet && typeof entry.player === 'string' && entry.player.includes(appState.wallet.slice(0, 4));
 
         return `
             <div class="leaderboard-item ${isYou ? 'you' : ''}">
-                <div class="leaderboard-rank ${rankClass}">${entry.rank}</div>
-                <div class="leaderboard-player">${isYou ? ' You' : escapeHtml(entry.player)}</div>
-                <div class="leaderboard-score" style="color: var(--gold);">${entry.slots} slots</div>
+                <div class="leaderboard-rank ${rankClass}">${rank}</div>
+                <div class="leaderboard-player">${isYou ? ' You' : escapeHtml(String(entry.player || ''))}</div>
+                <div class="leaderboard-score" style="color: var(--gold);">${slots} slots</div>
             </div>
         `;
     }).join('');

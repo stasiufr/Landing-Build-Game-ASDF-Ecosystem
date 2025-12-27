@@ -1297,11 +1297,346 @@ function startCryptoHeist(gameId) {
 
 function startPumpArena(gameId) {
     const arena = document.getElementById(`arena-${gameId}`);
-    arena.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--gold);">Loading Pump Arena...</div>';
+    const isBettingMode = pumpArenaMode === 'betting';
 
-    if (typeof _startPumpArena === 'function') {
-        _startPumpArena(gameId);
+    const state = {
+        score: 0,
+        round: 1,
+        maxRounds: 10,
+        gameOver: false,
+        phase: 'betting', // betting, running, result
+        prediction: null, // 'pump' or 'dump'
+        betAmount: isBettingMode ? 1000 : 0,
+        balance: isBettingMode ? 10000 : 0,
+        chartData: [100],
+        currentPrice: 100,
+        targetPrice: 100,
+        priceDirection: 0,
+        timer: 0,
+        roundDuration: 180, // 3 seconds at 60fps
+        tokens: [
+            { name: '$DOGE', icon: '🐕' },
+            { name: '$PEPE', icon: '🐸' },
+            { name: '$SHIB', icon: '🦊' },
+            { name: '$FLOKI', icon: '⚡' },
+            { name: '$BONK', icon: '🏏' },
+            { name: '$WIF', icon: '🐕‍🦺' }
+        ],
+        currentToken: null,
+        streak: 0,
+        particles: []
+    };
+
+    function pickToken() {
+        state.currentToken = state.tokens[Math.floor(Math.random() * state.tokens.length)];
+        state.currentPrice = 100;
+        state.chartData = [100];
+        // Random outcome - slightly favor pump for fun
+        state.priceDirection = Math.random() < 0.52 ? 1 : -1;
+        const volatility = 20 + Math.random() * 40;
+        state.targetPrice = state.priceDirection > 0
+            ? 100 + volatility
+            : 100 - volatility;
     }
+
+    pickToken();
+
+    arena.innerHTML = `
+        <div style="width:100%;height:100%;display:flex;flex-direction:column;background:linear-gradient(180deg,#0a0a1a 0%,#1a1a3a 100%);padding:15px;box-sizing:border-box;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                <div style="display:flex;gap:15px;">
+                    <div style="background:rgba(0,0,0,0.5);padding:6px 12px;border-radius:6px;">
+                        <span style="color:var(--gold);">Score: <span id="pa-score">0</span></span>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.5);padding:6px 12px;border-radius:6px;">
+                        <span style="color:var(--purple);">Round: <span id="pa-round">1</span>/${state.maxRounds}</span>
+                    </div>
+                </div>
+                ${isBettingMode ? `
+                <div style="background:rgba(0,0,0,0.5);padding:6px 12px;border-radius:6px;">
+                    <span style="color:var(--green);">Balance: <span id="pa-balance">${state.balance.toLocaleString()}</span></span>
+                </div>
+                ` : ''}
+            </div>
+
+            <div style="text-align:center;margin-bottom:10px;">
+                <div style="font-size:40px;" id="pa-token-icon">${state.currentToken.icon}</div>
+                <div style="font-size:20px;font-weight:bold;color:var(--gold);" id="pa-token-name">${state.currentToken.name}</div>
+            </div>
+
+            <div style="flex:1;position:relative;background:rgba(0,0,0,0.3);border-radius:8px;overflow:hidden;margin-bottom:10px;">
+                <canvas id="pa-canvas" style="width:100%;height:100%;"></canvas>
+                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;display:none;" id="pa-result"></div>
+            </div>
+
+            <div style="text-align:center;margin-bottom:10px;">
+                <div style="font-size:32px;font-weight:bold;font-family:var(--font-mono);" id="pa-price">$100.00</div>
+                <div style="font-size:14px;color:var(--text-muted);" id="pa-change">0.00%</div>
+            </div>
+
+            ${isBettingMode ? `
+            <div style="margin-bottom:10px;text-align:center;" id="pa-bet-controls">
+                <div style="color:var(--text-muted);font-size:12px;margin-bottom:5px;">BET AMOUNT</div>
+                <div style="display:flex;justify-content:center;gap:10px;">
+                    <button class="btn" data-bet="500" style="padding:5px 15px;">500</button>
+                    <button class="btn" data-bet="1000" style="padding:5px 15px;background:var(--gold);color:#000;">1K</button>
+                    <button class="btn" data-bet="5000" style="padding:5px 15px;">5K</button>
+                    <button class="btn" data-bet="10000" style="padding:5px 15px;">ALL</button>
+                </div>
+            </div>
+            ` : ''}
+
+            <div style="display:flex;gap:15px;justify-content:center;" id="pa-buttons">
+                <button id="pa-pump-btn" class="btn" style="flex:1;max-width:150px;padding:15px;font-size:18px;background:#22c55e;border-color:#22c55e;">
+                    📈 PUMP
+                </button>
+                <button id="pa-dump-btn" class="btn" style="flex:1;max-width:150px;padding:15px;font-size:18px;background:#ef4444;border-color:#ef4444;">
+                    📉 DUMP
+                </button>
+            </div>
+
+            <div style="text-align:center;margin-top:10px;color:var(--text-muted);font-size:12px;" id="pa-status">
+                ${state.streak > 0 ? `🔥 ${state.streak} streak!` : 'Predict the next move!'}
+            </div>
+        </div>
+    `;
+
+    const canvas = document.getElementById('pa-canvas');
+    const ctx = canvas.getContext('2d');
+    const priceEl = document.getElementById('pa-price');
+    const changeEl = document.getElementById('pa-change');
+    const resultEl = document.getElementById('pa-result');
+    const statusEl = document.getElementById('pa-status');
+    const pumpBtn = document.getElementById('pa-pump-btn');
+    const dumpBtn = document.getElementById('pa-dump-btn');
+
+    function resizeCanvas() {
+        const rect = canvas.parentElement.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+    }
+    resizeCanvas();
+
+    // Bet amount selection
+    if (isBettingMode) {
+        document.querySelectorAll('[data-bet]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const amount = parseInt(btn.dataset.bet);
+                state.betAmount = amount === 10000 ? state.balance : Math.min(amount, state.balance);
+                document.querySelectorAll('[data-bet]').forEach(b => b.style.background = '');
+                btn.style.background = 'var(--gold)';
+                btn.style.color = '#000';
+            });
+        });
+    }
+
+    function makePrediction(prediction) {
+        if (state.phase !== 'betting' || state.gameOver) return;
+
+        state.prediction = prediction;
+        state.phase = 'running';
+        state.timer = 0;
+
+        pumpBtn.disabled = true;
+        dumpBtn.disabled = true;
+        pumpBtn.style.opacity = prediction === 'pump' ? '1' : '0.3';
+        dumpBtn.style.opacity = prediction === 'dump' ? '1' : '0.3';
+
+        statusEl.textContent = `You predicted ${prediction.toUpperCase()}! Watching...`;
+    }
+
+    pumpBtn.addEventListener('click', () => makePrediction('pump'));
+    dumpBtn.addEventListener('click', () => makePrediction('dump'));
+
+    function addParticles(isWin) {
+        const icons = isWin ? ['🎉', '💰', '🚀', '✨'] : ['💔', '📉', '😢'];
+        for (let i = 0; i < 15; i++) {
+            state.particles.push({
+                x: canvas.width / 2,
+                y: canvas.height / 2,
+                vx: (Math.random() - 0.5) * 10,
+                vy: (Math.random() - 0.5) * 10 - 5,
+                icon: icons[Math.floor(Math.random() * icons.length)],
+                life: 60
+            });
+        }
+    }
+
+    function endRound(isWin) {
+        state.phase = 'result';
+        addParticles(isWin);
+
+        if (isWin) {
+            state.streak++;
+            const points = 100 * state.streak;
+            state.score += points;
+
+            if (isBettingMode) {
+                const winnings = state.betAmount * (1 + state.streak * 0.1);
+                state.balance += Math.floor(winnings);
+                document.getElementById('pa-balance').textContent = state.balance.toLocaleString();
+            }
+
+            resultEl.innerHTML = `
+                <div style="font-size:60px;">🎉</div>
+                <div style="font-size:24px;color:var(--green);font-weight:bold;">CORRECT!</div>
+                <div style="color:var(--gold);">+${points} points</div>
+                ${state.streak > 1 ? `<div style="color:var(--accent-fire);">🔥 ${state.streak}x streak!</div>` : ''}
+            `;
+        } else {
+            state.streak = 0;
+
+            if (isBettingMode) {
+                state.balance -= state.betAmount;
+                state.balance = Math.max(0, state.balance);
+                document.getElementById('pa-balance').textContent = state.balance.toLocaleString();
+            }
+
+            resultEl.innerHTML = `
+                <div style="font-size:60px;">😢</div>
+                <div style="font-size:24px;color:var(--accent-fire);font-weight:bold;">WRONG!</div>
+                <div style="color:var(--text-muted);">Streak lost</div>
+            `;
+        }
+
+        resultEl.style.display = 'block';
+        document.getElementById('pa-score').textContent = state.score;
+        updateScore(gameId, state.score);
+
+        if (state.round >= state.maxRounds || (isBettingMode && state.balance <= 0)) {
+            setTimeout(() => {
+                state.gameOver = true;
+                endGame(gameId, state.score);
+            }, 2000);
+        } else {
+            setTimeout(() => nextRound(), 2000);
+        }
+    }
+
+    function nextRound() {
+        state.round++;
+        state.phase = 'betting';
+        state.prediction = null;
+        state.timer = 0;
+
+        pickToken();
+
+        document.getElementById('pa-round').textContent = state.round;
+        document.getElementById('pa-token-icon').textContent = state.currentToken.icon;
+        document.getElementById('pa-token-name').textContent = state.currentToken.name;
+        priceEl.textContent = '$100.00';
+        changeEl.textContent = '0.00%';
+        changeEl.style.color = 'var(--text-muted)';
+        resultEl.style.display = 'none';
+
+        pumpBtn.disabled = false;
+        dumpBtn.disabled = false;
+        pumpBtn.style.opacity = '1';
+        dumpBtn.style.opacity = '1';
+
+        statusEl.textContent = state.streak > 0 ? `🔥 ${state.streak} streak! Keep going!` : 'Predict the next move!';
+    }
+
+    function update() {
+        if (state.gameOver) return;
+
+        if (state.phase === 'running') {
+            state.timer++;
+
+            // Animate price towards target with noise
+            const progress = state.timer / state.roundDuration;
+            const noise = (Math.random() - 0.5) * 5;
+            state.currentPrice = 100 + (state.targetPrice - 100) * progress + noise;
+            state.chartData.push(state.currentPrice);
+
+            if (state.chartData.length > 100) state.chartData.shift();
+
+            // Update UI
+            priceEl.textContent = '$' + state.currentPrice.toFixed(2);
+            const change = ((state.currentPrice - 100) / 100) * 100;
+            changeEl.textContent = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
+            changeEl.style.color = change >= 0 ? '#22c55e' : '#ef4444';
+
+            // Round end
+            if (state.timer >= state.roundDuration) {
+                const actualResult = state.currentPrice > 100 ? 'pump' : 'dump';
+                const isWin = state.prediction === actualResult;
+                endRound(isWin);
+            }
+        }
+
+        // Update particles
+        state.particles = state.particles.filter(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.3;
+            p.life--;
+            return p.life > 0;
+        });
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw chart
+        if (state.chartData.length > 1) {
+            const minPrice = Math.min(...state.chartData) - 10;
+            const maxPrice = Math.max(...state.chartData) + 10;
+            const range = maxPrice - minPrice || 1;
+
+            ctx.beginPath();
+            ctx.strokeStyle = state.currentPrice >= 100 ? '#22c55e' : '#ef4444';
+            ctx.lineWidth = 3;
+
+            state.chartData.forEach((price, i) => {
+                const x = (i / (state.chartData.length - 1)) * canvas.width;
+                const y = canvas.height - ((price - minPrice) / range) * canvas.height * 0.8 - canvas.height * 0.1;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+
+            // Fill under
+            ctx.lineTo(canvas.width, canvas.height);
+            ctx.lineTo(0, canvas.height);
+            ctx.closePath();
+            ctx.fillStyle = state.currentPrice >= 100 ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)';
+            ctx.fill();
+
+            // Starting line
+            const startY = canvas.height - ((100 - minPrice) / range) * canvas.height * 0.8 - canvas.height * 0.1;
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(0, startY);
+            ctx.lineTo(canvas.width, startY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        // Draw particles
+        ctx.font = '20px Arial';
+        ctx.textAlign = 'center';
+        state.particles.forEach(p => {
+            ctx.globalAlpha = p.life / 60;
+            ctx.fillText(p.icon, p.x, p.y);
+        });
+        ctx.globalAlpha = 1;
+    }
+
+    function gameLoop() {
+        if (state.gameOver) return;
+        update();
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+
+    activeGames[gameId] = {
+        cleanup: () => { state.gameOver = true; }
+    };
 }
 
 function startRugPull(gameId) {
