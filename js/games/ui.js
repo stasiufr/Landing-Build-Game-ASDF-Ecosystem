@@ -93,7 +93,7 @@ function renderGamesGrid() {
                 <div class="game-highscore">
                     Best: ${highScore}
                 </div>
-                <button class="btn game-play-btn" onclick="openGame('${game.id}')" ${isLocked ? 'disabled' : ''}>
+                <button class="btn game-play-btn" data-action="open-game" data-game="${game.id}" ${isLocked ? 'disabled' : ''}>
                     ${isLocked ? 'Locked' : 'Play'}
                 </button>
             </div>
@@ -206,7 +206,7 @@ function generateGameModals() {
                         <span>${game.icon}</span>
                         <span>${escapeHtml(game.name)}</span>
                     </h2>
-                    <button class="game-modal-close" onclick="closeGame('${game.id}')">&times;</button>
+                    <button class="game-modal-close" data-action="close-game" data-game="${game.id}">&times;</button>
                 </div>
                 <div class="game-modal-body">
                     <div class="game-arena" id="arena-${game.id}">
@@ -215,7 +215,7 @@ function generateGameModals() {
                                 <h3>${escapeHtml(game.name)}</h3>
                                 <p>${escapeHtml(game.description)}</p>
                             </div>
-                            <button class="btn btn-primary" onclick="startGame('${game.id}')">
+                            <button class="btn btn-primary" data-action="start-game" data-game="${game.id}">
                                 START GAME
                             </button>
                         </div>
@@ -237,9 +237,9 @@ function generateGameModals() {
                         </div>
                     </div>
                     <div class="game-mode-toggle">
-                        <button class="mode-btn" onclick="restartGame('${game.id}')" title="Restart Game">Restart</button>
+                        <button class="mode-btn" data-action="restart-game" data-game="${game.id}" title="Restart Game">Restart</button>
                         <button class="mode-btn active" id="practice-btn-${game.id}">Practice</button>
-                        <button class="mode-btn" id="competitive-btn-${game.id}" onclick="toggleCompetitive('${game.id}')">
+                        <button class="mode-btn" id="competitive-btn-${game.id}" data-action="toggle-competitive" data-game="${game.id}">
                             Competitive
                         </button>
                     </div>
@@ -367,7 +367,7 @@ async function buyTicket(type) {
     }
 
     try {
-        const buyBtn = document.querySelector(`[onclick="buyTicket('${type}')"]`);
+        const buyBtn = document.querySelector(`[data-action="buy-ticket"][data-ticket="${type}"]`);
         if (buyBtn) {
             buyBtn.disabled = true;
             buyBtn.textContent = 'Processing...';
@@ -439,7 +439,7 @@ async function buyTicket(type) {
         console.error('Ticket purchase failed:', error);
         alert(`Purchase failed: ${error.message}`);
     } finally {
-        const buyBtn = document.querySelector(`[onclick="buyTicket('${type}')"]`);
+        const buyBtn = document.querySelector(`[data-action="buy-ticket"][data-ticket="${type}"]`);
         if (buyBtn) {
             buyBtn.disabled = false;
             buyBtn.textContent = `Buy ${ticket.name}`;

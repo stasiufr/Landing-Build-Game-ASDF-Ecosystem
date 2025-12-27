@@ -180,3 +180,34 @@ document.addEventListener('keydown', (e) => {
         });
     }
 });
+
+// Event delegation for dynamically generated game buttons
+document.addEventListener('click', (e) => {
+    const target = e.target.closest('[data-action]');
+    if (!target) return;
+
+    const action = target.dataset.action;
+    const gameId = target.dataset.game;
+    const ticketType = target.dataset.ticket;
+
+    switch (action) {
+        case 'open-game':
+            if (gameId) openGame(gameId);
+            break;
+        case 'close-game':
+            if (gameId) closeGame(gameId);
+            break;
+        case 'start-game':
+            if (gameId) startGame(gameId);
+            break;
+        case 'restart-game':
+            if (gameId) restartGame(gameId);
+            break;
+        case 'toggle-competitive':
+            if (gameId) toggleCompetitive(gameId);
+            break;
+        case 'buy-ticket':
+            if (ticketType) buyTicket(ticketType);
+            break;
+    }
+});
