@@ -33,11 +33,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Quiz options - add data-level to parent .quiz and data-correct to options
+    // Quiz options - find level from parent .level-section
     document.querySelectorAll('.quiz-option').forEach(function(opt) {
         opt.addEventListener('click', function() {
-            const quiz = this.closest('.quiz-section, .quiz');
-            const level = quiz ? parseInt(quiz.dataset.level) : 0;
+            // Find the level from the parent .level-section (e.g., id="level-1" -> level 1)
+            const levelSection = this.closest('.level-section');
+            let level = 0;
+            if (levelSection && levelSection.id) {
+                const match = levelSection.id.match(/level-(\d+)/);
+                if (match) level = parseInt(match[1]);
+            }
             const correct = this.dataset.correct === 'true';
             checkAnswer(this, level, correct);
         });
@@ -110,6 +115,21 @@ document.addEventListener('DOMContentLoaded', function() {
             if (deepModal) closeDeepLearn();
         });
     });
+
+    // Deep Learn button (dynamically created in doc modal) - use event delegation
+    const docModal = document.getElementById('doc-modal');
+    if (docModal) {
+        docModal.addEventListener('click', function(e) {
+            const deepLearnBtn = e.target.closest('.deep-learn');
+            if (deepLearnBtn) {
+                const project = deepLearnBtn.dataset.project;
+                if (project) {
+                    closeDocs();
+                    openDeepLearn(project);
+                }
+            }
+        });
+    }
 
     // Game cards
     document.querySelectorAll('.game-card').forEach(function(card) {

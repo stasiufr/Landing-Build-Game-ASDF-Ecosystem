@@ -665,7 +665,7 @@ docker run asdf-grinder
 
             html += `<div class="doc-links">
                 <a href="${escapeHtml(doc.github)}" class="doc-link" target="_blank" rel="noopener noreferrer">View on GitHub</a>
-                <button class="doc-link deep-learn" onclick="closeDocs(); openDeepLearn('${escapeHtml(projectId)}')">🎓 Deep Learn</button>
+                <button class="doc-link deep-learn" data-project="${escapeHtml(projectId)}">🎓 Deep Learn</button>
                 <a href="${escapeHtml(doc.github)}/issues/new" class="doc-link secondary" target="_blank" rel="noopener noreferrer">Report Issue</a>
             </div>`;
 
